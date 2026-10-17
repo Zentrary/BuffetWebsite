@@ -171,6 +171,8 @@
       render(data);
       syncBrand(data.restaurantName);
     } catch (error) {
+      // หากโหลดไม่สำเร็จ ให้แสดงข้อความแจ้งเตือน ไม่ให้ค้างที่ "กำลังโหลด..."
+      statusElement.textContent = T('admin.settings.statusUnknown');
       Admin.message(error.message, true);
     }
   }

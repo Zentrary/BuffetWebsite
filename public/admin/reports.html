@@ -186,7 +186,7 @@
             </article>
           </div>
           <nav class="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm" role="tablist">
-            <button type="button" class="report-tab min-h-11 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white sm:text-base" data-tab="overview" data-tab="overview" data-i18n="reports.tabOverview">
+            <button type="button" class="report-tab min-h-11 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white sm:text-base" data-tab="overview" data-i18n="reports.tabOverview">
               ภาพรวม
             </button>
             <button type="button" class="report-tab min-h-11 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-orange-50 sm:text-base" data-tab="menu" data-i18n="reports.tabMenu">
@@ -202,16 +202,18 @@
               ลูกค้า
             </button>
           </nav>
+          
           <section class="report-panel space-y-4" id="panel-overview">
             <div class="rounded-2xl bg-white p-5 shadow-sm">
               <h2 class="mb-4 text-xl font-black" data-i18n="reports.dailySales">
                 ยอดขายรายวัน
               </h2>
-              <div class="h-72">
+              <div class="h-64">
                 <canvas id="chart-daily">
                 </canvas>
               </div>
             </div>
+            
             <div class="rounded-2xl bg-white p-5 shadow-sm">
               <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <h2 class="text-xl font-black" data-i18n="reports.comparison">
@@ -249,55 +251,9 @@
                   </div>
                 </div>
               </div>
-              <div class="mt-4">
-                <p class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="reports.dailyOverlay">
-                  เทียบยอดขายรายวัน (ทับซ้อน)
-                </p>
-                <div class="h-64">
-                  <canvas id="chart-cmp-daily">
-                  </canvas>
-                </div>
-              </div>
-            </div>
-            <div class="grid gap-4 lg:grid-cols-2">
-              <div class="rounded-2xl bg-white p-5 shadow-sm">
-                <h2 class="mb-4 text-lg font-black" data-i18n="reports.hourlySales">
-                  ยอดขายรายชั่วโมง
-                </h2>
-                <div class="h-64">
-                  <canvas id="chart-hourly">
-                  </canvas>
-                </div>
-              </div>
-              <div class="rounded-2xl bg-white p-5 shadow-sm">
-                <h2 class="mb-4 text-lg font-black" data-i18n="reports.paymentMethods">
-                  ช่องทางชำระเงิน
-                </h2>
-                <div class="h-64">
-                  <canvas id="chart-payment">
-                  </canvas>
-                </div>
-              </div>
-              <div class="rounded-2xl bg-white p-5 shadow-sm">
-                <h2 class="mb-4 text-lg font-black" data-i18n="reports.sessionDurations">
-                  ระยะเวลาทาน
-                </h2>
-                <div class="h-64">
-                  <canvas id="chart-duration">
-                  </canvas>
-                </div>
-              </div>
-              <div class="rounded-2xl bg-white p-5 shadow-sm">
-                <h2 class="mb-4 text-lg font-black" data-i18n="reports.zoneSales">
-                  ยอดขายตามโซน
-                </h2>
-                <div class="h-64">
-                  <canvas id="chart-zone">
-                  </canvas>
-                </div>
-              </div>
             </div>
           </section>
+          
           <section class="report-panel hidden" id="panel-menu">
             <div class="mb-4 grid gap-4 lg:grid-cols-2">
               <div class="rounded-2xl bg-white p-5 shadow-sm">
@@ -358,15 +314,6 @@
                 </p>
               </div>
             </div>
-            <div class="rounded-2xl bg-white p-5 shadow-sm">
-              <h2 class="mb-4 text-lg font-black" data-i18n="reports.byCategory">
-                สัดส่วนตามหมวดหมู่
-              </h2>
-              <div class="mx-auto max-w-md h-72">
-                <canvas id="chart-category">
-                </canvas>
-              </div>
-            </div>
           </section>
           <section class="report-panel hidden" id="panel-staff">
             <div class="rounded-2xl bg-white p-5 shadow-sm">
@@ -414,7 +361,7 @@
               <div class="mb-4 flex flex-wrap items-end gap-3">
                 <label class="text-sm font-semibold text-slate-600">
                   วิธีชำระ
-                  <select id="bills-method" class="ml-2 rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                  <select id="bills-method" class="ml-2 select select-bordered select-sm">
                     <option value="">
                       ทั้งหมด
                     </option>
@@ -428,7 +375,7 @@
                 </label>
                 <label class="text-sm font-semibold text-slate-600">
                   ต่อหน้า
-                  <select id="bills-limit" class="ml-2 rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                  <select id="bills-limit" class="ml-2 select select-bordered select-sm">
                     <option value="20">
                       20
                     </option>

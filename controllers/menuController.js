@@ -49,18 +49,7 @@ async function getAllMenus(req, res) {
     const filter = {};
     if (req.query.category) {
       const categories = String(req.query.category).split(',').map((category) => category.trim()).filter(Boolean);
-      const allowedCategories = [
-        'appetizer', 'main', 'dessert', 'drink', 'side', 'meat', 'seafood',
-        'vegetable', 'noodle', 'soup', 'sauce',
-      ];
-      if (categories.some((category) => !allowedCategories.includes(category))) {
-        return res.status(400).json({
-          success: false,
-          code: 'INVALID_MENU_CATEGORY',
-          data: null,
-          message: 'Invalid menu category.',
-        });
-      }
+      // ลบ allowedCategories ออกแล้ว เพื่อให้ค้นหาหมวดหมู่ที่แอดมินพิมพ์เองได้
       filter.category = categories.length === 1 ? categories[0] : { $in: categories };
     }
     if (req.query.isAvailable !== undefined) {

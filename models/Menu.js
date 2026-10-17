@@ -1,4 +1,4 @@
-// Import Mongoose to define menu items and validate their categories.
+// Import Mongoose to define menu items.
 const mongoose = require('mongoose');
 
 // Define food and drink offered by the restaurant.
@@ -15,31 +15,13 @@ const menuSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
-      required: true,
+      default: 0,
       min: 0,
     },
     category: {
       type: String,
-      enum: [
-        // อัปเดตหมวดหมู่ใหม่ทั้ง 14 หมวด
-        'set_menu',
-        'sukiyaki_hotpan',
-        'sushi_roll',
-        'japanese_main',
-        'chinese_stirfry',
-        'fried_appetizer',
-        'salad_yum',
-        'fresh_meat',
-        'fresh_seafood',
-        'vegetable_tofu',
-        'noodle_rice_side',
-        'soup_sauce',
-        'dessert',
-        'drink',
-        // เก็บของเก่าไว้เผื่อมีข้อมูลเดิมใน DB (ถ้าไม่ต้องการลบออกได้ครับ)
-        'appetizer', 'main', 'side', 'meat', 'seafood', 'vegetable', 'noodle', 'soup', 'sauce'
-      ],
-      required: true,
+      trim: true,
+      default: 'uncategorized',
     },
     imageUrl: {
       type: String,

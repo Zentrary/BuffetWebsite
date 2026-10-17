@@ -80,7 +80,6 @@
     }
     if (reload) {
       loadSummary();
-      loadCharts();
       if (billsPage > 1) billsPage = 1;
       billsCache = [];
     }
@@ -155,12 +154,9 @@
       console.error('[reports] daily-sales failed:', e);
     }
 
-    // IMPORTANT: reveal the container BEFORE drawing charts.
-    // Chart.js cannot measure a canvas inside display:none (would be 0×0).
     if (els.content) els.content.classList.remove('hidden');
     if (els.loading) els.loading.classList.add('hidden');
 
-    // Wait one animation frame so the browser applies layout before Chart.js measures.
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
     if (summaryData) renderSummary(summaryData);
@@ -177,7 +173,6 @@
     if (charts[key]) { charts[key].destroy(); charts[key] = null; }
   }
 
-  // Daily sales — use BAR so a single data point is still visible.
   function drawDailyChart(data) {
     if (typeof Chart !== 'function') return;
     const canvas = $('chart-daily');
@@ -188,7 +183,6 @@
 
     destroyChart('daily');
 
-    // No data → render empty state text on canvas
     if (labels.length === 0) {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -231,101 +225,6 @@
         },
       },
     });
-  }
-
-  async function loadCharts() {
-    const endpoints = [
-      ['hourly', `/api/report/hourly-sales?${rangeParams().toString()}`],
-      ['payment', `/api/report/payment-methods?${rangeParams().toString()}`],
-      ['duration', `/api/report/session-durations?${rangeParams().toString()}`],
-      ['zone', `/api/report/zone-sales?${rangeParams().toString()}`],
-    ];
-    const results = {};
-    for (const [key, url] of endpoints) {
-      try { results[key] = (await Admin.api(url)).data; }
-      catch (e) { console.warn(`[reports] ${key} failed:`, e.message); results[key] = null; }
-    }
-    if (typeof Chart !== 'function') return;
-
-    // Ensure canvas is measurable
-    if (els.content && els.content.classList.contains('hidden')) return;
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-
-    if (results.hourly && $('chart-hourly')) {
-      const hours = results.hourly;
-      destroyChart('hourly');
-      charts.hourly = new Chart($('chart-hourly'), {
-        type: 'bar',
-        data: {
-          labels: hours.map((h) => `${pad(h.hour)}:00`),
-          datasets: [{
-            label: T('reports.chartSalesLabel'),
-            data: hours.map((h) => h.total),
-            backgroundColor: '#f97316',
-            borderRadius: 4,
-          }],
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, ticks: { callback: (v) => `฿${v}` } } },
-        },
-      });
-    }
-    if (results.payment && $('chart-payment')) {
-      const p = results.payment;
-      destroyChart('payment');
-      charts.payment = new Chart($('chart-payment'), {
-        type: 'doughnut',
-        data: {
-          labels: [T('admin.checkout.cash'), T('admin.checkout.qrPayment')],
-          datasets: [{ data: [p.cash.total, p.qr.total], backgroundColor: ['#16a34a', '#0891b2'] }],
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } },
-      });
-    }
-    if (results.duration && $('chart-duration')) {
-      const buckets = results.duration;
-      destroyChart('duration');
-      charts.duration = new Chart($('chart-duration'), {
-        type: 'bar',
-        data: {
-          labels: buckets.map((b) => b.label),
-          datasets: [{
-            label: T('reports.tabBills'),
-            data: buckets.map((b) => b.count),
-            backgroundColor: '#3b82f6',
-            borderRadius: 4,
-          }],
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
-        },
-      });
-    }
-    if (results.zone && $('chart-zone')) {
-      const z = results.zone;
-      destroyChart('zone');
-      charts.zone = new Chart($('chart-zone'), {
-        type: 'bar',
-        data: {
-          labels: Object.keys(z).map((k) => zoneLabel(k)),
-          datasets: [{
-            label: T('reports.chartSalesLabel'),
-            data: Object.values(z).map((v) => v.total),
-            backgroundColor: '#ea580c',
-            borderRadius: 4,
-          }],
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, ticks: { callback: (v) => `฿${v}` } } },
-        },
-      });
-    }
   }
 
   async function loadBills() {
@@ -386,7 +285,7 @@
   async function loadMenuTab() {
     try {
       const res = await Admin.api(`/api/report/menu-trends?${rangeParams().toString()}`);
-      const { top, bottom, categories } = res.data;
+      const { top, bottom } = res.data;
 
       const topBody = $('menu-top-rows');
       const botBody = $('menu-bottom-rows');
@@ -425,28 +324,6 @@
             <td class="py-2 pr-2 text-right font-bold text-orange-700">${Admin.currency(m.sales)}</td>`;
           botBody.append(tr);
         });
-      }
-
-      const canvas = $('chart-category');
-      if (canvas && typeof Chart === 'function') {
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        destroyChart('category');
-        if (categories.length === 0) {
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        } else {
-          charts.category = new Chart(canvas, {
-            type: 'doughnut',
-            data: {
-              labels: categories.map((c) => catLabel(c.category)),
-              datasets: [{
-                data: categories.map((c) => c.total),
-                backgroundColor: ['#ea580c', '#f97316', '#fb923c', '#fdba74', '#f59e0b', '#0891b2', '#16a34a', '#9333ea', '#dc2626', '#3b82f6', '#6b7280'],
-              }],
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } },
-          });
-        }
       }
     } catch (e) {
       console.warn('[reports] menu-trends failed:', e.message);
@@ -634,7 +511,7 @@
   async function loadComparison() {
     try {
       const res = await Admin.api(`/api/report/comparison?${rangeParams().toString()}`);
-      const { current, previous, curDaily, prevDaily, range, previousRange } = res.data;
+      const { current, previous, range, previousRange } = res.data;
 
       const cmpRange = document.getElementById('comparison-range');
       if (cmpRange) {
@@ -649,7 +526,6 @@
 
       if (typeof Chart !== 'function') return;
 
-      // Wait for layout, since these canvases may be inside a hidden panel.
       await new Promise((resolve) => requestAnimationFrame(resolve));
 
       const makeMini = (canvasId, key) => {
@@ -677,43 +553,6 @@
       makeMini('chart-cmp-sales', 'totalSales');
       makeMini('chart-cmp-bills', 'billCount');
       makeMini('chart-cmp-customers', 'customerCount');
-
-      const dailyCanvas = $('chart-cmp-daily');
-      if (dailyCanvas) {
-        destroyChart('cmpDaily');
-        const maxLen = Math.max(curDaily.length, prevDaily.length);
-        const labels = Array.from({ length: maxLen }, (_, i) => T('reports.dayN', { n: i + 1 }));
-
-        // Use grouped bars so single-day comparisons are still visible.
-        charts.cmpDaily = new Chart(dailyCanvas, {
-          type: 'bar',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: T('reports.previous'),
-                data: prevDaily,
-                backgroundColor: '#94a3b8',
-                borderRadius: 4,
-              },
-              {
-                label: T('reports.current'),
-                data: curDaily,
-                backgroundColor: '#ea580c',
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'top' } },
-            scales: {
-              x: { grid: { display: false } },
-              y: { beginAtZero: true, ticks: { callback: (v) => `฿${v}` } },
-            },
-          },
-        });
-      }
     } catch (e) {
       console.warn('[reports] comparison failed:', e.message);
     }
@@ -784,7 +623,6 @@
   window.addEventListener('languageChanged', () => {
     if (summaryCache) renderSummary(summaryCache);
     if (dailyCache) drawDailyChart(dailyCache.salesByDay || []);
-    loadCharts();
     loadComparison();
     if (!$('panel-menu')?.classList.contains('hidden')) loadMenuTab();
     if (!$('panel-staff')?.classList.contains('hidden')) loadStaffTab();

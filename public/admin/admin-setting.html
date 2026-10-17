@@ -69,7 +69,8 @@
             <p class="text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="admin.settings.shopStatus">
               สถานะร้าน
             </p>
-            <p id="shop-status" class="text-lg font-black leading-tight" data-i18n="admin.settings.loading">
+            <!-- ลบ data-i18n ออก เพื่อให้ JavaScript เป็นคนจัดการข้อความสถานะเอง -->
+            <p id="shop-status" class="text-lg font-black leading-tight">
               กำลังโหลด...
             </p>
             <p id="closing-countdown" class="hidden text-xs font-bold text-orange-700" aria-live="polite">
@@ -268,7 +269,8 @@
               </div>
             </div>
           </section>
-          <!-- Section 4 -->
+          
+          <!-- Section 4: Opening Hours (จัดเรียงใหม่) -->
           <section class="rounded-2xl bg-white p-5 shadow-sm sm:p-7">
             <div class="mb-5">
               <h2 class="text-xl font-black" data-i18n="admin.settings.section4Title">
@@ -278,33 +280,37 @@
                 รองรับเวลาปิดข้ามวัน เช่น เปิด 10:30 และปิด 03:00
               </p>
             </div>
-            <div class="grid gap-4 md:grid-cols-4">
-              <label class="font-semibold">
-                <span data-i18n="admin.settings.openTime">
-                  เวลาเปิด
-                </span>
-                <input id="open-time" name="openTime" required type="time" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
-              </label>
-              <label class="font-semibold">
-                <span data-i18n="admin.settings.closeTime">
-                  เวลาปิด
-                </span>
-                <input id="close-time" name="closeTime" required type="time" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
-              </label>
-              <label class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 md:col-span-2">
-                <input id="test-mode" name="isTestMode" type="checkbox" class="h-5 w-5 shrink-0 rounded border-slate-300 accent-orange-600">
-                <span class="text-sm font-semibold">
-                  <span data-i18n="admin.settings.testMode">
+            
+            <div class="space-y-4">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label class="block font-semibold">
+                  <span data-i18n="admin.settings.openTime">
+                    เวลาเปิด
+                  </span>
+                  <input id="open-time" name="openTime" required type="time" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+                </label>
+                <label class="block font-semibold">
+                  <span data-i18n="admin.settings.closeTime">
+                    เวลาปิด
+                  </span>
+                  <input id="close-time" name="closeTime" required type="time" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+                </label>
+              </div>
+              
+              <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 transition hover:bg-amber-100/50">
+                <input id="test-mode" name="isTestMode" type="checkbox" class="mt-1 h-5 w-5 shrink-0 rounded border-slate-300 accent-orange-600">
+                <span class="block">
+                  <span class="block text-base font-bold text-amber-900" data-i18n="admin.settings.testMode">
                     โหมดทดสอบระบบก่อนเปิดร้าน
                   </span>
-                  <br>
-                  <span class="text-xs font-normal text-slate-600" data-i18n="admin.settings.testModeDesc">
+                  <span class="mt-1 block text-sm text-amber-800/80" data-i18n="admin.settings.testModeDesc">
                     พนักงานตรวจระบบได้ แต่ลูกค้าจริงจะรับคิวหรือสั่งอาหารไม่ได้
                   </span>
                 </span>
               </label>
             </div>
           </section>
+          
           <div class="flex justify-end pt-1">
             <button class="rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700" data-i18n="admin.settings.save">
               บันทึกการตั้งค่า

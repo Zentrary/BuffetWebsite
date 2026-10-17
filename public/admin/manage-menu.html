@@ -162,7 +162,7 @@
                   <span data-i18n="form.price">
                     ราคา (฿)
                   </span>
-                  <input id="menu-form-price" name="price" type="number" min="0" step="0.01" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+                  <input id="menu-form-price" name="price" type="number" min="0" step="0.01" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
                 </label>
                 <label class="block text-sm font-semibold">
                   <span data-i18n="form.preparationTime">
@@ -171,86 +171,27 @@
                   <input id="menu-form-preparationTime" name="preparationTime" type="number" min="0" value="10" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
                 </label>
               </div>
+              
+              <!-- Dropdown หมวดหมู่แบบใหม่ -->
               <label class="block text-sm font-semibold">
                 <span data-i18n="form.category">
                   หมวดหมู่
                 </span>
-                <select id="menu-form-category" name="category" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
-                  <option value="set_menu" data-i18n="menu.category.set_menu">
-                    เซ็ตบุฟเฟต์
-                  </option>
-                  <option value="sukiyaki" data-i18n="menu.category.sukiyaki">
-                    สุกี้
-                  </option>
-                  <option value="hotpan" data-i18n="menu.category.hotpan">
-                    กระทะร้อน
-                  </option>
-                  <option value="sushi" data-i18n="menu.category.sushi">
-                    ซูชิ
-                  </option>
-                  <option value="maki" data-i18n="menu.category.maki">
-                    โรล
-                  </option>
-                  <option value="sashimi" data-i18n="menu.category.sashimi">
-                    ซาซิมิ
-                  </option>
-                  <option value="japanese_main" data-i18n="menu.category.japanese_main">
-                    อาหารญี่ปุ่นจานหลัก
-                  </option>
-                  <option value="chinese" data-i18n="menu.category.chinese">
-                    อาหารจีน
-                  </option>
-                  <option value="fried" data-i18n="menu.category.fried">
-                    ของทอด
-                  </option>
-                  <option value="dim_sum" data-i18n="menu.category.dim_sum">
-                    ติ่มซำ
-                  </option>
-                  <option value="yum" data-i18n="menu.category.yum">
-                    ยำ
-                  </option>
-                  <option value="salad" data-i18n="menu.category.salad">
-                    สลัด
-                  </option>
-                  <option value="fresh_meat" data-i18n="menu.category.fresh_meat">
-                    เนื้อสัตว์สด (ชาบู)
-                  </option>
-                  <option value="offal" data-i18n="menu.category.offal">
-                    เครื่องใน
-                  </option>
-                  <option value="seafood" data-i18n="menu.category.seafood">
-                    อาหารทะเลสด
-                  </option>
-                  <option value="vegetable" data-i18n="menu.category.vegetable">
-                    ผักสด
-                  </option>
-                  <option value="mushroom" data-i18n="menu.category.mushroom">
-                    เห็ด
-                  </option>
-                  <option value="tofu" data-i18n="menu.category.tofu">
-                    เต้าหู้
-                  </option>
-                  <option value="noodle" data-i18n="menu.category.noodle">
-                    เส้น
-                  </option>
-                  <option value="rice" data-i18n="menu.category.rice">
-                    ข้าว
-                  </option>
-                  <option value="side" data-i18n="menu.category.side">
-                    เครื่องเคียง
-                  </option>
-                  <option value="soup" data-i18n="menu.category.soup">
-                    น้ำซุป
-                  </option>
-                  <option value="sauce" data-i18n="menu.category.sauce">
-                    น้ำจิ้ม
-                  </option>
-                  <option value="dessert" data-i18n="menu.category.dessert">
-                    ของหวาน
-                  </option>
-                  <option value="drink" data-i18n="menu.category.drink">
-                    เครื่องดื่ม
-                  </option>
+                <select id="menu-form-category" name="category" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white">
+                  <option value="uncategorized">ไม่ระบุ</option>
+                  <option value="set">ชุดเซต</option>
+                  <option value="appetizer">อาหารทานเล่น</option>
+                  <option value="main">อาหารหลัก</option>
+                  <option value="sushi">ซูชิ</option>
+                  <option value="meat">เนื้อสัตว์</option>
+                  <option value="seafood">อาหารทะเล</option>
+                  <option value="veg">ผัก</option>
+                  <option value="noodle">เส้นและข้าว</option>
+                  <option value="soup">น้ำซุป</option>
+                  <option value="sauce">น้ำจิ้ม</option>
+                  <option value="side">เครื่องเคียง</option>
+                  <option value="dessert">ของหวาน</option>
+                  <option value="drink">เครื่องดื่ม</option>
                 </select>
               </label>
             </div>

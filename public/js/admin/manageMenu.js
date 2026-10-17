@@ -4,9 +4,6 @@
   if (!Admin) return;
   const T = (key, vars) => (window.t ? window.t(key, vars) : key);
 
-  // Use explicit IDs (set in HTML) instead of form.elements lookups.
-  // form.elements[<name>] can silently become undefined if the form is detached,
-  // rebuilt, or when a name collides with a built-in collection property.
   const form = document.getElementById('menu-form');
   const $ = (id) => document.getElementById(id);
   const fields = {
@@ -23,20 +20,10 @@
     imageFile: $('menuImageFile'),
   };
 
-  // Active categories shown in the admin filter and the menu form select.
-  const CATEGORY_KEYS = [
-    'set_menu', 'sukiyaki', 'hotpan', 'sushi', 'maki', 'sashimi',
-    'japanese_main', 'chinese', 'fried', 'dim_sum', 'yum', 'salad',
-    'fresh_meat', 'offal', 'seafood', 'vegetable', 'mushroom', 'tofu',
-    'noodle', 'rice', 'side', 'soup', 'sauce', 'dessert', 'drink',
-  ];
-  const DEFAULT_CATEGORY = CATEGORY_KEYS[0];
-  let categoryFilterOptions = [...CATEGORY_KEYS];
+  let categoryFilterOptions = [];
   let menus = [];
   let searchForm;
   let menuView = localStorage.getItem('menuView') || 'table';
-  // The modal title is managed here (not by data-i18n) so an i18n re-render
-  // cannot reset "edit" back to "add" while the form is open.
   let editingMenu = null;
 
   function updateMenuModalTitle() {
@@ -45,7 +32,6 @@
     titleEl.textContent = editingMenu ? T('form.editMenuTitle') : T('form.addMenuTitle');
   }
 
-  // Lock the page behind the dialog so scrolling cannot move the menu list.
   function setMenuModalOpen(open) {
     const modal = document.getElementById('menu-modal');
     if (!modal) return;
@@ -54,8 +40,56 @@
     document.body.classList.toggle('overflow-hidden', open);
   }
 
+  // แปลงชื่อหมวดหมู่สำหรับแสดงผล
   function catLabel(cat) {
-    return T(`menu.category.${cat}`) || cat;
+    const map = {
+      uncategorized: 'ไม่ระบุ',
+      set: 'ชุดเซต',
+      appetizer: 'อาหารทานเล่น',
+      main: 'อาหารหลัก',
+      sushi: 'ซูชิ',
+      meat: 'เนื้อสัตว์',
+      seafood: 'อาหารทะเล',
+      veg: 'ผัก',
+      noodle: 'เส้นและข้าว',
+      soup: 'น้ำซุป',
+      sauce: 'น้ำจิ้ม',
+      side: 'เครื่องเคียง',
+      dessert: 'ของหวาน',
+      drink: 'เครื่องดื่ม',
+    };
+    return map[cat] || map.uncategorized;
+  }
+
+  // ระบบทายหมวดหมู่อัตโนมัติ (Auto-Categorize) จากชื่อเมนู
+  function guessCategory(name) {
+    if (!name) return null;
+    const n = name.toLowerCase().trim();
+
+    if (/ชุด|เซ็ต|signature|premium|deluxe|ครอบครัว|อิ่มคุ้ม|อิ่มคู่/.test(n)) return 'set';
+    if (/น้ำจิ้ม/.test(n)) return 'sauce';
+    if (/น้ำซุป|ซุป/.test(n)) return 'soup';
+    if (/ชา|น้ำ|เครื่องดื่ม/.test(n)) return 'drink';
+    if (/ไอศกรีม|บัวลอย|บิงซู|ผลไม้|เฉาก๊วย|น้ำแข็งใส/.test(n)) return 'dessert';
+    
+    if (/ขนมจีบ|เกี๊ยวกุ้ง|เกี๊ยวปลา|ทอด|นักเก็ต|ปอเปี๊ยะ|ฟองเต้าหู้|มันบด|เฟรนช์ฟรายส์|เกี๊ยวซ่า|ฮือแซ|ทอดมัน|หอยจ้อ|แฮกึ้น|แฮ่กึ๊น|ยำ|สลัด/.test(n)) return 'appetizer';
+    
+    if (/ซูชิ|อินาริ|มากิ|โรล|บอล|เบอร์เกอร์|ซาซิมิ|ดองซีอิ๊ว/.test(n)) return 'sushi';
+    
+    if (/สุกี้|กระทะ|ราเมน|ยากิโซบะ|ข้าว|ก๋วยเตี๋ยว|ขาห่าน|คากิ|ซี่โครง|ปลาทรงเครื่อง|ลิ้นห่าน|ออส่วน|เป๋า|แปรก้วย|แปะก๊วย|เอ็นหมู|หัวปลา|ไก่บ้าน/.test(n)) return 'main';
+    
+    if (/หูหมู|ตับ|เซี่ยงจี๊|ตั้งโอ๋|กระเพาะ|ลำไส้|เอ็น|เนื้อ|หมู|ไก่|เป็ด|เบคอน/.test(n)) return 'meat';
+    
+    if (/กุ้ง|ปลาหมึก|ปลา|ปู|หอย|แมงกะพรุน|ทาโกะ/.test(n)) return 'seafood';
+    
+    if (/ผัก|กวางตุ้ง|กะหล่ำ|ขึ้นฉ่าย|คะน้า|ข้าวโพด|ฟักทอง|มันฝรั่ง|เผือก|หัวไชเท้า|เห็ด|เต้าหู้/.test(n)) return 'veg';
+    
+    if (/วุ้นเส้น|เส้น|บะหมี่|มาม่า/.test(n)) return 'noodle';
+    
+    // เพิ่มการทายหมวดหมู่เครื่องเคียง
+    if (/ไข่|สาหร่าย|กิมจิ|ขิง|ไชเท้าดอง/.test(n)) return 'side';
+
+    return 'uncategorized';
   }
 
   function addFormField(parent, labelText, name, type, options = {}) {
@@ -95,7 +129,6 @@
     const headerRow = table.querySelector('thead tr');
     if (!headerRow) return;
 
-    // Idempotent: remove previously-injected stock headers before inserting a new one.
     headerRow.querySelectorAll('[data-injected-stock-header]').forEach((el) => el.remove());
     const stockHeader = document.createElement('th');
     stockHeader.className = 'p-4';
@@ -104,7 +137,6 @@
     stockHeader.dataset.i18n = 'admin.stock';
     headerRow.insertBefore(stockHeader, headerRow.children[3]);
 
-    // Remove any previous search section + cards wrapper so we can rebuild cleanly.
     const existingSearch = document.getElementById('menu-search-form');
     if (existingSearch) {
       const existingSection = existingSearch.closest('section');
@@ -123,12 +155,11 @@
     searchForm.id = 'menu-search-form';
     searchForm.className = 'grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6';
     addFormField(searchForm, T('admin.searchQuery'), 'query', 'search', { placeholder: T('admin.searchPlaceholder') });
+    
     addFormField(searchForm, T('admin.filterCategory'), 'category', 'select', {
-      options: [{ value: '', label: T('admin.filterAllCategories') }, ...categoryFilterOptions.map((c) => ({
-        value: c,
-        label: catLabel(c),
-      }))],
+      options: [{ value: '', label: T('admin.filterAllCategories') }]
     });
+
     addFormField(searchForm, T('admin.filterAvailability'), 'availability', 'select', {
       options: [
         { value: '', label: T('admin.filterAllStatus') },
@@ -230,16 +261,11 @@
     });
   }
 
-  // Keep the category filter in sync with categories that exist in the data,
-  // including legacy categories still used by older menu documents.
   function syncCategoryFilterOptions() {
     if (!searchForm) return;
     const select = searchForm.querySelector('select[name="category"]');
     if (!select) return;
-    const extras = [...new Set(menus
-      .map((menu) => menu.category)
-      .filter((category) => category && !CATEGORY_KEYS.includes(category)))];
-    const next = [...CATEGORY_KEYS, ...extras];
+    const next = [...new Set(menus.map((menu) => menu.category).filter(Boolean))].sort();
     if (next.join('|') === categoryFilterOptions.join('|')) return;
     const selected = select.value;
     categoryFilterOptions = next;
@@ -286,6 +312,7 @@
     }
     const resultCount = document.getElementById('menu-result-count');
     if (resultCount) resultCount.textContent = T('admin.filterShowing', { n: visibleMenus.length, total: menus.length });
+    
     document.querySelectorAll('[data-menu-view]').forEach((button) => {
       const selected = button.dataset.menuView === menuView;
       button.classList.toggle('bg-orange-600', selected);
@@ -295,23 +322,26 @@
       button.classList.toggle('hover:bg-white', !selected);
       button.setAttribute('aria-pressed', String(selected));
     });
+    
     visibleMenus.forEach((menu) => {
       const available = Boolean(menu.isAvailable) && stockState(menu) !== 'out';
       const canEnable = stockState(menu) !== 'out';
       const toggleLabel = available ? T('admin.closeSale') : (canEnable ? T('admin.openSale') : T('admin.refillFirst'));
+      
+      const priceDisplay = Number(menu.price) > 0 
+        ? Admin.currency(menu.price) 
+        : '<span class="text-sm font-normal text-slate-400">ยังไม่กำหนดราคา</span>';
+
       const row = document.createElement('tr');
       row.innerHTML = `
         <td class="p-4"><div class="flex items-center gap-3"><img src="${Admin.escapeHTML(menu.imageUrl || '')}" alt="" class="h-12 w-12 rounded-lg bg-slate-100 object-cover"><span class="font-bold">${Admin.escapeHTML(menu.name)}</span></div></td>
         <td class="p-4">${catLabel(menu.category)}</td>
-        <td class="p-4 font-semibold">${Admin.currency(menu.price)}</td>
+        <td class="p-4 font-semibold">${priceDisplay}</td>
         <td class="p-4">${stockMarkup(menu)}</td>
         <td class="p-4"><span class="rounded-md px-3 py-1 text-xs font-bold ${available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${available ? T('admin.available') : T('admin.soldOut')}</span></td>
         <td class="p-4"><div class="flex justify-end gap-2"><button type="button" data-edit="${Admin.escapeHTML(menu._id)}" class="rounded-lg bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">${T('admin.edit')}</button><button type="button" data-toggle="${Admin.escapeHTML(menu._id)}" class="rounded-lg bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800" ${!available && !canEnable ? `disabled title="${T('admin.refillFirst')}"` : ''}>${toggleLabel}</button>${Admin.isAdmin ? `<button type="button" data-delete="${Admin.escapeHTML(menu._id)}" class="rounded-lg bg-red-50 px-3 py-2 text-sm font-bold text-red-700">${T('admin.delete')}</button>` : ''}</div></td>`;
       const image = row.querySelector('img');
-      image.onerror = () => {
-        image.onerror = null;
-        image.src = '/assets/images/default-food.jpg';
-      };
+      image.onerror = () => { image.onerror = null; image.src = '/assets/images/default-food.jpg'; };
       row.querySelector('[data-edit]').addEventListener('click', () => openEditor(menu));
       row.querySelector('[data-toggle]').addEventListener('click', () => toggleAvailability(menu));
       const deleteButton = row.querySelector('[data-delete]');
@@ -329,7 +359,7 @@
               <span class="mt-1 inline-block shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold ${available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${available ? T('admin.available') : T('admin.unavailable')}</span>
             </div>
             <p class="mt-1 text-sm text-slate-500">${Admin.escapeHTML(menu.description || '')}</p>
-            <p class="mt-3 font-bold text-orange-700">${Admin.currency(menu.price)}</p>
+            <p class="mt-3 font-bold text-orange-700">${priceDisplay}</p>
             <p class="mt-1 text-xs">${stockMarkup(menu)}</p>
             <div class="mt-3 flex flex-wrap gap-2">
               <button type="button" data-edit class="rounded-lg bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">${T('admin.edit')}</button>
@@ -338,10 +368,7 @@
             </div>
           </div>`;
         const cardImage = card.querySelector('img');
-        cardImage.onerror = () => {
-          cardImage.onerror = null;
-          cardImage.src = '/assets/images/default-food.jpg';
-        };
+        cardImage.onerror = () => { cardImage.onerror = null; cardImage.src = '/assets/images/default-food.jpg'; };
         card.querySelector('[data-edit]').addEventListener('click', () => openEditor(menu));
         card.querySelector('[data-toggle]').addEventListener('click', () => toggleAvailability(menu));
         const cardDelete = card.querySelector('[data-delete]');
@@ -362,36 +389,26 @@
   }
 
   function openEditor(menu = null) {
-    if (!form) {
-      console.error('[manageMenu] menu-form not found in DOM');
-      return;
-    }
+    if (!form) return;
     form.reset();
     if (fields.menuId) fields.menuId.value = menu ? menu._id : '';
     if (fields.name) fields.name.value = menu ? menu.name : '';
     if (fields.description) fields.description.value = menu ? menu.description || '' : '';
-    if (fields.price) fields.price.value = menu ? menu.price : '';
+    
+    if (fields.price) fields.price.value = (menu && menu.price > 0) ? menu.price : '';
     if (fields.preparationTime) fields.preparationTime.value = menu ? menu.preparationTime : 10;
+    
     if (fields.category) {
-      const category = menu ? menu.category : DEFAULT_CATEGORY;
-      // Legacy documents may still use a retired category: keep it selectable
-      // so editing an old menu does not silently change its category.
-      if (category && !Array.from(fields.category.options).some((option) => option.value === category)) {
-        const option = document.createElement('option');
-        option.value = category;
-        option.textContent = catLabel(category);
-        fields.category.append(option);
-      }
-      fields.category.value = category;
+      fields.category.value = menu && menu.category ? menu.category : 'uncategorized';
     }
+
     if (fields.imageUrl) fields.imageUrl.value = menu ? menu.imageUrl || '' : '';
     if (fields.stockQuantity) {
-      fields.stockQuantity.value = menu && menu.stockQuantity !== null && typeof menu.stockQuantity !== 'undefined'
-        ? menu.stockQuantity
-        : '';
+      fields.stockQuantity.value = menu && menu.stockQuantity !== null && typeof menu.stockQuantity !== 'undefined' ? menu.stockQuantity : '';
     }
     if (fields.lowStockThreshold) fields.lowStockThreshold.value = menu ? menu.lowStockThreshold ?? 5 : 5;
     if (fields.maxOrderQuantity) fields.maxOrderQuantity.value = menu ? menu.maxOrderQuantity ?? 99 : 99;
+    
     editingMenu = menu || null;
     updateMenuModalTitle();
     setPreview(menu ? menu.imageUrl : '/assets/images/default-food.jpg');
@@ -405,6 +422,9 @@
     const values = Object.fromEntries(new FormData(form));
     const menuId = values.menuId;
     delete values.menuId;
+    
+    if (!values.category) values.category = 'uncategorized';
+
     const imageFile = fields.imageFile && fields.imageFile.files[0];
     delete values.imageFile;
     if (imageFile) {
@@ -412,7 +432,7 @@
       upload.append('image', imageFile);
       values.imageUrl = (await Admin.api('/api/menu/image', { method: 'POST', body: upload })).data.imageUrl;
     }
-    values.price = Number(values.price);
+    values.price = values.price === '' ? 0 : Number(values.price);
     values.preparationTime = Number(values.preparationTime);
     values.stockQuantity = values.stockQuantity === '' ? null : Number(values.stockQuantity);
     values.lowStockThreshold = Number(values.lowStockThreshold);
@@ -459,6 +479,19 @@
 
   document.getElementById('add-menu-button').addEventListener('click', () => openEditor());
   installInventoryControls();
+  
+  // ทายหมวดหมู่อัตโนมัติเมื่อพิมพ์ชื่อเมนู
+  if (fields.name) {
+    fields.name.addEventListener('input', (e) => {
+      if (!editingMenu && fields.category) {
+        const guessed = guessCategory(e.target.value);
+        if (guessed) {
+          fields.category.value = guessed;
+        }
+      }
+    });
+  }
+
   if (form) form.addEventListener('submit', saveMenu);
   document.querySelectorAll('[data-close-modal]').forEach((button) => {
     button.addEventListener('click', () => setMenuModalOpen(false));
@@ -481,7 +514,6 @@
     if (!socket || !socket.connected) loadMenus();
   }, 30000);
 
-  // Debounce languageChanged: i18n.js fires twice (optimistic + refreshed).
   let langTimer = null;
   window.addEventListener('languageChanged', () => {
     if (langTimer) window.clearTimeout(langTimer);
