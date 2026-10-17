@@ -58,6 +58,15 @@
           password: String(formData.get('password')),
         }),
       });
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.toLowerCase().includes('application/json')) {
+        await response.text();
+        if (response.status === 404) {
+          throw new Error('ไม่พบ API เข้าสู่ระบบบน deployment นี้ กรุณา deploy โค้ด Vercel ล่าสุด');
+        }
+        throw new Error(`เซิร์ฟเวอร์ตอบกลับไม่ใช่ JSON (HTTP ${response.status})`);
+      }
+
       const payload = await response.json();
       if (!response.ok || !payload.success) {
         throw new Error((payload.code && window.t && window.t(`error.${payload.code}`))
