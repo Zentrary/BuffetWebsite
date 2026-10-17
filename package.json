@@ -1,0 +1,43 @@
+{
+  "name": "smart-queue-system",
+  "version": "1.0.0",
+  "description": "Smart Queue & Dine-in System for restaurants",
+  "main": "server.js",
+  "scripts": {
+    "build": "npm run build:css",
+    "prestart": "npm run build:css",
+    "start": "node server.js",
+    "predev": "npm run build:css",
+    "dev": "node --watch server.js",
+    "seed": "node seed.js",
+    "test:mongo": "node scripts/test-mongo.js",
+    "test:browser": "node scripts/browser-smoke-test.js",
+    "start:force-dns": "node -e \"require('dns').setServers(['8.8.8.8','1.1.1.1']);require('./server.js')\"",
+    "build:css": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/app.css --minify",
+    "watch:css": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/app.css --watch"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "html5-qrcode": "^2.3.8",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "multer": "^2.0.2",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.1",
+    "autoprefixer": "^10.4.20",
+    "daisyui": "4.12.14",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "daisyui": "4.12.14",
+    "playwright-core": "^1.55.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}

@@ -1,0 +1,193 @@
+/* จุดเริ่มต้น CSS สำหรับ build Tailwind และ DaisyUI */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --restaurant-ink: #172033;
+  --restaurant-muted: #64748b;
+  --restaurant-canvas: #fff8f0;
+  --restaurant-surface: #fffdf9;
+  --restaurant-border: #eadfce;
+  --restaurant-brand: #c2410c;
+  --restaurant-brand-hover: #9a3412;
+}
+
+html {
+  background: var(--restaurant-canvas);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--restaurant-canvas) !important;
+  color: var(--restaurant-ink);
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* ---------- Responsive helpers ---------- */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@supports (padding: env(safe-area-inset-left)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+.safe-bottom {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+/* Hide native number-input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Dark bars readable */
+header.bg-slate-900,
+header.bg-slate-950,
+.bg-slate-900:not(button):not(input):not(select):not(textarea) {
+  color: #f8fafc;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+input,
+select,
+textarea {
+  border-color: #cbd5e1;
+  background-color: #fffdf9;
+  color: var(--restaurant-ink);
+}
+
+.card,
+.modal-box,
+.rounded-2xl.bg-white,
+.rounded-xl.bg-white {
+  border-color: var(--restaurant-border);
+}
+
+.btn-primary,
+button.bg-orange-600,
+button.bg-orange-700 {
+  color: #fff;
+  background-color: var(--restaurant-brand);
+}
+
+.btn-primary:hover,
+button.bg-orange-600:hover,
+button.bg-orange-700:hover {
+  background-color: var(--restaurant-brand-hover);
+}
+
+button.btn-ghost,
+button.bg-slate-100,
+button.bg-blue-50,
+button.bg-amber-50,
+button.bg-red-50 {
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 2px rgb(23 32 51 / 0.08);
+}
+
+button.bg-blue-50 { border-color: #bfdbfe; }
+button.bg-amber-50 { border-color: #fcd34d; }
+button.bg-red-50 { border-color: #fecaca; }
+
+button.btn-ghost:hover,
+button.bg-slate-100:hover {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
+}
+
+@media (max-width: 639px) {
+  [role="dialog"] > .modal-box {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    max-height: 100vh;
+    min-height: 100vh;
+    margin: 0;
+    overflow-y: auto;
+    border-radius: 0;
+    transform: none;
+  }
+}
+
+@supports (height: 100dvh) {
+  @media (max-width: 639px) {
+    [role="dialog"] > .modal-box {
+      height: 100dvh;
+      max-height: 100dvh;
+      min-height: 100dvh;
+    }
+  }
+}
+
+@media (max-height: 480px) and (orientation: landscape) {
+  .sticky.top-0 { position: relative; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   PRINT — handled via off-screen iframe on the JS side.
+   The parent page keeps a minimal @page rule so any stray
+   Ctrl+P doesn't wreck the layout.
+   ============================================================ */
+
+@page {
+  size: 80mm auto;
+  margin: 3mm;
+}
+
+@media print {
+  /* Hide the entire app when the user hits Ctrl+P directly.
+     All real printing goes through the iframe helper. */
+  body > *:not(#payment-modal) {
+    display: none !important;
+  }
+
+  body.print-ticket > * {
+    display: none !important;
+  }
+  body.print-ticket #ticket-print-area {
+    display: block !important;
+  }
+
+  body.print-entry-qr > * {
+    display: none !important;
+  }
+  body.print-entry-qr #queue-entry-card {
+    display: block !important;
+  }
+}

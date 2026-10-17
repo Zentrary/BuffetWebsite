@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fff7ed">
+    <title data-i18n="page.statusTitle">
+      สถานะของคุณ
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+  </head>
+  <body class="min-h-screen bg-orange-50 text-slate-800">
+    <main class="mx-auto max-w-3xl px-3 py-4 sm:px-4 sm:py-6 md:py-8">
+      <!-- Top bar: back + timer + lang (all inline, no overlap) -->
+      <div class="mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
+        <a id="back-link" href="/menu.html"
+        class="text-sm font-semibold text-orange-700 hover:text-orange-900">
+          ← กลับเมนู
+        </a>
+        <div class="ml-auto flex items-center gap-2">
+          <div id="timer-pill" class="flex items-center gap-1.5 rounded-xl bg-green-50 px-2.5 py-1.5 text-green-800 ring-1 ring-green-100" aria-live="polite">
+            <svg viewBox="0 0 24 24" class="h-4 w-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7v5l3 3"/>
+            </svg>
+            <span class="hidden text-[11px] font-semibold sm:inline">
+              เวลาคงเหลือ
+            </span>
+            <span id="timer-display" class="font-mono text-sm font-black tabular-nums sm:text-base">
+              --:--:--
+            </span>
+          </div>
+          <label for="langSwitcher" class="sr-only" data-i18n="language.label">
+            ภาษา
+          </label>
+          <select id="langSwitcher"
+          class="h-9 max-w-[80px] shrink-0 rounded-xl border border-slate-200 bg-white px-1.5 text-xs font-bold text-slate-700 outline-none transition hover:bg-slate-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 sm:h-10 sm:max-w-none sm:px-2 sm:text-sm"
+          aria-label="Language">
+            <option value="th" data-i18n="language.th">
+              ไทย
+            </option>
+            <option value="en" data-i18n="language.en">
+              English
+            </option>
+          </select>
+        </div>
+      </div>
+      <!-- Session card -->
+      <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:p-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-xs font-bold uppercase tracking-widest text-orange-600">
+              สถานะของคุณ
+            </p>
+            <h1 id="table-label" class="mt-1 text-2xl font-black leading-tight sm:text-3xl">
+              —
+            </h1>
+            <p id="queue-label" class="mt-1 text-sm text-slate-500">
+            </p>
+          </div>
+          <span id="live-badge" class="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+            กำลังเชื่อมต่อ
+          </span>
+        </div>
+        <ol id="session-stages" class="mt-5 flex w-full items-stretch gap-1.5 sm:gap-2">
+        </ol>
+      </section>
+      <!-- Orders -->
+      <section class="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:p-5">
+        <div class="mb-3 flex items-center justify-between">
+          <h2 class="text-base font-black sm:text-lg">
+            ออเดอร์ของฉัน
+          </h2>
+          <span id="orders-count" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+            0
+          </span>
+        </div>
+        <div id="orders-list" class="space-y-2">
+        </div>
+        <p id="orders-empty" class="hidden py-6 text-center text-sm text-slate-400">
+          ยังไม่มีออเดอร์
+        </p>
+      </section>
+      <!-- Help -->
+      <section class="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white/50 p-4 text-center text-xs text-slate-500">
+        หากต้องการความช่วยเหลือ กรุณาแจ้งพนักงานที่เคาน์เตอร์
+      </section>
+    </main>
+    <!-- Order detail modal -->
+    <div id="order-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-3 sm:p-4" role="dialog" aria-modal="true">
+      <section class="w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl sm:p-6">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h2 id="order-modal-title" class="text-lg font-black sm:text-xl">
+              ออเดอร์
+            </h2>
+            <p id="order-modal-sub" class="text-xs text-slate-500">
+            </p>
+          </div>
+          <button id="order-modal-close" type="button"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-lg font-bold text-slate-600 transition hover:bg-slate-200"
+          aria-label="ปิด">
+            ×
+          </button>
+        </div>
+        <ol id="order-timeline" class="mt-5 space-y-3 text-sm">
+        </ol>
+        <div id="order-modal-items" class="mt-5 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+        </div>
+      </section>
+    </div>
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/customer/status.js">
+    </script>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>

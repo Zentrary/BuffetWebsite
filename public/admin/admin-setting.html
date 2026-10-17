@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title data-i18n="page.adminSettingsTitle">
+      ตั้งค่าร้าน
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+    <style>
+      .file-upload-input {
+      position: absolute;
+      width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
+    }
+    label[for$="FileInput"] svg {
+      width: 14px !important;
+      height: 14px !important;
+      flex-shrink: 0;
+    }
+    .header-icon svg {
+      width: 20px !important;
+      height: 20px !important;
+    }
+    .preview-frame {
+      height: 110px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .preview-frame img {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .preview-frame.cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    </style>
+  </head>
+  <body class="min-h-screen bg-orange-50 text-slate-900">
+    <div class="min-h-screen lg:flex">
+      <aside id="admin-sidebar">
+      </aside>
+      <main class="min-w-0 flex-1 px-4 pt-20 pb-6 sm:px-7 lg:px-9">
+        <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="font-bold uppercase tracking-widest text-orange-600" data-i18n="admin.restaurantManagement">
+              การจัดการร้าน
+            </p>
+            <h1 class="mt-1 text-3xl font-black" data-i18n="admin.settings.title">
+              ตั้งค่าร้าน
+            </h1>
+          </div>
+          <button form="shop-settings-form" class="rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700" data-i18n="admin.settings.save">
+            บันทึกการตั้งค่า
+          </button>
+        </header>
+        <div class="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <span class="header-icon flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 10h18M5 10l1-6h12l1 6M5 10v10h14V10M9 20v-6h6v6"/>
+            </svg>
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="admin.settings.shopStatus">
+              สถานะร้าน
+            </p>
+            <p id="shop-status" class="text-lg font-black leading-tight" data-i18n="admin.settings.loading">
+              กำลังโหลด...
+            </p>
+            <p id="closing-countdown" class="hidden text-xs font-bold text-orange-700" aria-live="polite">
+            </p>
+          </div>
+          <button id="open-shop-button" type="button" class="hidden rounded-xl bg-green-700 px-4 py-2 text-sm font-bold text-white hover:bg-green-800" data-i18n="admin.settings.openNow">
+            เปิดร้านตอนนี้
+          </button>
+        </div>
+        <p id="page-message" class="mb-4 hidden rounded-xl p-4" role="status">
+        </p>
+        <form id="shop-settings-form" class="space-y-5">
+          <!-- Section 1 -->
+          <section class="rounded-2xl bg-white p-5 shadow-sm sm:p-7">
+            <div class="mb-5">
+              <h2 class="text-xl font-black" data-i18n="admin.settings.section1Title">
+                ข้อมูลร้านและหน้าลูกค้า
+              </h2>
+              <p class="mt-1 text-sm text-slate-500" data-i18n="admin.settings.section1Desc">
+                ใช้กับชื่อร้าน ข้อความต้อนรับ และข้อมูลติดต่อบนหน้าลูกค้า
+              </p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-3">
+              <label class="font-semibold">
+                <span data-i18n="admin.settings.restaurantName">
+                  ชื่อร้าน
+                </span>
+                <input name="restaurantName" maxlength="120" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+              </label>
+              <label class="font-semibold">
+                <span data-i18n="admin.settings.diningDuration">
+                  เวลารับประทาน (นาที)
+                </span>
+                <input name="diningDurationMinutes" type="number" min="1" max="1440" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+              </label>
+              <label class="font-semibold">
+                <span data-i18n="admin.settings.phone">
+                  เบอร์โทร
+                </span>
+                <input name="phone" maxlength="40" inputmode="tel" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+              </label>
+              <label class="font-semibold md:col-span-3">
+                <span data-i18n="admin.settings.address">
+                  ที่อยู่
+                </span>
+                <input name="address" maxlength="500" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+              </label>
+              <label class="block font-semibold md:col-span-3">
+                <span data-i18n="admin.settings.welcome">
+                  ข้อความต้อนรับ / ข้อความหน้าแรก
+                </span>
+                <textarea name="welcomeMessage" maxlength="500" rows="2" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3"
+                data-i18n="admin.settings.welcomePlaceholder" data-i18n-attr="placeholder"
+                placeholder="ยินดีต้อนรับ...">
+                </textarea>
+              </label>
+            </div>
+          </section>
+          <!-- Section 2 -->
+          <section class="rounded-2xl bg-white p-5 shadow-sm sm:p-7">
+            <div class="mb-5">
+              <h2 class="text-xl font-black" data-i18n="admin.settings.section2Title">
+                นโยบายราคา (VAT / ค่าบริการ)
+              </h2>
+              <p class="mt-1 text-sm text-slate-500" data-i18n="admin.settings.section2Desc">
+                กำหนดอัตราและโหมดการคิด VAT และค่าบริการที่ใช้กับทุกบิล
+              </p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-4">
+              <label class="font-semibold">
+                <span data-i18n="admin.settings.vatPercent">
+                  VAT (%)
+                </span>
+                <input name="vatPercent" type="number" min="0" max="30" step="0.5" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+              </label>
+              <label class="font-semibold">
+                <span data-i18n="admin.settings.vatMode">
+                  โหมด VAT
+                </span>
+                <select name="vatMode" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+                  <option value="included" data-i18n="admin.settings.vatIncluded">
+                    รวมในราคาเมนู
+                  </option>
+                  <option value="excluded" data-i18n="admin.settings.vatExcluded">
+                    บวกเพิ่มตอนจ่าย
+                  </option>
+                </select>
+              </label>
+              <label class="font-semibold">
+                <span data-i18n="admin.settings.servicePercent">
+                  ค่าบริการ (%)
+                </span>
+                <input name="serviceChargePercent" type="number" min="0" max="30" step="0.5" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+              </label>
+              <label class="font-semibold">
+                <span data-i18n="admin.settings.serviceMode">
+                  โหมดค่าบริการ
+                </span>
+                <select name="serviceChargeMode" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+                  <option value="included" data-i18n="admin.settings.serviceIncluded">
+                    รวมในราคาเมนู
+                  </option>
+                  <option value="excluded" data-i18n="admin.settings.serviceExcluded">
+                    บวกเพิ่มตอนจ่าย
+                  </option>
+                </select>
+              </label>
+            </div>
+            <div id="billing-preview" class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+              <p class="font-bold text-slate-700" data-i18n="admin.settings.previewTitle">
+                ตัวอย่างการคำนวณ (สมมติยอดอาหาร ฿100)
+              </p>
+              <div id="billing-preview-body" class="mt-3 space-y-1 text-slate-600">
+              </div>
+            </div>
+          </section>
+          <!-- Section 3: Images -->
+          <section class="rounded-2xl bg-white p-5 shadow-sm sm:p-7">
+            <div class="mb-5">
+              <h2 class="text-xl font-black" data-i18n="admin.settings.section3Title">
+                ภาพลักษณ์ร้าน
+              </h2>
+              <p class="mt-1 text-sm text-slate-500" data-i18n="admin.settings.section3Desc">
+                ระบุ URL หรืออัปโหลดไฟล์ใหม่ ตรวจตัวอย่างก่อนบันทึกได้ทันที
+              </p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-3">
+              <!-- Logo -->
+              <div class="flex flex-col rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                <div class="preview-frame mb-3 flex items-center justify-center rounded-xl bg-white ring-1 ring-slate-200">
+                  <img data-preview="logo" src="/assets/images/logo.png" alt="">
+                </div>
+                <label class="block text-sm font-semibold">
+                  <span data-i18n="admin.settings.logo">
+                    โลโก้ (URL)
+                  </span>
+                  <input name="logoUrl" class="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs" placeholder="/assets/images/logo.png">
+                </label>
+                <input id="logoFileInput" name="logoFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="file-upload-input">
+                <label for="logoFileInput" class="mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-orange-100 px-3 py-2 text-xs font-bold text-orange-800 transition hover:bg-orange-200">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                  </svg>
+                  <span data-i18n="admin.settings.chooseImage">
+                    เลือกรูปภาพ
+                  </span>
+                </label>
+                <p data-file-name="logoFileInput" class="mt-1.5 truncate text-center text-[10px] text-slate-500">
+                </p>
+              </div>
+              <!-- Hero -->
+              <div class="flex flex-col rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                <div class="preview-frame cover mb-3 overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
+                  <img data-preview="hero" src="/assets/images/default-food.jpg" alt="">
+                </div>
+                <label class="block text-sm font-semibold">
+                  <span data-i18n="admin.settings.hero">
+                    ภาพส่วนหัว (URL)
+                  </span>
+                  <input name="heroImageUrl" class="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs" placeholder="https://...">
+                </label>
+                <input id="heroFileInput" name="heroFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="file-upload-input">
+                <label for="heroFileInput" class="mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-orange-100 px-3 py-2 text-xs font-bold text-orange-800 transition hover:bg-orange-200">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                  </svg>
+                  <span data-i18n="admin.settings.chooseImage">
+                    เลือกรูปภาพ
+                  </span>
+                </label>
+                <p data-file-name="heroFileInput" class="mt-1.5 truncate text-center text-[10px] text-slate-500">
+                </p>
+              </div>
+              <!-- QR -->
+              <div class="flex flex-col rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                <div class="preview-frame mb-3 flex items-center justify-center rounded-xl bg-white ring-1 ring-slate-200">
+                  <img data-preview="paymentQr" src="/assets/images/payment/promptpay.png" alt="">
+                </div>
+                <label class="block text-sm font-semibold">
+                  <span data-i18n="admin.settings.paymentQr">
+                    QR รับเงิน (URL)
+                  </span>
+                  <input name="paymentQrImageUrl" class="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs" placeholder="/assets/images/payment/promptpay.png">
+                </label>
+                <input id="paymentQrFileInput" name="paymentQrFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="file-upload-input">
+                <label for="paymentQrFileInput" class="mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-orange-100 px-3 py-2 text-xs font-bold text-orange-800 transition hover:bg-orange-200">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                  </svg>
+                  <span data-i18n="admin.settings.chooseImage">
+                    เลือกรูปภาพ
+                  </span>
+                </label>
+                <p data-file-name="paymentQrFileInput" class="mt-1.5 truncate text-center text-[10px] text-slate-500">
+                </p>
+              </div>
+            </div>
+          </section>
+          <!-- Section 4 -->
+          <section class="rounded-2xl bg-white p-5 shadow-sm sm:p-7">
+            <div class="mb-5">
+              <h2 class="text-xl font-black" data-i18n="admin.settings.section4Title">
+                เวลาให้บริการ
+              </h2>
+              <p class="mt-1 text-sm text-slate-500" data-i18n="admin.settings.section4Desc">
+                รองรับเวลาปิดข้ามวัน เช่น เปิด 10:30 และปิด 03:00
+              </p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-4">
+              <label class="font-semibold">
+                <span data-i18n="admin.settings.openTime">
+                  เวลาเปิด
+                </span>
+                <input id="open-time" name="openTime" required type="time" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+              </label>
+              <label class="font-semibold">
+                <span data-i18n="admin.settings.closeTime">
+                  เวลาปิด
+                </span>
+                <input id="close-time" name="closeTime" required type="time" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+              </label>
+              <label class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 md:col-span-2">
+                <input id="test-mode" name="isTestMode" type="checkbox" class="h-5 w-5 shrink-0 rounded border-slate-300 accent-orange-600">
+                <span class="text-sm font-semibold">
+                  <span data-i18n="admin.settings.testMode">
+                    โหมดทดสอบระบบก่อนเปิดร้าน
+                  </span>
+                  <br>
+                  <span class="text-xs font-normal text-slate-600" data-i18n="admin.settings.testModeDesc">
+                    พนักงานตรวจระบบได้ แต่ลูกค้าจริงจะรับคิวหรือสั่งอาหารไม่ได้
+                  </span>
+                </span>
+              </label>
+            </div>
+          </section>
+          <div class="flex justify-end pt-1">
+            <button class="rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700" data-i18n="admin.settings.save">
+              บันทึกการตั้งค่า
+            </button>
+          </div>
+        </form>
+      </main>
+    </div>
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/staff-auth.js">
+    </script>
+    <script src="/js/admin/common.js">
+    </script>
+    <script src="/js/admin/settings.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>

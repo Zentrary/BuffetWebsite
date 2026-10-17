@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fff7ed">
+    <title data-i18n="page.homeTitle">
+      เริ่มต้นใช้งาน
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+  </head>
+  <body class="min-h-screen bg-orange-50 text-slate-800">
+    <header class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+      <a href="/" class="flex items-center gap-3 font-black">
+        <img data-shop-logo src="/assets/images/logo.png" alt="" class="h-12 w-12 rounded-xl bg-white object-contain p-1">
+        <span data-shop-name data-i18n="brand.name">
+          บุฟเฟต์ชาบู & หม่าล่า
+        </span>
+      </a>
+      <label class="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm">
+        <span class="text-sm font-bold" data-i18n="language.label">
+          ภาษา
+        </span>
+        <select id="langSwitcher" class="select select-bordered select-sm" aria-label="Language">
+          <option value="th" data-i18n="language.th">
+            ไทย
+          </option>
+          <option value="en" data-i18n="language.en">
+            English
+          </option>
+        </select>
+      </label>
+    </header>
+    <main class="mx-auto flex max-w-6xl flex-col justify-center px-4 py-8 sm:min-h-[calc(100vh-5rem)] sm:px-6 sm:py-12">
+      <section class="mb-8 text-center">
+        <img data-shop-hero src="" alt="ภาพส่วนหัวของร้าน" class="mx-auto mb-6 hidden h-44 w-full max-w-4xl rounded-3xl object-cover shadow-lg sm:h-56">
+        <p class="font-bold uppercase tracking-[0.2em] text-orange-700" data-i18n="home.kicker">
+          ระบบคิวและรับประทานอาหารในร้าน
+        </p>
+        <h1 class="mt-2 text-3xl font-black sm:text-5xl" data-i18n="home.title">
+          ยินดีต้อนรับ
+        </h1>
+        <p data-shop-welcome class="mx-auto mt-3 max-w-2xl text-slate-600" data-i18n="home.description">
+          เลือกหน้าที่ต้องการเพื่อเริ่มใช้งานหรือทดสอบระบบ
+        </p>
+      </section>
+      <section class="grid gap-5 md:grid-cols-2">
+        <article class="card border border-orange-100 bg-base-100 shadow-xl">
+          <div class="card-body items-center text-center">
+            <img src="/assets/images/icon-cart.png" alt="" class="h-14 w-14">
+            <h2 class="card-title text-2xl" data-i18n="home.customerTitle">
+              สำหรับลูกค้า
+            </h2>
+            <p data-i18n="home.customerDescription">
+              รับบัตรคิว แล้วรอพนักงานเรียกเพื่อเริ่มใช้บริการ
+            </p>
+            <div class="card-actions mt-3 w-full">
+              <a href="/queue.html" class="btn btn-primary w-full" data-i18n="home.customerButton">
+                รับบัตรคิว
+              </a>
+            </div>
+          </div>
+        </article>
+        <article class="card border border-orange-100 bg-base-100 shadow-xl">
+          <div class="card-body items-center text-center">
+            <img src="/assets/images/logo.png" alt="" class="h-14 w-14 rounded-xl object-contain">
+            <h2 class="card-title text-2xl" data-i18n="home.staffTitle">
+              สำหรับพนักงาน
+            </h2>
+            <p data-i18n="home.staffDescription">
+              เข้าสู่ระบบเพื่อจัดการคิว โต๊ะ ออเดอร์ ครัว และการชำระเงิน
+            </p>
+            <div class="card-actions mt-3 w-full">
+              <a href="/login.html" class="btn btn-neutral w-full" data-i18n="home.staffButton">
+                เข้าสู่ระบบพนักงาน
+              </a>
+            </div>
+          </div>
+        </article>
+      </section>
+      <section class="mt-8 rounded-2xl border border-orange-200 bg-orange-100/70 p-5 text-center">
+        <h2 class="font-bold" data-i18n="home.testTitle">
+          ทดสอบหน้าระบบตามบทบาท
+        </h2>
+        <p class="mt-1 text-sm text-slate-600" data-i18n="home.testDescription">
+          เปิดหน้าด้านล่างได้โดยตรง ระบบจะขอให้เข้าสู่ระบบก่อนใช้งาน
+        </p>
+        <nav class="mt-4 flex flex-wrap justify-center gap-3">
+          <a class="btn btn-outline btn-sm" href="/admin/dashboard.html" data-i18n="admin.dashboard">
+            ภาพรวม
+          </a>
+          <a class="btn btn-outline btn-sm" href="/admin/manage-queue.html" data-i18n="admin.queue">
+            จัดการคิว
+          </a>
+          <a class="btn btn-outline btn-sm" href="/kitchen/kitchen.html" data-i18n="home.kitchen">
+            หน้าจอครัว
+          </a>
+          <a class="btn btn-outline btn-sm" href="/waiter/waiter.html" data-i18n="home.waiter">
+            หน้าจอพนักงานเสิร์ฟ
+          </a>
+        </nav>
+      </section>
+      <section data-shop-contact class="mt-5 hidden rounded-2xl border border-slate-200 bg-white p-4 text-center text-sm text-slate-600">
+        <span data-shop-phone>
+        </span>
+        <span data-shop-contact-separator class="mx-2 hidden">
+          •
+        </span>
+        <span data-shop-address>
+        </span>
+      </section>
+    </main>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/customer/shop-info.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>

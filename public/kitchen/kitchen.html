@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title data-i18n="page.kitchenTitle">
+      หน้าจอครัว
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+  </head>
+  <body class="min-h-screen bg-orange-50 pb-6 text-slate-800">
+    <header class="sticky top-0 z-20 border-b border-slate-700 bg-slate-900 text-white shadow-xl">
+      <div class="mx-auto flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div class="min-w-0">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-orange-400">
+            TEEHID Buffet
+          </p>
+          <h1 class="mt-0.5 truncate text-xl font-black sm:text-2xl" data-i18n="kitchen.title">
+            หน้าจอครัว
+          </h1>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span id="connection-status" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-800 px-3 text-xs font-bold text-slate-300">
+            <span id="connection-dot" class="h-2 w-2 rounded-full bg-slate-500">
+            </span>
+            <span id="connection-label" data-i18n="kitchen.socketConnecting">
+              กำลังเชื่อมต่อ
+            </span>
+          </span>
+          <button id="logout-button" type="button" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-red-600 px-3 text-xs font-bold text-white transition hover:bg-red-500">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+            </svg>
+            <span data-i18n="common.logout">
+              ออกจากระบบ
+            </span>
+          </button>
+          <div class="inline-flex h-9 items-center gap-1 rounded-lg bg-slate-800 px-1 text-xs font-bold text-slate-300">
+            <svg viewBox="0 0 24 24" class="ml-1 h-3.5 w-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>
+            </svg>
+            <select id="langSwitcher" class="rounded-md border-0 bg-slate-700 px-1.5 py-0.5 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-orange-500" aria-label="Language">
+              <option value="th" data-i18n="language.th">
+                ไทย
+              </option>
+              <option value="en" data-i18n="language.en">
+                English
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main class="mx-auto w-full px-3 py-4 sm:px-5 lg:px-6">
+      <p id="kitchen-error" class="mb-3 hidden rounded-lg bg-red-100 p-3 text-sm text-red-800" role="alert">
+      </p>
+      <section>
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-xl font-extrabold" data-i18n="kitchen.orders">
+              ออเดอร์ที่กำลังดำเนินการ
+            </h2>
+            <p class="text-xs text-slate-500" data-i18n="kitchen.ordersDesc">
+              เรียงจากออเดอร์เก่าสุดก่อน • รีเฟรชทุก 20 วินาที
+            </p>
+          </div>
+          <button id="refresh-orders" type="button" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-800 px-3 text-xs font-bold text-white transition hover:bg-slate-700">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/>
+            </svg>
+            <span data-i18n="kitchen.refresh">
+              รีเฟรช
+            </span>
+          </button>
+        </div>
+        <div id="kitchen-orders" class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        </div>
+        <p id="orders-empty" class="hidden rounded-xl bg-white p-8 text-center text-lg font-bold text-slate-400" data-i18n="kitchen.noOrders">
+          ไม่มีออเดอร์ที่กำลังดำเนินการ
+        </p>
+        <div id="orders-loading" class="hidden items-center justify-center gap-3 py-12 text-slate-500" role="status">
+          <span class="h-6 w-6 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600">
+          </span>
+          <span data-i18n="kitchen.loadingOrders">
+            กำลังโหลดออเดอร์...
+          </span>
+        </div>
+      </section>
+      <section class="mt-8">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-xl font-extrabold" data-i18n="kitchen.menu">
+              เมนูอาหาร
+            </h2>
+            <p class="text-xs text-slate-500" data-i18n="kitchen.menuDesc">
+              เปิดหรือปิดการขายเมนูให้ลูกค้าเห็นทันที
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div id="kitchen-menu-view-switcher" class="inline-flex rounded-lg border border-slate-200 bg-white p-0.5" aria-label="View">
+              <button type="button" data-kitchen-menu-view="list" class="min-h-7 rounded-md px-3 py-1 text-xs font-bold transition" data-i18n="kitchen.viewTable">
+                ตาราง
+              </button>
+              <button type="button" data-kitchen-menu-view="cards" class="min-h-7 rounded-md px-3 py-1 text-xs font-bold transition" data-i18n="kitchen.viewCards">
+                เมนูการ์ด
+              </button>
+            </div>
+            <button id="refresh-menus" type="button" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-800 px-3 text-xs font-bold text-white transition hover:bg-slate-700">
+              <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/>
+              </svg>
+              <span data-i18n="kitchen.reloadMenu">
+                โหลดใหม่
+              </span>
+            </button>
+          </div>
+        </div>
+        <form id="kitchen-menu-search" class="mb-4 grid grid-cols-1 gap-3 rounded-2xl border border-orange-100 bg-white p-4 shadow-sm sm:grid-cols-3">
+          <label class="block text-xs font-semibold text-slate-600">
+            <span data-i18n="kitchen.filter.menuName">
+              ชื่อเมนู
+            </span>
+            <input name="query" type="search" data-i18n="kitchen.filter.menuNamePlaceholder" data-i18n-attr="placeholder" placeholder="พิมพ์ชื่อเมนู..." autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+          </label>
+          <label class="block text-xs font-semibold text-slate-600">
+            <span data-i18n="kitchen.filter.availability">
+              สถานะขาย
+            </span>
+            <select name="availability" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <option value="" data-i18n="kitchen.filter.allStatus">
+                ทุกสถานะ
+              </option>
+              <option value="available" data-i18n="kitchen.filter.available">
+                กำลังขาย
+              </option>
+              <option value="unavailable" data-i18n="kitchen.filter.unavailable">
+                ปิดขาย
+              </option>
+            </select>
+          </label>
+          <div class="flex items-end">
+            <button type="reset" class="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50" data-i18n="kitchen.filter.clear">
+              ล้างตัวกรอง
+            </button>
+          </div>
+          <p id="kitchen-menu-count" class="col-span-full text-xs font-medium text-slate-500" aria-live="polite">
+          </p>
+        </form>
+        <div id="kitchen-menus">
+        </div>
+        <p id="kitchen-menu-empty" class="hidden rounded-xl bg-white p-6 text-center text-sm text-slate-400" data-i18n="kitchen.filter.noMatch">
+          ไม่พบเมนูที่ตรงกับตัวกรอง
+        </p>
+        <div id="menu-loading" class="hidden items-center justify-center gap-2 py-8 text-slate-500" role="status">
+          <span class="h-5 w-5 animate-spin rounded-full border-2 border-orange-100 border-t-orange-600">
+          </span>
+          <span data-i18n="kitchen.loadingMenu">
+            กำลังโหลดเมนู...
+          </span>
+        </div>
+      </section>
+      <!-- <section class="mt-8">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 class="text-xl font-extrabold">
+            เมนูอาหาร
+          </h2>
+          <p class="text-xs text-slate-500">
+            เปิดหรือปิดการขายเมนูให้ลูกค้าเห็นทันที
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <div id="kitchen-menu-view-switcher" class="inline-flex rounded-lg border border-slate-200 bg-white p-0.5" aria-label="รูปแบบการแสดงผล">
+            <button type="button" data-kitchen-menu-view="list" class="min-h-7 rounded-md px-3 py-1 text-xs font-bold transition">
+              ตาราง
+            </button>
+            <button type="button" data-kitchen-menu-view="cards" class="min-h-7 rounded-md px-3 py-1 text-xs font-bold transition">
+              เมนูการ์ด
+            </button>
+          </div>
+          <button id="refresh-menus" type="button" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-800 px-3 text-xs font-bold text-white transition hover:bg-slate-700">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/>
+            </svg>
+            โหลดใหม่
+          </button>
+        </div>
+      </div>
+      <form id="kitchen-menu-search" class="mb-4 grid grid-cols-1 gap-3 rounded-2xl border border-orange-100 bg-white p-4 shadow-sm sm:grid-cols-3">
+        <label class="block text-xs font-semibold text-slate-600">
+          ชื่อเมนู
+          <input name="query" type="search" placeholder="พิมพ์ชื่อเมนู..." autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        </label>
+        <label class="block text-xs font-semibold text-slate-600">
+          สถานะขาย
+          <select name="availability" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <option value="">
+              ทุกสถานะ
+            </option>
+            <option value="available">
+              กำลังขาย
+            </option>
+            <option value="unavailable">
+              ปิดขาย
+            </option>
+          </select>
+        </label>
+        <div class="flex items-end">
+          <button type="reset" class="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50">
+            ล้างตัวกรอง
+          </button>
+        </div>
+        <p id="kitchen-menu-count" class="col-span-full text-xs font-medium text-slate-500" aria-live="polite">
+        </p>
+      </form>
+      -->
+      <div id="kitchen-menus">
+      </div>
+      <p id="kitchen-menu-empty" class="hidden rounded-xl bg-white p-6 text-center text-sm text-slate-400">
+        ไม่พบเมนูที่ตรงกับตัวกรอง
+      </p>
+      <div id="menu-loading" class="hidden items-center justify-center gap-2 py-8 text-slate-500" role="status">
+        <span class="h-5 w-5 animate-spin rounded-full border-2 border-orange-100 border-t-orange-600">
+        </span>
+        กำลังโหลดเมนู...
+      </div>
+    </section>
+  </main>
+  <div id="order-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true">
+    <section class="relative w-full max-w-md rounded-2xl bg-slate-900 p-5 text-white shadow-2xl">
+      <button id="order-modal-close" type="button" class="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-lg font-bold text-slate-300 hover:bg-slate-700" aria-label="ปิด">
+        ×
+      </button>
+      <div id="order-modal-body">
+      </div>
+    </section>
+  </div>
+  <div id="audio-toast" class="pointer-events-none fixed bottom-4 right-4 z-[200] hidden rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-slate-900 shadow-lg" data-i18n="kitchen.audioNotice">
+    คลิกที่หน้าเว็บ 1 ครั้งเพื่อเปิดเสียงแจ้งเตือน
+  </div>
+  <script src="/socket.io/socket.io.js">
+  </script>
+  <script src="/js/i18n.js">
+  </script>
+  <script src="/js/staff-auth.js">
+  </script>
+  <script src="/js/kitchen/kitchen.js">
+  </script>
+  <script src="/js/brand.js">
+  </script>
+</body>
+</html>

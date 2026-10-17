@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fff7ed">
+    <title data-i18n="page.queueTitle">
+      รับบัตรคิว
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+  </head>
+  <body class="min-h-screen bg-orange-50 text-slate-800">
+    <main class="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-3 py-5 sm:py-8">
+      <a href="/" class="mb-3 self-start text-xs font-semibold text-orange-700 hover:text-orange-900" data-i18n="home.back">
+        ← กลับหน้าเริ่มต้น
+      </a>
+      <section class="overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-xl shadow-orange-200/50">
+        <!-- Header -->
+        <div class="relative overflow-hidden bg-slate-900 px-5 py-5 text-white sm:px-7 sm:py-6">
+          <div class="absolute -right-16 -top-20 h-48 w-48 rounded-full bg-orange-500/25 blur-3xl" aria-hidden="true">
+          </div>
+          <div class="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-amber-400/15 blur-3xl" aria-hidden="true">
+          </div>
+          <div class="relative flex items-center gap-3">
+            <img data-shop-logo src="/assets/images/logo.png" alt="" class="h-12 w-12 rounded-2xl bg-white object-contain p-1 sm:h-14 sm:w-14">
+            <div class="min-w-0">
+              <h1 class="text-xl font-black leading-tight sm:text-2xl" data-shop-name>
+                TEEHID Buffet
+              </h1>
+              <p class="mt-1 text-xs text-orange-100/90 sm:text-sm" data-i18n="brand.tagline">
+                เลือกวัตถุดิบ น้ำซุป และน้ำจิ้มจานโปรดของคุณ
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- Body -->
+        <div class="p-4 sm:p-7">
+          <div class="mb-5">
+            <p class="text-xs font-bold uppercase tracking-widest text-orange-600" data-i18n="queue.welcome">
+              ยินดีต้อนรับ
+            </p>
+            <h2 class="mt-1 text-2xl font-black text-slate-900" data-i18n="queue.title">
+              รับบัตรคิว
+            </h2>
+            <p class="mt-1 text-sm text-slate-500" data-i18n="queue.description">
+              กรอกข้อมูล ตรวจสอบ แล้วกดยืนยันเพื่อรับบัตรคิว
+            </p>
+          </div>
+          <div id="menu-access-notice" class="mb-4 hidden rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900" role="status">
+            <span data-i18n="queue.menuAccessNotice">
+              หลังรับคิว ให้เก็บรหัสกู้คืนไว้ พนักงานจะเรียกคิวและจองโต๊ะ เมื่อถึงคิวให้ยืนยันก่อนเริ่มสั่งอาหาร
+            </span>
+          </div>
+          <!-- Recovery -->
+          <form id="queue-recovery-form" class="mb-5 hidden rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5" aria-hidden="true">
+            <label for="queue-recovery-input" class="mb-2 block text-xs font-bold text-slate-700" data-i18n="queue.recoveryLabel">
+              มีบัตรคิวแล้ว? กรอกรหัสกู้คืนเพื่อเปิดคิวบนอุปกรณ์นี้
+            </label>
+            <div class="flex flex-col gap-2 sm:flex-row">
+              <input id="queue-recovery-input" name="accessToken" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="32" required
+                data-i18n="queue.recoveryPlaceholder" data-i18n-attr="placeholder"
+                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100" placeholder="รหัสกู้คืน 32 ตัวอักษร">
+              <button id="queue-recovery-submit" type="submit" class="min-h-10 shrink-0 rounded-xl border border-orange-300 bg-white px-4 text-sm font-bold text-orange-800 hover:bg-orange-50" data-i18n="queue.recover">
+                กู้คืนคิว
+              </button>
+            </div>
+          </form>
+          <!-- Form -->
+          <form id="queue-form" class="space-y-5">
+            <!-- Party size -->
+            <label class="block">
+              <span class="mb-2 block text-sm font-bold text-slate-700">
+                <span data-i18n="queue.partySize">
+                  จำนวนคน
+                </span>
+                <span class="text-red-500">
+                  *
+                </span>
+              </span>
+              <div class="flex items-center gap-2">
+                <button type="button" data-count-step="-1" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-xl font-black text-slate-600 transition hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 disabled:opacity-40">
+                  −
+                </button>
+                <input id="customer-count" name="customerCount" type="number" min="1" max="12" value="1" required
+                class="h-12 w-full rounded-xl border border-slate-300 bg-white text-center text-xl font-black text-slate-900 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100">
+                <button type="button" data-count-step="1" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-xl font-black text-slate-600 transition hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 disabled:opacity-40">
+                  +
+                </button>
+              </div>
+              <small class="mt-1.5 block text-xs text-slate-500" data-i18n="queue.partySizeHint">
+                ระบบรองรับสูงสุด 12 คนต่อการจอง 1 ครั้ง
+              </small>
+            </label>
+            <!-- Name + Phone -->
+            <div class="grid gap-3 sm:grid-cols-2">
+              <label class="block">
+                <span class="mb-2 block text-sm font-bold text-slate-700">
+                  <span data-i18n="queue.name">
+                    ชื่อ
+                  </span>
+                  <span class="ml-1 text-xs font-normal text-slate-400" data-i18n="queue.optional">
+                    (ไม่บังคับ)
+                  </span>
+                </span>
+                <input id="customer-name" name="customerName" type="text" autocomplete="name" maxlength="80"
+                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100">
+              </label>
+              <label class="block">
+                <span class="mb-2 block text-sm font-bold text-slate-700">
+                  <span data-i18n="queue.phone">
+                    เบอร์โทรศัพท์
+                  </span>
+                  <span class="ml-1 text-xs font-normal text-slate-400" data-i18n="queue.optional">
+                    (ไม่บังคับ)
+                  </span>
+                </span>
+                <input id="customer-phone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" maxlength="20"
+                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100">
+              </label>
+            </div>
+            <!-- Zone selection -->
+            <section id="zone-section" class="rounded-2xl bg-slate-50 p-4 sm:p-5">
+              <div class="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <h3 class="text-base font-black text-slate-900">
+                    เลือกโซนโต๊ะ
+                  </h3>
+                  <p class="mt-0.5 text-xs text-slate-500">
+                    เลือกให้ตรงกับจำนวนคน — ไม่บังคับ
+                  </p>
+                </div>
+              </div>
+              <!-- 4 equal cards: small / medium / large / auto -->
+              <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+                <!-- Small -->
+                <label data-zone-option="small" class="group relative flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border-2 border-slate-200 bg-white px-2 py-4 text-center transition-all hover:border-orange-300 hover:shadow-md">
+                  <input type="radio" name="preferredZone" value="small" class="sr-only">
+                  <span data-zone-recommended="small" class="absolute -top-2.5 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-black text-white shadow-md">
+                    แนะนำ
+                  </span>
+                  <span class="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 transition group-hover:bg-emerald-100">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <circle cx="12" cy="8" r="3"/>
+                      <path d="M6 20a6 6 0 0 1 12 0"/>
+                    </svg>
+                  </span>
+                  <span class="text-sm font-black text-slate-800">
+                    โต๊ะเล็ก
+                  </span>
+                  <span class="text-[10px] font-medium text-slate-500">
+                    1-2 คน
+                  </span>
+                  <span data-zone-badge class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                    —
+                  </span>
+                </label>
+                <!-- Medium -->
+                <label data-zone-option="medium" class="group relative flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border-2 border-slate-200 bg-white px-2 py-4 text-center transition-all hover:border-orange-300 hover:shadow-md">
+                  <input type="radio" name="preferredZone" value="medium" class="sr-only">
+                  <span data-zone-recommended="medium" class="absolute -top-2.5 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-black text-white shadow-md">
+                    แนะนำ
+                  </span>
+                  <span class="flex h-11 w-11 items-center justify-center rounded-full bg-amber-50 transition group-hover:bg-amber-100">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <circle cx="8" cy="8" r="2.5"/>
+                      <circle cx="16" cy="8" r="2.5"/>
+                      <path d="M3 20a5 5 0 0 1 10 0M11 20a5 5 0 0 1 10 0"/>
+                    </svg>
+                  </span>
+                  <span class="text-sm font-black text-slate-800">
+                    โต๊ะกลาง
+                  </span>
+                  <span class="text-[10px] font-medium text-slate-500">
+                    3-6 คน
+                  </span>
+                  <span data-zone-badge class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                    —
+                  </span>
+                </label>
+                <!-- Large -->
+                <label data-zone-option="large" class="group relative flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border-2 border-slate-200 bg-white px-2 py-4 text-center transition-all hover:border-orange-300 hover:shadow-md">
+                  <input type="radio" name="preferredZone" value="large" class="sr-only">
+                  <span data-zone-recommended="large" class="absolute -top-2.5 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-black text-white shadow-md">
+                    แนะนำ
+                  </span>
+                  <span class="flex h-11 w-11 items-center justify-center rounded-full bg-sky-50 transition group-hover:bg-sky-100">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <circle cx="6" cy="9" r="2"/>
+                      <circle cx="12" cy="7" r="2.5"/>
+                      <circle cx="18" cy="9" r="2"/>
+                      <path d="M2 20a4 4 0 0 1 8 0M14 20a4 4 0 0 1 8 0M8 20a4 4 0 0 1 8 0"/>
+                    </svg>
+                  </span>
+                  <span class="text-sm font-black text-slate-800">
+                    โต๊ะใหญ่
+                  </span>
+                  <span class="text-[10px] font-medium text-slate-500">
+                    7-12 คน
+                  </span>
+                  <span data-zone-badge class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                    —
+                  </span>
+                </label>
+                <!-- Auto -->
+                <label data-zone-auto-card class="group flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border-2 border-slate-200 bg-white px-2 py-4 text-center transition-all hover:border-orange-300 hover:shadow-md">
+                  <input type="radio" name="preferredZone" value="" checked data-zone-auto class="sr-only">
+                  <span class="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 transition group-hover:bg-slate-200">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7M21 16v5h-5M14 14l7 7M3 8V3h5M10 10 3 3"/>
+                    </svg>
+                  </span>
+                  <span class="text-sm font-black text-slate-800">
+                    ไม่ระบุ
+                  </span>
+                  <span class="text-[10px] font-medium text-slate-500">
+                    พนักงานจัดให้
+                  </span>
+                  <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                    อัตโนมัติ
+                  </span>
+                </label>
+              </div>
+              <div id="zone-table-picker" class="mt-4 hidden">
+              </div>
+            </section>
+            <!-- Submit -->
+            <button id="queue-submit" type="submit"
+            class="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-orange-600 text-base font-black text-white shadow-lg shadow-orange-200 transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60">
+              <span id="queue-spinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true">
+              </span>
+              <span id="queue-submit-label" data-i18n="queue.submit">
+                ตรวจสอบข้อมูล
+              </span>
+            </button>
+          </form>
+          <p id="queue-error" class="mt-3 hidden rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-800" role="alert">
+          </p>
+          <!-- Result -->
+          <section id="queue-result" class="mt-4 hidden rounded-2xl border border-orange-100 bg-orange-50 p-4 text-center" aria-live="polite">
+            <p class="text-xs font-semibold text-slate-500" data-i18n="queue.number">
+              หมายเลขคิวของคุณ
+            </p>
+            <p id="queue-number" class="my-1 text-4xl font-black tracking-wider text-orange-600">
+              —
+            </p>
+            <div class="mx-auto my-3 grid max-w-md grid-cols-2 gap-2">
+              <div class="rounded-lg bg-white p-3">
+                <p class="text-xs text-slate-500" data-i18n="queue.ahead">
+                  คิวก่อนหน้า
+                </p>
+                <p id="queue-ahead" class="mt-1 text-xl font-black">
+                  0
+                </p>
+              </div>
+              <div class="rounded-lg bg-white p-3">
+                <p class="text-xs text-slate-500" data-i18n="queue.remaining">
+                  คิวที่กำลังรอ
+                </p>
+                <p id="queue-remaining" class="mt-1 text-xl font-black">
+                  0
+                </p>
+              </div>
+            </div>
+            <p id="queue-status" class="mt-2 text-xs text-slate-600" data-i18n="queue.waitNotice">
+              เก็บหน้านี้ไว้ ระบบจะอัปเดตคิวและเปิดเมนูเมื่อพนักงานเรียก
+            </p>
+            <p id="queue-access-code" class="hidden text-xs" role="status">
+            </p>
+            <p id="queue-called" class="mt-2 hidden rounded-lg bg-green-100 p-2 text-sm font-bold text-green-800" role="status">
+            </p>
+            <p id="queue-countdown" class="mt-2 hidden text-xl font-black text-orange-700" role="timer">
+            </p>
+            <button id="queue-confirm" type="button" class="mt-3 hidden w-full rounded-xl bg-orange-600 px-4 py-3 text-sm font-bold text-white hover:bg-orange-700" data-i18n="queue.confirmSeat">
+              ยืนยันพร้อมนั่งโต๊ะและเริ่มรับประทาน
+            </button>
+            <button id="queue-cancel" type="button" class="mt-2 hidden w-full rounded-xl border border-red-200 bg-white px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-50" data-i18n="queue.cancelButton">
+              ยกเลิกคิวนี้
+            </button>
+          </section>
+        </div>
+      </section>
+      <p class="mt-3 text-center text-xs text-slate-400" data-i18n="queue.footer">
+        ระบบจัดคิวและบริการรับประทานอาหารในร้าน
+      </p>
+    </main>
+    <!-- Confirm modal (flat, minimal) -->
+    <div id="queue-confirm-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/70 p-4" role="dialog" aria-modal="true">
+      <section class="w-full max-w-md overflow-hidden rounded-2xl bg-white">
+        <div class="border-b border-slate-200 px-6 py-4">
+          <h2 class="text-lg font-black text-slate-900" data-i18n="queue.confirmModalTitle">
+            ตรวจสอบข้อมูลก่อนยืนยัน
+          </h2>
+        </div>
+        <div id="queue-confirm-summary" class="divide-y divide-slate-100 px-6 py-2 text-sm">
+        </div>
+        <div class="flex gap-2 border-t border-slate-200 px-6 py-4">
+          <button id="queue-confirm-goback" type="button" class="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700" data-no-btn>
+            <span data-i18n="queue.confirmModalBack">
+              ย้อนกลับ
+            </span>
+          </button>
+          <button id="queue-confirm-submit" type="button" class="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50" data-no-btn>
+            <span data-i18n="queue.confirmModalOk">
+              ยืนยันรับคิว
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+    <!-- Cancel modal -->
+    <div id="queue-cancel-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-4" role="dialog" aria-modal="true">
+      <section class="w-full max-w-md overflow-hidden rounded-2xl bg-white">
+        <div class="border-b border-slate-200 px-6 py-4">
+          <h2 class="text-lg font-black text-slate-900" data-i18n="queue.cancelModalTitle">
+            ยืนยันยกเลิกคิว
+          </h2>
+          <p class="mt-1 text-sm text-slate-600" data-i18n="queue.cancelModalDesc">
+            คิวของคุณจะถูกยกเลิกทันที หากต้องการใช้บริการใหม่ต้องรับบัตรคิวใหม่
+          </p>
+        </div>
+        <div class="px-6 py-5">
+          <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500" data-i18n="queue.cancelNumberLabel">
+              คิวที่จะยกเลิก
+            </p>
+            <p id="cancel-queue-number" class="mt-2 font-mono text-3xl font-black tracking-widest text-red-700">
+              —
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-2 border-t border-slate-200 px-6 py-4">
+          <button id="queue-cancel-goback" type="button" class="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700" data-no-btn>
+            <span data-i18n="queue.cancelGoback">
+              ไม่ยกเลิก
+            </span>
+          </button>
+          <button id="queue-cancel-confirm" type="button" class="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-red-700 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50" data-no-btn>
+            <span data-i18n="queue.cancelConfirm">
+              ยืนยันยกเลิก
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/customer/queue-zone.js">
+    </script>
+    <script src="/js/customer/queue.js">
+    </script>
+    <header class="fixed right-3 top-3 z-[100] flex items-center gap-2 rounded-xl bg-white/95 p-2 shadow-lg">
+      <label for="langSwitcher" class="text-sm font-bold" data-i18n="language.label">
+        ภาษา
+      </label>
+      <select id="langSwitcher" class="select select-bordered select-sm" aria-label="Language">
+        <option value="th" data-i18n="language.th">
+          ไทย
+        </option>
+        <option value="en" data-i18n="language.en">
+          English
+        </option>
+      </select>
+    </header>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/customer/shop-info.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+    <script>
+      // Wire count +/- buttons to the number input.
+    (() => {
+      const input = document.getElementById('customer-count');
+      if (!input) return;
+      document.querySelectorAll('[data-count-step]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const step = Number(btn.dataset.countStep);
+          const next = Math.max(1, Math.min(12, (Number(input.value) || 1) + step));
+          input.value = String(next);
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      });
+    })();
+    </script>
+  </body>
+</html>

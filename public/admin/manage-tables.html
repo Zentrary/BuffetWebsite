@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title data-i18n="page.adminTablesTitle">
+      จัดการโต๊ะ
+    </title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1" />
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-800">
+    <div class="min-h-screen lg:flex">
+      <aside id="admin-sidebar">
+      </aside>
+      <main class="min-w-0 flex-1 px-4 pt-20 pb-6 sm:px-7 lg:px-9">
+        <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="font-bold uppercase tracking-widest text-orange-600" data-i18n="admin.operations">
+              การดำเนินงาน
+            </p>
+            <h1 class="mt-1 text-3xl font-black" data-i18n="admin.tables.title">
+              จัดการโต๊ะ
+            </h1>
+          </div>
+          <button
+                  id="add-table-button"
+                  class="rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700"
+                  data-i18n="admin.tables.addTable"
+               >
+            + เพิ่มโต๊ะ
+          </button>
+        </header>
+        <p id="page-message" class="mb-4 hidden rounded-xl p-4" role="status">
+        </p>
+        <div
+               id="tables-loading"
+               class="flex min-h-24 items-center justify-center gap-3 text-slate-500"
+               role="status"
+            >
+          <span class="h-6 w-6 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600">
+          </span
+               >
+          กำลังโหลดโต๊ะ...
+        </div>
+        <div id="table-zones" class="space-y-7">
+        </div>
+      </main>
+    </div>
+    <div
+         id="table-modal"
+         class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/50 p-4"
+         role="dialog"
+         aria-modal="true"
+      >
+      <section class="w-full max-w-md rounded-2xl bg-white p-6">
+        <div class="flex justify-between">
+          <h2 id="table-modal-title" class="text-2xl font-black" data-i18n-skip>
+            รายละเอียดโต๊ะ
+          </h2>
+          <button data-close-modal class="rounded-lg bg-slate-100 px-3 py-2" type="button">
+            ✕
+          </button>
+        </div>
+        <div id="table-details" class="my-5 space-y-2 text-lg">
+        </div>
+        <p class="rounded-xl bg-slate-50 p-3 text-sm text-slate-600" data-i18n="admin.tables.statusDesc">
+          สถานะโต๊ะเปลี่ยนตามขั้นตอนคิว การชำระเงิน และการทำความสะอาด
+        </p>
+        <div class="mt-5 flex flex-wrap gap-2">
+          <button
+                  id="edit-table"
+                  class="hidden flex-1 rounded-xl bg-slate-800 px-4 py-3 font-bold text-white"
+                  type="button"
+                  data-i18n="admin.tables.editRename"
+               >
+            แก้ไข / เปลี่ยนชื่อ
+          </button>
+          <button
+                  id="clear-table"
+                  class="hidden flex-1 rounded-xl bg-slate-800 px-4 py-3 font-bold text-white"
+                  type="button"
+                  data-i18n="admin.tables.clearDone"
+               >
+            ทำความสะอาดเสร็จแล้ว
+          </button>
+          <button
+                  id="delete-table"
+                  class="hidden flex-1 rounded-xl bg-red-700 px-4 py-3 font-bold text-white"
+                  type="button"
+                  data-i18n="admin.tables.deleteTable"
+               >
+            ลบโต๊ะ
+          </button>
+        </div>
+      </section>
+    </div>
+    <div
+         id="add-table-modal"
+         class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/50 p-4"
+         role="dialog"
+         aria-modal="true"
+      >
+      <form id="add-table-form" class="w-full max-w-md rounded-2xl bg-white p-6">
+        <input type="hidden" name="tableId" />
+        <div class="mb-5 flex justify-between">
+          <h2 id="add-table-modal-title" class="text-2xl font-black" data-i18n-skip>
+            เพิ่มโต๊ะใหม่
+          </h2>
+          <button data-close-modal type="button" class="rounded-lg bg-slate-100 px-3 py-2">
+            ✕
+          </button>
+        </div>
+        <label class="mb-1 block font-semibold"
+               >
+          <span data-i18n="admin.tables.tableNumber">
+            หมายเลข / ชื่อโต๊ะ
+          </span
+               >
+          <input
+                  name="tableNumber"
+                  required
+                  maxlength="40"
+                  class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3"
+            />
+        </label>
+        <p id="table-number-error" class="mb-4 hidden text-sm font-semibold text-red-700" role="alert">
+        </p>
+        <label class="mb-4 block font-semibold"
+               >
+          <span data-i18n="admin.tables.zoneType">
+            ประเภทโต๊ะ
+          </span
+               >
+          <select
+                  id="table-zone-select"
+                  name="zone"
+                  class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3"
+               >
+            <option value="small" data-i18n="admin.tables.zone.small">
+              โต๊ะเล็ก (1-2 คน)
+            </option>
+            <option value="medium" data-i18n="admin.tables.zone.medium">
+              โต๊ะกลาง (3-6 คน)
+            </option>
+            <option value="large" data-i18n="admin.tables.zone.large">
+              โต๊ะใหญ่ (7-12 คน)
+            </option>
+          </select>
+        </label
+            >
+        <p id="capacity-hint" class="mb-3 text-xs text-slate-500">
+        </p>
+        <div class="mb-5 grid grid-cols-2 gap-3">
+          <label class="block font-semibold"
+                  >
+            <span data-i18n="admin.tables.minCapacity">
+              ความจุขั้นต่ำ
+            </span
+                  >
+            <input
+                     name="minCapacity"
+                     type="number"
+                     min="1"
+                     max="12"
+                     step="1"
+                     required
+                     class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3"
+               />
+          </label>
+          <label class="block font-semibold"
+                  >
+            <span data-i18n="admin.tables.maxCapacity">
+              ความจุสูงสุด
+            </span
+                  >
+            <input
+                     name="capacity"
+                     type="number"
+                     min="1"
+                     max="12"
+                     step="1"
+                     required
+                     class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3"
+               />
+          </label>
+        </div>
+        <button
+               class="w-full rounded-xl bg-orange-600 px-4 py-3 font-bold text-white"
+               data-i18n="admin.tables.save"
+            >
+          บันทึกโต๊ะ
+        </button>
+      </form>
+    </div>
+    <!-- Delete confirmation modal -->
+    <div
+         id="delete-confirm-modal"
+         class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="delete-confirm-title"
+      >
+      <section class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div class="flex items-start gap-3">
+          <span
+                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 text-2xl text-red-700"
+                  >
+            !
+          </span
+               >
+          <div class="min-w-0">
+            <h2 id="delete-confirm-title" class="text-xl font-black text-slate-900">
+              ยืนยันการลบโต๊ะ
+            </h2>
+            <p class="mt-1 text-sm text-slate-600">
+              การลบโต๊ะเป็นการกระทำถาวร ไม่สามารถย้อนกลับได้
+            </p>
+          </div>
+        </div>
+        <div class="mt-4 rounded-xl bg-slate-50 p-4 text-sm">
+          <p class="text-slate-500">
+            โต๊ะที่จะลบ
+          </p>
+          <p id="delete-confirm-target" class="mt-1 text-lg font-black text-red-700">
+            —
+          </p>
+        </div>
+        <div class="mt-5 flex gap-2">
+          <button
+                  id="delete-confirm-cancel"
+                  type="button"
+                  class="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-700 hover:bg-slate-50"
+               >
+            ยกเลิก
+          </button>
+          <button
+                  id="delete-confirm-ok"
+                  type="button"
+                  class="flex-1 rounded-xl bg-red-700 px-4 py-3 font-bold text-white hover:bg-red-600 disabled:opacity-50"
+               >
+            ยืนยันลบ
+          </button>
+        </div>
+      </section>
+    </div>
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/staff-auth.js">
+    </script>
+    <script src="/js/admin/common.js">
+    </script>
+    <script src="/js/admin/manageTable.js">
+    </script>
+    <header class="fixed right-3 top-3 z-[100] flex items-center gap-2 rounded-xl bg-white/95 p-2 shadow-lg">
+      <label for="langSwitcher" class="text-sm font-bold" data-i18n="language.label">
+        ภาษา
+      </label
+         >
+      <select id="langSwitcher" class="select select-bordered select-sm" aria-label="Language">
+        <option value="th" data-i18n="language.th">
+          ไทย
+        </option>
+        <option value="en" data-i18n="language.en">
+          English
+        </option>
+      </select>
+    </header>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>

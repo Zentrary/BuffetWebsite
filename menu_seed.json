@@ -1,0 +1,2263 @@
+[
+    {
+        "name": "Deluxe",
+        "image_url": "/assets/images/menu/Deluxe.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "Premium",
+        "image_url": "/assets/images/menu/Premium.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "Signature",
+        "image_url": "/assets/images/menu/Signature.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กระทะหมูปิ้ง",
+        "image_url": "/assets/images/menu/กระทะหมูปิ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กระทะเนื้อปิ้ง",
+        "image_url": "/assets/images/menu/กระทะเนื้อปิ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กระทะไก่ปิ้ง",
+        "image_url": "/assets/images/menu/กระทะไก่ปิ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กระเพาะหมู",
+        "image_url": "/assets/images/menu/กระเพาะหมู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กวางตุ้ง",
+        "image_url": "/assets/images/menu/กวางตุ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กะหล่ำปลี",
+        "image_url": "/assets/images/menu/กะหล่ำปลี.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กิมจิ",
+        "image_url": "/assets/images/menu/กิมจิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กุ้งขาว",
+        "image_url": "/assets/images/menu/กุ้งขาว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กุ้งซูชิ",
+        "image_url": "/assets/images/menu/กุ้งซูชิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กุ้งดอง",
+        "image_url": "/assets/images/menu/กุ้งดอง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กุ้งดองซีอิ๊ว",
+        "image_url": "/assets/images/menu/กุ้งดองซีอิ๊ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กุ้งทอดครีมสลัด",
+        "image_url": "/assets/images/menu/กุ้งทอดครีมสลัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กุ้งสด XL",
+        "image_url": "/assets/images/menu/กุ้งสด XL.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "กุ้งแม่น้ำ",
+        "image_url": "/assets/images/menu/กุ้งแม่น้ำ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ก๋วยเตี๋ยวหลอดปู",
+        "image_url": "/assets/images/menu/ก๋วยเตี๋ยวหลอดปู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ขนมจีบแต้จิ๋วโบราณ",
+        "image_url": "/assets/images/menu/ขนมจีบแต้จิ๋วโบราณ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ขาห่านอบหมี่",
+        "image_url": "/assets/images/menu/ขาห่านอบหมี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ขิงดอง",
+        "image_url": "/assets/images/menu/ขิงดอง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ขึ้นฉ่าย",
+        "image_url": "/assets/images/menu/ขึ้นฉ่าย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวญี่ปุ่น",
+        "image_url": "/assets/images/menu/ข้าวญี่ปุ่น.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวผัดกระเทียม",
+        "image_url": "/assets/images/menu/ข้าวผัดกระเทียม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวผัดแซลมอน",
+        "image_url": "/assets/images/menu/ข้าวผัดแซลมอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวสวย",
+        "image_url": "/assets/images/menu/ข้าวสวย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวสวยญี่ปุ่น",
+        "image_url": "/assets/images/menu/ข้าวสวยญี่ปุ่น.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวหน้ากุ้งเทมปุระ",
+        "image_url": "/assets/images/menu/ข้าวหน้ากุ้งเทมปุระ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวหน้าเรนโบว์",
+        "image_url": "/assets/images/menu/ข้าวหน้าเรนโบว์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวหน้าแซลมอนซาซิมิ",
+        "image_url": "/assets/images/menu/ข้าวหน้าแซลมอนซาซิมิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวห่อปูอัด",
+        "image_url": "/assets/images/menu/ข้าวห่อปูอัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวห่อแซลมอนไข่กุ้ง",
+        "image_url": "/assets/images/menu/ข้าวห่อแซลมอนไข่กุ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวห่อไข่หวาน",
+        "image_url": "/assets/images/menu/ข้าวห่อไข่หวาน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวอบเผือก",
+        "image_url": "/assets/images/menu/ข้าวอบเผือก.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวแกงกะหรี่กุ้งเทมปุระ",
+        "image_url": "/assets/images/menu/ข้าวแกงกะหรี่กุ้งเทมปุระ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวแกงกะหรี่หมูชาบู",
+        "image_url": "/assets/images/menu/ข้าวแกงกะหรี่หมูชาบู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวแกงกะหรี่หมูทงคัตสึ",
+        "image_url": "/assets/images/menu/ข้าวแกงกะหรี่หมูทงคัตสึ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวแกงกะหรี่เนื้อวากิว",
+        "image_url": "/assets/images/menu/ข้าวแกงกะหรี่เนื้อวากิว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวแกงกะหรี่เบคอนรมควัน",
+        "image_url": "/assets/images/menu/ข้าวแกงกะหรี่เบคอนรมควัน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวแกงกะหรี่ไก่คาราเกะ",
+        "image_url": "/assets/images/menu/ข้าวแกงกะหรี่ไก่คาราเกะ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวโพดหวาน",
+        "image_url": "/assets/images/menu/ข้าวโพดหวาน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ข้าวโพดอ่อน",
+        "image_url": "/assets/images/menu/ข้าวโพดอ่อน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ครอบครัวซีฟู๊ด",
+        "image_url": "/assets/images/menu/ครอบครัวซีฟู๊ด.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ครอบครัวหมู",
+        "image_url": "/assets/images/menu/ครอบครัวหมู.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ครอบครัวเนื้อ",
+        "image_url": "/assets/images/menu/ครอบครัวเนื้อ.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ครอบครัวเห็ด",
+        "image_url": "/assets/images/menu/ครอบครัวเห็ด.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ครีบปลาแซลมอนย่าง",
+        "image_url": "/assets/images/menu/ครีบปลาแซลมอนย่าง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "คะน้า",
+        "image_url": "/assets/images/menu/คะน้า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "คากิ หมั่นโถ",
+        "image_url": "/assets/images/menu/คากิ หมั่นโถ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ชาเขียว",
+        "image_url": "/assets/images/menu/ชาเขียว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ชาไทย",
+        "image_url": "/assets/images/menu/ชาไทย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ชุดผักสุกี้",
+        "image_url": "/assets/images/menu/ชุดผักสุกี้.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ชุดสุกี้",
+        "image_url": "/assets/images/menu/ชุดสุกี้.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซารุโซบะวากิว",
+        "image_url": "/assets/images/menu/ซารุโซบะวากิว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซารุโซบะหมูสไลด์",
+        "image_url": "/assets/images/menu/ซารุโซบะหมูสไลด์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซี่โครงย่าง",
+        "image_url": "/assets/images/menu/ซี่โครงย่าง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซี่โครงแกะ",
+        "image_url": "/assets/images/menu/ซี่โครงแกะ.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซุปมิโซะ",
+        "image_url": "/assets/images/menu/ซุปมิโซะ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิกุ้งกิมจิ",
+        "image_url": "/assets/images/menu/ซูชิกุ้งกิมจิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิกุ้งซอสหวาน",
+        "image_url": "/assets/images/menu/ซูชิกุ้งซอสหวาน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิกุ้งสลัด",
+        "image_url": "/assets/images/menu/ซูชิกุ้งสลัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิกุ้งหวาน",
+        "image_url": "/assets/images/menu/ซูชิกุ้งหวาน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิกุ้งเบิร์นชีส",
+        "image_url": "/assets/images/menu/ซูชิกุ้งเบิร์นชีส.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิกุ้งเบิร์นแซ่บ",
+        "image_url": "/assets/images/menu/ซูชิกุ้งเบิร์นแซ่บ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิกุ้งแก้ว",
+        "image_url": "/assets/images/menu/ซูชิกุ้งแก้ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิชีสสลัดปูอัด",
+        "image_url": "/assets/images/menu/ซูชิชีสสลัดปูอัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิชีสไข่กุ้ง",
+        "image_url": "/assets/images/menu/ซูชิชีสไข่กุ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิซาบะดอง",
+        "image_url": "/assets/images/menu/ซูชิซาบะดอง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิซาบะดองเบิร์น",
+        "image_url": "/assets/images/menu/ซูชิซาบะดองเบิร์น.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิทาโกะวาซาบิ",
+        "image_url": "/assets/images/menu/ซูชิทาโกะวาซาบิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิทูน่า",
+        "image_url": "/assets/images/menu/ซูชิทูน่า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิทูน่าสลัด",
+        "image_url": "/assets/images/menu/ซูชิทูน่าสลัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิทูน่าสลัดไข่ปู",
+        "image_url": "/assets/images/menu/ซูชิทูน่าสลัดไข่ปู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิทูน่าเบิร์นสไปซี่",
+        "image_url": "/assets/images/menu/ซูชิทูน่าเบิร์นสไปซี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิท้องปลาแซลมอนย่าง",
+        "image_url": "/assets/images/menu/ซูชิท้องปลาแซลมอนย่าง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิบอล",
+        "image_url": "/assets/images/menu/ซูชิบอล.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิปลาไหลญี่ปุ่นย่างซีอิ๊ว",
+        "image_url": "/assets/images/menu/ซูชิปลาไหลญี่ปุ่นย่างซีอิ๊ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิปูอัด",
+        "image_url": "/assets/images/menu/ซูชิปูอัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิปูอัดราดสลัด",
+        "image_url": "/assets/images/menu/ซูชิปูอัดราดสลัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิปูอัดเบิร์นสไปซี่",
+        "image_url": "/assets/images/menu/ซูชิปูอัดเบิร์นสไปซี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิปูอัดแซ่บ",
+        "image_url": "/assets/images/menu/ซูชิปูอัดแซ่บ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิยำสาหร่าย",
+        "image_url": "/assets/images/menu/ซูชิยำสาหร่าย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิวากิว",
+        "image_url": "/assets/images/menu/ซูชิวากิว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิวากิวสไปซี่",
+        "image_url": "/assets/images/menu/ซูชิวากิวสไปซี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิสลัดรวม",
+        "image_url": "/assets/images/menu/ซูชิสลัดรวม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิสลัดเป๋าฮื้อ",
+        "image_url": "/assets/images/menu/ซูชิสลัดเป๋าฮื้อ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิหมึกซอสหวาน",
+        "image_url": "/assets/images/menu/ซูชิหมึกซอสหวาน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิหมึกหิมะ",
+        "image_url": "/assets/images/menu/ซูชิหมึกหิมะ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิหมึกหิมะสลัด",
+        "image_url": "/assets/images/menu/ซูชิหมึกหิมะสลัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิหอยลายกิมจิ",
+        "image_url": "/assets/images/menu/ซูชิหอยลายกิมจิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิหอยเชลล์",
+        "image_url": "/assets/images/menu/ซูชิหอยเชลล์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิเบคอนรมควัน",
+        "image_url": "/assets/images/menu/ซูชิเบคอนรมควัน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิเบคอนสไปซี่",
+        "image_url": "/assets/images/menu/ซูชิเบคอนสไปซี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิเอ็นหอยเชลล์กิมจิ",
+        "image_url": "/assets/images/menu/ซูชิเอ็นหอยเชลล์กิมจิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอน",
+        "image_url": "/assets/images/menu/ซูชิแซลมอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอนสลัด",
+        "image_url": "/assets/images/menu/ซูชิแซลมอนสลัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอนสับ",
+        "image_url": "/assets/images/menu/ซูชิแซลมอนสับ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอนสับราดสลัด",
+        "image_url": "/assets/images/menu/ซูชิแซลมอนสับราดสลัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอนสับสไปซี่ไข่กุ่ม",
+        "image_url": "/assets/images/menu/ซูชิแซลมอนสับสไปซี่ไข่กุ่ม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอนสับเบิร์น",
+        "image_url": "/assets/images/menu/ซูชิแซลมอนสับเบิร์น.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอนเบิร์น",
+        "image_url": "/assets/images/menu/ซูชิแซลมอนเบิร์น.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอนเบิร์นชีส",
+        "image_url": "/assets/images/menu/ซูชิแซลมอนเบิร์นชีส.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอนแซ่บ",
+        "image_url": "/assets/images/menu/ซูชิแซลมอนแซ่บ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแซลมอนโทโร่",
+        "image_url": "/assets/images/menu/ซูชิแซลมอนโทโร่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแมงกะพรุนกิมจิ",
+        "image_url": "/assets/images/menu/ซูชิแมงกะพรุนกิมจิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิแมงกะพรุนน้ำมันงา",
+        "image_url": "/assets/images/menu/ซูชิแมงกะพรุนน้ำมันงา.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิไข่กุ้งส้ม",
+        "image_url": "/assets/images/menu/ซูชิไข่กุ้งส้ม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิไข่กุ้งส้มยำสาหร่าย",
+        "image_url": "/assets/images/menu/ซูชิไข่กุ้งส้มยำสาหร่าย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิไข่กุ้งส้มสลัดปูอัด",
+        "image_url": "/assets/images/menu/ซูชิไข่กุ้งส้มสลัดปูอัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิไข่ปลาแซลมอน",
+        "image_url": "/assets/images/menu/ซูชิไข่ปลาแซลมอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิไข่ปูส้ม",
+        "image_url": "/assets/images/menu/ซูชิไข่ปูส้ม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิไข่หวาน",
+        "image_url": "/assets/images/menu/ซูชิไข่หวาน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิไข่หวานสลัด",
+        "image_url": "/assets/images/menu/ซูชิไข่หวานสลัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ซูชิไข่หวานสับซอสสไปซี่",
+        "image_url": "/assets/images/menu/ซูชิไข่หวานสับซอสสไปซี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ตับหมู",
+        "image_url": "/assets/images/menu/ตับหมู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ตั้งโอ๋",
+        "image_url": "/assets/images/menu/ตั้งโอ๋.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ทอดมันกุ้ง",
+        "image_url": "/assets/images/menu/ทอดมันกุ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ทาโกะวาซาบิ",
+        "image_url": "/assets/images/menu/ทาโกะวาซาบิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "นักเก็ตไก่",
+        "image_url": "/assets/images/menu/นักเก็ตไก่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำกระเจี๊ยบ",
+        "image_url": "/assets/images/menu/น้ำกระเจี๊ยบ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำจิ้มงา",
+        "image_url": "/assets/images/menu/น้ำจิ้มงา.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำจิ้มซีฟู้ด",
+        "image_url": "/assets/images/menu/น้ำจิ้มซีฟู้ด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำจิ้มบาบีคิว (ขวด)",
+        "image_url": "/assets/images/menu/น้ำจิ้มบาบีคิว (ขวด).png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำจิ้มพอนสึ",
+        "image_url": "/assets/images/menu/น้ำจิ้มพอนสึ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำจิ้มสุกี้ (ขวด)",
+        "image_url": "/assets/images/menu/น้ำจิ้มสุกี้ (ขวด).png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำจิ้มสุกี้",
+        "image_url": "/assets/images/menu/น้ำจิ้มสุกี้.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำจิ้มหม่าล่า",
+        "image_url": "/assets/images/menu/น้ำจิ้มหม่าล่า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำจิ้มแจ่ว",
+        "image_url": "/assets/images/menu/น้ำจิ้มแจ่ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำซุปกระดูกหมู",
+        "image_url": "/assets/images/menu/น้ำซุปกระดูกหมู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำซุปต้มยำ",
+        "image_url": "/assets/images/menu/น้ำซุปต้มยำ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำซุปน้ำดำ",
+        "image_url": "/assets/images/menu/น้ำซุปน้ำดำ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำซุปน้ำนม",
+        "image_url": "/assets/images/menu/น้ำซุปน้ำนม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำซุปหม่าล่า",
+        "image_url": "/assets/images/menu/น้ำซุปหม่าล่า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำซุปใส",
+        "image_url": "/assets/images/menu/น้ำซุปใส.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำซุปไก่",
+        "image_url": "/assets/images/menu/น้ำซุปไก่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำอัดลม",
+        "image_url": "/assets/images/menu/น้ำอัดลม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำเก๊กฮวย",
+        "image_url": "/assets/images/menu/น้ำเก๊กฮวย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำเปล่า",
+        "image_url": "/assets/images/menu/น้ำเปล่า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "น้ำแขงไส",
+        "image_url": "/assets/images/menu/น้ำแขงไส.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "บะหมี่หยก",
+        "image_url": "/assets/images/menu/บะหมี่หยก.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "บะหมี่เหลือง",
+        "image_url": "/assets/images/menu/บะหมี่เหลือง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "บะหมี่ไข่",
+        "image_url": "/assets/images/menu/บะหมี่ไข่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "บัวลอยน้ำขิง",
+        "image_url": "/assets/images/menu/บัวลอยน้ำขิง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "บิงซู",
+        "image_url": "/assets/images/menu/บิงซู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาดอลลี่",
+        "image_url": "/assets/images/menu/ปลาดอลลี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาทรงเครื่อง",
+        "image_url": "/assets/images/menu/ปลาทรงเครื่อง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาสวรรค์สด",
+        "image_url": "/assets/images/menu/ปลาสวรรค์สด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาหมึกกรอบ",
+        "image_url": "/assets/images/menu/ปลาหมึกกรอบ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาหมึกคั่วพริกเกลือ",
+        "image_url": "/assets/images/menu/ปลาหมึกคั่วพริกเกลือ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาหมึกทอด",
+        "image_url": "/assets/images/menu/ปลาหมึกทอด.jpg",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาหมึกผัดไข่เค็ม",
+        "image_url": "/assets/images/menu/ปลาหมึกผัดไข่เค็ม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาหมึกยัดไส้กุ้ง",
+        "image_url": "/assets/images/menu/ปลาหมึกยัดไส้กุ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาหมึกสด",
+        "image_url": "/assets/images/menu/ปลาหมึกสด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาหมึกแช่ผัดบะเต็ง",
+        "image_url": "/assets/images/menu/ปลาหมึกแช่ผัดบะเต็ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาหิมะนึ่งซีอิ๊ว",
+        "image_url": "/assets/images/menu/ปลาหิมะนึ่งซีอิ๊ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปลาเงินทอด",
+        "image_url": "/assets/images/menu/ปลาเงินทอด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปอเปี๊ยะกุ้งทอด",
+        "image_url": "/assets/images/menu/ปอเปี๊ยะกุ้งทอด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปอเปี๊ยะทอด",
+        "image_url": "/assets/images/menu/ปอเปี๊ยะทอด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปีกไก่ทอดเกลือ",
+        "image_url": "/assets/images/menu/ปีกไก่ทอดเกลือ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปีกไก่หมัก",
+        "image_url": "/assets/images/menu/ปีกไก่หมัก.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปูอัด",
+        "image_url": "/assets/images/menu/ปูอัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ปูอัด",
+        "image_url": "/assets/images/menu/ปูอัด.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ผลไม้ตัดแต่งรวม",
+        "image_url": "/assets/images/menu/ผลไม้ตัดแต่งรวม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ผักกาดขาว",
+        "image_url": "/assets/images/menu/ผักกาดขาว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ผักบุ้งจีน",
+        "image_url": "/assets/images/menu/ผักบุ้งจีน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ผักปวยเล้ง",
+        "image_url": "/assets/images/menu/ผักปวยเล้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ผักรวม",
+        "image_url": "/assets/images/menu/ผักรวม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ผักไต้หวัน",
+        "image_url": "/assets/images/menu/ผักไต้หวัน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ฟองเต้าหู้ทอด",
+        "image_url": "/assets/images/menu/ฟองเต้าหู้ทอด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ฟักทอง",
+        "image_url": "/assets/images/menu/ฟักทอง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ฟูโตมากิ",
+        "image_url": "/assets/images/menu/ฟูโตมากิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "มันบดทอด",
+        "image_url": "/assets/images/menu/มันบดทอด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "มันฝรั่งสไลซ์",
+        "image_url": "/assets/images/menu/มันฝรั่งสไลซ์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "มากิแซลมอน",
+        "image_url": "/assets/images/menu/มากิแซลมอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "มาม่า",
+        "image_url": "/assets/images/menu/มาม่า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "มินิโรลไข่หวาน",
+        "image_url": "/assets/images/menu/มินิโรลไข่หวาน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ยากิโซบะกุ้ง",
+        "image_url": "/assets/images/menu/ยากิโซบะกุ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ยากิโซบะหมู",
+        "image_url": "/assets/images/menu/ยากิโซบะหมู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ยากิโซบะเนื้อ",
+        "image_url": "/assets/images/menu/ยากิโซบะเนื้อ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ยากิโซบะเบคอน",
+        "image_url": "/assets/images/menu/ยากิโซบะเบคอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ยากิโซบะแซลมอน",
+        "image_url": "/assets/images/menu/ยากิโซบะแซลมอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ยำกุ้งฟู",
+        "image_url": "/assets/images/menu/ยำกุ้งฟู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ยำสาหร่าย",
+        "image_url": "/assets/images/menu/ยำสาหร่าย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ยำแซลมอน",
+        "image_url": "/assets/images/menu/ยำแซลมอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ยำแมงกะพรุนน้ำมันงา",
+        "image_url": "/assets/images/menu/ยำแมงกะพรุนน้ำมันงา.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ราเมนแกงกะหรี่ เทมปุระ",
+        "image_url": "/assets/images/menu/ราเมนแกงกะหรี่ เทมปุระ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ราเมนแกงกะหรี่คาราเกะ",
+        "image_url": "/assets/images/menu/ราเมนแกงกะหรี่คาราเกะ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ราเมนโชยุ หมูชาชู",
+        "image_url": "/assets/images/menu/ราเมนโชยุ หมูชาชู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ราเมนโชยุ หมูสันคอ",
+        "image_url": "/assets/images/menu/ราเมนโชยุ หมูสันคอ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ราเมนโชยุ เนื้อวากิว",
+        "image_url": "/assets/images/menu/ราเมนโชยุ เนื้อวากิว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ราเมนโชยุ เบคอน",
+        "image_url": "/assets/images/menu/ราเมนโชยุ เบคอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ราเมนโชยุ เอบิ",
+        "image_url": "/assets/images/menu/ราเมนโชยุ เอบิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ลำไส้หมู",
+        "image_url": "/assets/images/menu/ลำไส้หมู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ลิ้นห่านเจี๋ยนคะน้าฮ่องกง",
+        "image_url": "/assets/images/menu/ลิ้นห่านเจี๋ยนคะน้าฮ่องกง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ลูกชิ้นกุ้ง",
+        "image_url": "/assets/images/menu/ลูกชิ้นกุ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ลูกชิ้นกุ้ง",
+        "image_url": "/assets/images/menu/ลูกชิ้นกุ้ง.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ลูกชิ้นปลา",
+        "image_url": "/assets/images/menu/ลูกชิ้นปลา.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ลูกชิ้นรักบี้",
+        "image_url": "/assets/images/menu/ลูกชิ้นรักบี้.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "วากิวบิ๊กโรล",
+        "image_url": "/assets/images/menu/วากิวบิ๊กโรล.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "วากิวเอ๊กโรล",
+        "image_url": "/assets/images/menu/วากิวเอ๊กโรล.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "วากิวแซ่บ",
+        "image_url": "/assets/images/menu/วากิวแซ่บ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "วุ้นเส้น",
+        "image_url": "/assets/images/menu/วุ้นเส้น.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สลัดปูอัด",
+        "image_url": "/assets/images/menu/สลัดปูอัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สะโพกไก่",
+        "image_url": "/assets/images/menu/สะโพกไก่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สาหร่าย",
+        "image_url": "/assets/images/menu/สาหร่าย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สาหร่ายวากาเมะ",
+        "image_url": "/assets/images/menu/สาหร่ายวากาเมะ.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้นาเบะ ชุดรวมหมู พร้อมข้าวญี่ปุ่น - คุโรซุป",
+        "image_url": "/assets/images/menu/สุกี้นาเบะ ชุดรวมหมู พร้อมข้าวญี่ปุ่น - คุโรซุป.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้นาเบะ ชุดรวมเนื้อ พร้อมข้าวญี่ปุ่น - คุโรซุป",
+        "image_url": "/assets/images/menu/สุกี้นาเบะ ชุดรวมเนื้อ พร้อมข้าวญี่ปุ่น - คุโรซุป.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ผัดแห้งกระทะร้อนทะเล",
+        "image_url": "/assets/images/menu/สุกี้ผัดแห้งกระทะร้อนทะเล.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ผัดแห้งกระทะร้อนปลาเก๋าดำ",
+        "image_url": "/assets/images/menu/สุกี้ผัดแห้งกระทะร้อนปลาเก๋าดำ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ผัดแห้งกระทะร้อนหมู",
+        "image_url": "/assets/images/menu/สุกี้ผัดแห้งกระทะร้อนหมู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ผัดแห้งกระทะร้อนเนื้อ",
+        "image_url": "/assets/images/menu/สุกี้ผัดแห้งกระทะร้อนเนื้อ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ผัดแห้งกระทะร้อนไก่",
+        "image_url": "/assets/images/menu/สุกี้ผัดแห้งกระทะร้อนไก่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้ปลากะพง",
+        "image_url": "/assets/images/menu/สุกี้ยากี้ปลากะพง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้ปลาหิมะ",
+        "image_url": "/assets/images/menu/สุกี้ยากี้ปลาหิมะ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้ปลาเก๋า",
+        "image_url": "/assets/images/menu/สุกี้ยากี้ปลาเก๋า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้ปลาเก๋าแดง",
+        "image_url": "/assets/images/menu/สุกี้ยากี้ปลาเก๋าแดง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้ปลาเต๋าเต้ย",
+        "image_url": "/assets/images/menu/สุกี้ยากี้ปลาเต๋าเต้ย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้รวมมิตรทะเล",
+        "image_url": "/assets/images/menu/สุกี้ยากี้รวมมิตรทะเล.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้หมู",
+        "image_url": "/assets/images/menu/สุกี้ยากี้หมู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้เนื้อ",
+        "image_url": "/assets/images/menu/สุกี้ยากี้เนื้อ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้แห้งกระทะร้อนปลาเก๋าแดง",
+        "image_url": "/assets/images/menu/สุกี้ยากี้แห้งกระทะร้อนปลาเก๋าแดง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้แห้งกระทะร้อนปลาเต๋าเต้ย",
+        "image_url": "/assets/images/menu/สุกี้ยากี้แห้งกระทะร้อนปลาเต๋าเต้ย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้แห้งกระร้อนปลาหิมะ",
+        "image_url": "/assets/images/menu/สุกี้ยากี้แห้งกระร้อนปลาหิมะ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "สุกี้ยากี้ไก่",
+        "image_url": "/assets/images/menu/สุกี้ยากี้ไก่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หมูสันคอสไลซ์",
+        "image_url": "/assets/images/menu/หมูสันคอสไลซ์.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หมูสันนอก",
+        "image_url": "/assets/images/menu/หมูสันนอก.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หมูสามชั้นสไลซ์",
+        "image_url": "/assets/images/menu/หมูสามชั้นสไลซ์.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หมูหมักนุ่ม",
+        "image_url": "/assets/images/menu/หมูหมักนุ่ม.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หอยจ้อปู",
+        "image_url": "/assets/images/menu/หอยจ้อปู.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หอยเชลล์",
+        "image_url": "/assets/images/menu/หอยเชลล์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หอยเชลล์",
+        "image_url": "/assets/images/menu/หอยเชลล์.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หอยแมลงภู่",
+        "image_url": "/assets/images/menu/หอยแมลงภู่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หัวปลาต้มซีอิ๊ว",
+        "image_url": "/assets/images/menu/หัวปลาต้มซีอิ๊ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หัวไชเท้า",
+        "image_url": "/assets/images/menu/หัวไชเท้า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "หูหมูแก้ว",
+        "image_url": "/assets/images/menu/หูหมูแก้ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "อกเป็ดหมัก",
+        "image_url": "/assets/images/menu/อกเป็ดหมัก.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ออส่วนกระทะร้อน",
+        "image_url": "/assets/images/menu/ออส่วนกระทะร้อน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "อินาริ ยำสาหร่าย",
+        "image_url": "/assets/images/menu/อินาริ ยำสาหร่าย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "อินาริ สลัดทูน่า",
+        "image_url": "/assets/images/menu/อินาริ สลัดทูน่า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "อินาริ สลัดปูอัด",
+        "image_url": "/assets/images/menu/อินาริ สลัดปูอัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "อิ่มคุ้ม หมู เมนูปรุงเอง",
+        "image_url": "/assets/images/menu/อิ่มคุ้ม หมู เมนูปรุงเอง.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "อิ่มคุ้ม เนื้อวัว เมนูปรุงเอง ใหญ่",
+        "image_url": "/assets/images/menu/อิ่มคุ้ม เนื้อวัว เมนูปรุงเอง ใหญ่.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "อิ่มคุ้ม เนื้อวัว เมนูปรุงเอง",
+        "image_url": "/assets/images/menu/อิ่มคุ้ม เนื้อวัว เมนูปรุงเอง.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "อิ่มคู่ เนื้อและหมู เมนูปรุงเอง",
+        "image_url": "/assets/images/menu/อิ่มคู่ เนื้อและหมู เมนูปรุงเอง.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ฮือแซ",
+        "image_url": "/assets/images/menu/ฮือแซ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เกี๊ยวกุ้ง",
+        "image_url": "/assets/images/menu/เกี๊ยวกุ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เกี๊ยวซ่า",
+        "image_url": "/assets/images/menu/เกี๊ยวซ่า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เกี๊ยวปลา",
+        "image_url": "/assets/images/menu/เกี๊ยวปลา.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เฉาก๊วย",
+        "image_url": "/assets/images/menu/เฉาก๊วย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เซี่ยงจี๊",
+        "image_url": "/assets/images/menu/เซี่ยงจี๊.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เซ็ตแซลมอนดองซีอิ๊ว",
+        "image_url": "/assets/images/menu/เซ็ตแซลมอนดองซีอิ๊ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เต้าหู้กระทะร้อนทรงเครื่อง",
+        "image_url": "/assets/images/menu/เต้าหู้กระทะร้อนทรงเครื่อง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เต้าหู้ขาว",
+        "image_url": "/assets/images/menu/เต้าหู้ขาว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เต้าหู้ปลา",
+        "image_url": "/assets/images/menu/เต้าหู้ปลา.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เต้าหู้ไข่",
+        "image_url": "/assets/images/menu/เต้าหู้ไข่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เนื้อปลากะพง",
+        "image_url": "/assets/images/menu/เนื้อปลากะพง.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เนื้อปลาเก๋า",
+        "image_url": "/assets/images/menu/เนื้อปลาเก๋า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เนื้อปูก้อนผัดผงกะหรี่",
+        "image_url": "/assets/images/menu/เนื้อปูก้อนผัดผงกะหรี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เนื้อริบอายโคขุน สไลซ์ แช่แข็ง",
+        "image_url": "/assets/images/menu/เนื้อริบอายโคขุน สไลซ์ แช่แข็ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เนื้อวัวสไลซ์",
+        "image_url": "/assets/images/menu/เนื้อวัวสไลซ์.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เนื้อออสเตรสไลด์",
+        "image_url": "/assets/images/menu/เนื้อออสเตรสไลด์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เนื้อแกะสไลซ์",
+        "image_url": "/assets/images/menu/เนื้อแกะสไลซ์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เนื้อโหนกโคขุนสไลซ์",
+        "image_url": "/assets/images/menu/เนื้อโหนกโคขุนสไลซ์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เนื้อใบพาย",
+        "image_url": "/assets/images/menu/เนื้อใบพาย.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เบคอน",
+        "image_url": "/assets/images/menu/เบคอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เป็ดสไลซ์",
+        "image_url": "/assets/images/menu/เป็ดสไลซ์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เป๋าเส้นเจี๋ยนผัดน้ำมันหอย",
+        "image_url": "/assets/images/menu/เป๋าเส้นเจี๋ยนผัดน้ำมันหอย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เป๋าแผ่นเจี๋ยนคะน้าฮ่องกง",
+        "image_url": "/assets/images/menu/เป๋าแผ่นเจี๋ยนคะน้าฮ่องกง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เผือกทอด",
+        "image_url": "/assets/images/menu/เผือกทอด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เผือกสด",
+        "image_url": "/assets/images/menu/เผือกสด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เฟรนช์ฟรายส์",
+        "image_url": "/assets/images/menu/เฟรนช์ฟรายส์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เฟรนช์ฟรายส์ชีส",
+        "image_url": "/assets/images/menu/เฟรนช์ฟรายส์ชีส.webp",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เส้นมันเทศ",
+        "image_url": "/assets/images/menu/เส้นมันเทศ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เส้นอูด้ง",
+        "image_url": "/assets/images/menu/เส้นอูด้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เส้นเล็ก",
+        "image_url": "/assets/images/menu/เส้นเล็ก.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เส้นแก้ว",
+        "image_url": "/assets/images/menu/เส้นแก้ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เห็ดชิเมจิ",
+        "image_url": "/assets/images/menu/เห็ดชิเมจิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เห็ดฟาง",
+        "image_url": "/assets/images/menu/เห็ดฟาง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เห็ดหอมสด",
+        "image_url": "/assets/images/menu/เห็ดหอมสด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เห็ดออรินจิ",
+        "image_url": "/assets/images/menu/เห็ดออรินจิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เห็ดเข็มทอง",
+        "image_url": "/assets/images/menu/เห็ดเข็มทอง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "เอ็นหมูผัดใบกระเพรา",
+        "image_url": "/assets/images/menu/เอ็นหมูผัดใบกระเพรา.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แกงกะหรี่",
+        "image_url": "/assets/images/menu/แกงกะหรี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แกงกะหรี่ราเมนทงคัตสึ",
+        "image_url": "/assets/images/menu/แกงกะหรี่ราเมนทงคัตสึ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แคลิฟอร์เนียมากิ",
+        "image_url": "/assets/images/menu/แคลิฟอร์เนียมากิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอน",
+        "image_url": "/assets/images/menu/แซลมอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนครันช์ชี่โรล",
+        "image_url": "/assets/images/menu/แซลมอนครันช์ชี่โรล.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนซาซิมิ (ชุดเล็ก)",
+        "image_url": "/assets/images/menu/แซลมอนซาซิมิ (ชุดเล็ก).png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนซาซิมิ (ชุดใหญ่)",
+        "image_url": "/assets/images/menu/แซลมอนซาซิมิ (ชุดใหญ่).png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนซาซิมิ",
+        "image_url": "/assets/images/menu/แซลมอนซาซิมิ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนบอล",
+        "image_url": "/assets/images/menu/แซลมอนบอล.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนบอลสไปซี่",
+        "image_url": "/assets/images/menu/แซลมอนบอลสไปซี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนเบอร์เกอร์",
+        "image_url": "/assets/images/menu/แซลมอนเบอร์เกอร์.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนเบิร์นสไปซี่",
+        "image_url": "/assets/images/menu/แซลมอนเบิร์นสไปซี่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนโรล",
+        "image_url": "/assets/images/menu/แซลมอนโรล.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซลมอนโรลเบิร์น",
+        "image_url": "/assets/images/menu/แซลมอนโรลเบิร์น.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แซวม่อนดองซีอิ้ว",
+        "image_url": "/assets/images/menu/แซวม่อนดองซีอิ้ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แปรก้วยผัดพริกเกลือ",
+        "image_url": "/assets/images/menu/แปรก้วยผัดพริกเกลือ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แปะก๊วยผัดกังป๋วย",
+        "image_url": "/assets/images/menu/แปะก๊วยผัดกังป๋วย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แปะก๊วยผัดพริกเกลือ",
+        "image_url": "/assets/images/menu/แปะก๊วยผัดพริกเกลือ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แมงกะพรุน",
+        "image_url": "/assets/images/menu/แมงกะพรุน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แฮกึ้นทอด",
+        "image_url": "/assets/images/menu/แฮกึ้นทอด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "แฮ่กึ๊นทอด",
+        "image_url": "/assets/images/menu/แฮ่กึ๊นทอด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "โซบะเย็น",
+        "image_url": "/assets/images/menu/โซบะเย็น.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไก่บ้านแช่เหล้าจีน",
+        "image_url": "/assets/images/menu/ไก่บ้านแช่เหล้าจีน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไก่ป๊อป",
+        "image_url": "/assets/images/menu/ไก่ป๊อป.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไก่หมักงา",
+        "image_url": "/assets/images/menu/ไก่หมักงา.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไก่หมักพริกไทยดำ",
+        "image_url": "/assets/images/menu/ไก่หมักพริกไทยดำ.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่กุ้ง",
+        "image_url": "/assets/images/menu/ไข่กุ้ง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่ดองซีอิ๊ว",
+        "image_url": "/assets/images/menu/ไข่ดองซีอิ๊ว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่ปลาแซลมอน",
+        "image_url": "/assets/images/menu/ไข่ปลาแซลมอน.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่หวานห่อชีส",
+        "image_url": "/assets/images/menu/ไข่หวานห่อชีส.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่หวานห่อปูอัด",
+        "image_url": "/assets/images/menu/ไข่หวานห่อปูอัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่หวานอินาริยำสาหร่าย",
+        "image_url": "/assets/images/menu/ไข่หวานอินาริยำสาหร่าย.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่หวานอินาริสลัดทูน่า",
+        "image_url": "/assets/images/menu/ไข่หวานอินาริสลัดทูน่า.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่หวานอินาริสลัดปูอัด",
+        "image_url": "/assets/images/menu/ไข่หวานอินาริสลัดปูอัด.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่หวานแซนวิช",
+        "image_url": "/assets/images/menu/ไข่หวานแซนวิช.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่เป็ด",
+        "image_url": "/assets/images/menu/ไข่เป็ด.jpg",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไข่ไก่",
+        "image_url": "/assets/images/menu/ไข่ไก่.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไชเท้าดอง",
+        "image_url": "/assets/images/menu/ไชเท้าดอง.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไอศกรีมชาเขียว",
+        "image_url": "/assets/images/menu/ไอศกรีมชาเขียว.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    },
+    {
+        "name": "ไอศกรีมวานิลลา",
+        "image_url": "/assets/images/menu/ไอศกรีมวานิลลา.png",
+        "price": 0,
+        "category": "Buffet",
+        "is_available": true
+    }
+]

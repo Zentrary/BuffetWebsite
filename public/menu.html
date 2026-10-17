@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fff7ed">
+    <title data-i18n="page.menuTitle">
+      เมนูอาหาร
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+  </head>
+  <body class="min-h-screen bg-orange-50 pb-28 text-slate-800">
+    <!-- ========== HEADER ========== -->
+    <header class="sticky top-0 z-30 border-b border-orange-100 bg-white/95 backdrop-blur">
+      <div class="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2 sm:px-5 sm:py-2.5">
+        <!-- Left: hamburger + brand (brand hidden on very small screens) -->
+        <div class="flex min-w-0 flex-1 items-center gap-2">
+          <button id="sidebar-toggle" type="button"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 lg:hidden sm:h-10 sm:w-10"
+          aria-label="หมวดหมู่" aria-expanded="false">
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+          <a href="/queue.html" class="flex min-w-0 items-center gap-2">
+            <img data-shop-logo src="/assets/images/logo.png" alt="" class="h-8 w-8 shrink-0 rounded-lg object-contain sm:h-9 sm:w-9">
+            <span data-shop-name class="hidden truncate text-base font-black text-slate-900 min-[420px]:inline sm:text-lg">
+              TEEHID Buffet
+            </span>
+          </a>
+        </div>
+        <!-- Right: timer + status link + lang switcher -->
+        <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <!-- Timer (compact on mobile) -->
+          <div id="session-timer" class="flex items-center gap-1 rounded-lg bg-green-50 px-2 py-1 text-green-800 ring-1 ring-green-100 sm:gap-1.5 sm:rounded-xl sm:px-2.5 sm:py-1.5" aria-live="polite">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 shrink-0 opacity-70 sm:h-4 sm:w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7v5l3 3"/>
+            </svg>
+            <span id="timer-display" class="font-mono text-xs font-black tabular-nums sm:text-sm md:text-base">
+              --:--:--
+            </span>
+          </div>
+          <!-- Status link (hidden on small, appears on sm+) -->
+          <a id="status-link" href="/status.html"
+          class="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 sm:flex sm:h-10 sm:w-10"
+          aria-label="ดูสถานะของคุณ" title="ดูสถานะของคุณ">
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7v5l3 3"/>
+            </svg>
+          </a>
+          <!-- Language switcher (compact on mobile) -->
+          <label for="langSwitcher" class="sr-only" data-i18n="language.label">
+            ภาษา
+          </label>
+          <select id="langSwitcher"
+          class="h-9 max-w-[72px] shrink-0 rounded-lg border border-slate-200 bg-white px-1.5 text-xs font-bold text-slate-700 outline-none transition hover:bg-slate-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 sm:h-10 sm:max-w-none sm:rounded-xl sm:px-2 sm:text-sm"
+          aria-label="Language">
+            <option value="th" data-i18n="language.th">
+              ไทย
+            </option>
+            <option value="en" data-i18n="language.en">
+              English
+            </option>
+          </select>
+        </div>
+      </div>
+    </header>
+    <!-- ========== LAYOUT ========== -->
+    <div class="mx-auto flex max-w-7xl gap-4 px-3 py-4 sm:px-5">
+      <!-- ===== SIDEBAR (categories) ===== -->
+      <aside id="category-sidebar"
+      class="fixed inset-y-0 left-0 z-40 flex w-72 max-w-[85vw] -translate-x-full flex-col overflow-y-auto bg-white p-4 shadow-2xl transition-transform duration-200 ease-out
+             lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:w-56 lg:max-w-none lg:shrink-0 lg:translate-x-0 lg:overflow-visible lg:rounded-2xl lg:border lg:border-orange-100 lg:p-3 lg:shadow-sm"
+      aria-label="หมวดหมู่เมนู">
+        <div class="mb-3 flex items-center justify-between lg:hidden">
+          <h2 class="text-base font-black text-slate-900" data-i18n="menu.title">
+            เมนูอาหาร
+          </h2>
+          <button id="sidebar-close" type="button"
+          class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition hover:bg-slate-200"
+          aria-label="ปิด">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M6 6l12 12M18 6 6 18"/>
+            </svg>
+          </button>
+        </div>
+        <p class="mb-2 hidden px-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 lg:block">
+          หมวดหมู่
+        </p>
+        <nav id="category-nav" class="space-y-0.5">
+        </nav>
+        <!-- Mobile-only: status link inside sidebar -->
+        <a id="mobile-status-link" href="/status.html"
+        class="mt-4 flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 lg:hidden">
+          <svg viewBox="0 0 24 24" class="h-5 w-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7v5l3 3"/>
+          </svg>
+          <span data-i18n="status.viewStatus">
+            ดูสถานะของคุณ
+          </span>
+        </a>
+      </aside>
+      <div id="sidebar-overlay" class="fixed inset-0 z-30 hidden bg-slate-950/50 backdrop-blur-sm lg:hidden">
+      </div>
+      <!-- ===== MAIN CONTENT ===== -->
+      <main class="min-w-0 flex-1">
+        <!-- Tab switcher + view switcher (stacked on mobile) -->
+        <div class="mb-4 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <!-- Main tabs -->
+          <div class="inline-flex w-full rounded-xl border border-slate-200 bg-white p-1 shadow-sm sm:w-auto" role="tablist">
+            <button type="button" data-main-tab="menu" role="tab" aria-selected="true"
+            class="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition sm:flex-none sm:px-4 sm:text-sm">
+              <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M5 6h14M5 12h14M5 18h14"/>
+              </svg>
+              <span class="truncate" data-i18n="menu.title">
+                เมนูอาหาร
+              </span>
+            </button>
+            <button type="button" data-main-tab="orders" role="tab" aria-selected="false"
+            class="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition sm:flex-none sm:px-4 sm:text-sm">
+              <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 12h6M9 16h4"/>
+              </svg>
+              <span class="truncate" data-i18n="menu.myOrders">
+                ออเดอร์ของฉัน
+              </span>
+              <span id="main-orders-count"
+              class="hidden inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-orange-600 px-1.5 text-[10px] font-black text-white tabular-nums">
+                0
+              </span>
+            </button>
+          </div>
+          <!-- View switcher -->
+          <div id="menu-view-switcher"
+          class="inline-flex w-full rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm sm:w-auto"
+          aria-label="รูปแบบการแสดงผล">
+            <button type="button" data-menu-view="list"
+            class="min-h-9 flex-1 rounded-md px-3 py-1 text-xs font-bold transition sm:flex-none">
+              ตาราง
+            </button>
+            <button type="button" data-menu-view="cards"
+            class="min-h-9 flex-1 rounded-md px-3 py-1 text-xs font-bold transition sm:flex-none">
+              การ์ด
+            </button>
+          </div>
+        </div>
+        <!-- ===== VIEW: MENU ===== -->
+        <section id="view-menu">
+          <div id="menu-loading" class="flex min-h-48 items-center justify-center gap-3 text-orange-700" role="status">
+            <span class="h-7 w-7 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600">
+            </span>
+            <span data-i18n="menu.loading">
+              กำลังโหลดเมนู...
+            </span>
+          </div>
+          <div id="menu-error" class="hidden rounded-xl bg-red-50 p-4 text-red-700" role="alert">
+          </div>
+          <div id="menu-content" class="hidden space-y-8">
+          </div>
+        </section>
+        <!-- ===== VIEW: ORDERS ===== -->
+        <section id="view-orders" class="hidden">
+          <div class="mb-4">
+            <h1 class="text-lg font-black text-slate-900 sm:text-xl" data-i18n="menu.ordersTitle">
+              ออเดอร์ของฉัน
+            </h1>
+            <p class="text-xs text-slate-500" data-i18n="menu.ordersSubtitle">
+              ติดตามสถานะอาหารที่สั่งไว้
+            </p>
+          </div>
+          <div id="orders-loading" class="hidden items-center gap-2 text-sm text-slate-500" role="status">
+            <span class="h-4 w-4 animate-spin rounded-full border-2 border-orange-100 border-t-orange-600">
+            </span>
+            <span data-i18n="common.loading">
+              กำลังโหลด...
+            </span>
+          </div>
+          <div id="orders-list" class="space-y-3">
+          </div>
+          <p id="orders-empty" class="hidden rounded-2xl bg-white p-8 text-center text-slate-500 ring-1 ring-slate-100" data-i18n="menu.emptyOrders">
+            ยังไม่มีออเดอร์
+          </p>
+        </section>
+      </main>
+    </div>
+    <!-- ========== FLOATING CART BUTTON ========== -->
+    <button id="open-cart" type="button"
+    class="fixed bottom-4 left-3 right-3 z-30 mx-auto flex min-h-14 max-w-lg items-center justify-between gap-3 rounded-2xl bg-orange-600 px-4 py-3 font-bold text-white shadow-lg shadow-orange-300/40 transition hover:bg-orange-700 sm:bottom-5 sm:left-6 sm:right-6 sm:px-5">
+      <span class="flex min-w-0 items-center gap-2.5">
+        <img src="/assets/images/icon-cart.png" alt="" class="h-6 w-6 shrink-0">
+        <span class="truncate text-sm font-bold leading-none sm:text-base" data-i18n="menu.cart">
+          ดูตะกร้า
+        </span>
+        <span id="cart-count" class="inline-flex h-6 min-w-[26px] shrink-0 items-center justify-center rounded-md bg-white/25 px-2 text-xs font-black leading-none tabular-nums">
+          0
+        </span>
+      </span>
+      <span id="cart-total" class="shrink-0 text-base font-black leading-none tabular-nums sm:text-lg">
+        ฿0.00
+      </span>
+    </button>
+    <!-- ========== CART MODAL ========== -->
+    <div id="cart-modal" class="fixed inset-0 z-40 hidden items-end justify-center bg-slate-950/60 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+      <section class="flex h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-xl sm:rounded-3xl">
+        <!-- Cart header -->
+        <div class="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-7">
+          <div class="min-w-0">
+            <h2 id="cart-title" class="truncate text-xl font-black text-slate-900 sm:text-2xl" data-i18n="menu.cartTitle">
+              ตะกร้าของคุณ
+            </h2>
+            <p class="mt-0.5 text-xs text-slate-500">
+              ตรวจสอบรายการก่อนยืนยัน
+            </p>
+          </div>
+          <button id="close-cart" type="button"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-200 hover:text-slate-900 sm:h-11 sm:w-11"
+          aria-label="ปิดตะกร้า">
+            <svg viewBox="0 0 24 24" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M6 6l12 12M18 6 6 18"/>
+            </svg>
+          </button>
+        </div>
+        <!-- Cart body -->
+        <div class="flex-1 overflow-y-auto px-4 py-4 sm:px-7 sm:py-5">
+          <div id="cart-items" class="space-y-3">
+          </div>
+          <p id="cart-empty" class="hidden py-8 text-center text-slate-500" data-i18n="menu.emptyCart">
+            ยังไม่มีสินค้าในตะกร้า
+          </p>
+        </div>
+        <!-- Cart footer -->
+        <div class="shrink-0 border-t border-slate-100 bg-slate-50/80 px-4 py-3.5 sm:px-7 sm:py-4"
+           style="padding-bottom: calc(0.875rem + env(safe-area-inset-bottom));">
+          <div class="mb-3 flex items-center justify-between text-base font-black sm:text-lg">
+            <span data-i18n="menu.total">
+              รวม
+            </span>
+            <span id="modal-total" class="text-orange-700 tabular-nums">
+              ฿0.00
+            </span>
+          </div>
+          <button id="submit-order" type="button"
+          class="flex w-full items-center justify-center gap-3 rounded-xl bg-orange-600 px-4 py-3 text-sm font-black text-white transition hover:bg-orange-700 disabled:opacity-50 sm:py-3.5 sm:text-base">
+            <span id="order-spinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white">
+            </span>
+            <span data-i18n="menu.placeOrder">
+              ยืนยันสั่งอาหาร
+            </span>
+          </button>
+          <button id="request-checkout" type="button"
+          class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 sm:text-sm">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M6 2h12v20l-3-2-2 2-2-2-2 2-3-2V2z" />
+              <path d="M9 8h6M9 12h6M9 16h4" />
+            </svg>
+            <span data-i18n="menu.checkout">
+              เรียกเก็บเงิน
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-24 left-1/2 z-50 hidden w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white shadow-lg" role="status" aria-live="polite">
+    </div>
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/customer/timer.js">
+    </script>
+    <script src="/js/customer/menu.js">
+    </script>
+    <script>
+      // Update status-link href with current sessionId (both desktop + mobile links)
+    (function () {
+      var sid = new URLSearchParams(window.location.search).get('sessionId')
+        || localStorage.getItem('sessionId');
+      if (!sid) return;
+      ['status-link', 'mobile-status-link'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.href = '/status.html?sessionId=' + encodeURIComponent(sid);
+      });
+    })();
+
+    // Sidebar drawer toggle (mobile)
+    (function () {
+      var sidebar = document.getElementById('category-sidebar');
+      var overlay = document.getElementById('sidebar-overlay');
+      var toggle = document.getElementById('sidebar-toggle');
+      var close = document.getElementById('sidebar-close');
+      if (!sidebar || !overlay || !toggle) return;
+
+      function open() {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      }
+      function shut() {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
+      toggle.addEventListener('click', function () {
+        if (sidebar.classList.contains('-translate-x-full')) open();
+        else shut();
+      });
+      if (close) close.addEventListener('click', shut);
+      overlay.addEventListener('click', shut);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') shut();
+      });
+      sidebar.addEventListener('click', function (e) {
+        if (e.target.closest('[data-category]') && window.innerWidth
+      < 1024) shut();
+      });
+    })();
+  </script>
+        <script src="/js/i18n.js">
+        </script>
+        <script src="/js/customer/shop-info.js">
+        </script>
+        <script src="/js/brand.js">
+        </script>
+      </body>
+    </html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title data-i18n="page.adminDashboardTitle">
+      Dashboard
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-800">
+    <div class="min-h-screen lg:flex">
+      <aside id="admin-sidebar">
+      </aside>
+      <main class="min-w-0 flex-1 px-4 pt-20 pb-6 sm:px-7 lg:px-9">
+        <header class="mb-7 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p id="dashboard-role-label" class="font-bold uppercase tracking-widest text-orange-600" data-i18n="admin.dashboardAdminLabel">
+              ภาพรวมผู้ดูแลระบบ
+            </p>
+            <h1 id="dashboard-title" class="mt-1 text-3xl font-black sm:text-4xl" data-i18n="admin.dashboardAdminTitle">
+              แดชบอร์ดผู้ดูแลระบบ
+            </h1>
+            <p id="dashboard-role-description" class="mt-2 max-w-2xl text-slate-500" data-i18n="admin.dashboardAdminDescription">
+              ภาพรวมยอดขาย ลูกค้า และผลการดำเนินงานของร้าน
+            </p>
+            <p id="dashboard-date" class="mt-1 text-sm text-slate-400">
+            </p>
+          </div>
+          <span id="dashboard-live" class="rounded-full bg-slate-200 px-4 py-2 font-semibold text-slate-600" data-i18n="status.connecting">
+            กำลังเชื่อมต่อ...
+          </span>
+        </header>
+        <p id="admin-error" class="mb-5 hidden rounded-xl bg-red-100 p-4 text-red-800" role="alert">
+        </p>
+        <div id="dashboard-loading" class="flex min-h-32 items-center justify-center gap-3 text-slate-500" role="status">
+          <span class="h-7 w-7 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600">
+          </span>
+          <span data-i18n="common.loadingData">
+            กำลังโหลดข้อมูล...
+          </span>
+        </div>
+        <section id="dashboard-content" class="hidden">
+          <section id="manager-quick-actions" class="card mb-5 hidden border border-orange-200 bg-orange-50">
+            <div class="card-body gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="card-title" data-i18n="admin.managerActionsTitle">
+                  งานปฏิบัติการวันนี้
+                </h2>
+                <p class="text-sm text-slate-600" data-i18n="admin.managerActionsDescription">
+                  ทางลัดสำหรับจัดการหน้าร้าน
+                </p>
+              </div>
+              <nav class="flex flex-wrap gap-2" aria-label="Manager quick actions">
+                <a href="/admin/manage-queue.html" class="btn btn-primary" data-i18n="admin.queue">
+                  จัดการคิว
+                </a>
+                <a href="/admin/manage-tables.html" class="btn btn-outline" data-i18n="admin.tables">
+                  จัดการโต๊ะ
+                </a>
+                <a href="/admin/manage-menu.html" class="btn btn-outline" data-i18n="admin.menu">
+                  จัดการเมนู
+                </a>
+              </nav>
+            </div>
+          </section>
+          <section id="admin-quick-actions" class="card mb-5 hidden border border-slate-200 bg-white">
+            <div class="card-body gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="card-title" data-i18n="admin.adminActionsTitle">
+                  การดูแลระบบ
+                </h2>
+                <p class="text-sm text-slate-600" data-i18n="admin.adminActionsDescription">
+                  จัดการบัญชีพนักงานและสิทธิ์เข้าใช้งาน
+                </p>
+              </div>
+              <a href="/admin/manage-staff.html" class="btn btn-neutral" data-i18n="admin.staff">
+                จัดการพนักงาน
+              </a>
+            </div>
+          </section>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="admin.todaySales">
+                ยอดขายวันนี้
+              </p>
+              <p id="sales-today" class="mt-2 text-3xl font-black text-orange-700">
+                ฿0.00
+              </p>
+            </article>
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="admin.todayCustomers">
+                จำนวนลูกค้าวันนี้
+              </p>
+              <p id="customers-today" class="mt-2 text-3xl font-black">
+                0
+              </p>
+            </article>
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="admin.waitingQueues">
+                คิวที่กำลังรอ
+              </p>
+              <p id="queues-waiting" class="mt-2 text-3xl font-black text-amber-600">
+                0
+              </p>
+            </article>
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="admin.averageDining">
+                เวลาทานเฉลี่ย
+              </p>
+              <p id="average-dining" class="mt-2 text-3xl font-black text-blue-700" data-i18n="common.minutes">
+                0 นาที
+              </p>
+            </article>
+          </div>
+          <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-5">
+            <section class="rounded-2xl bg-white p-5 shadow-sm xl:col-span-3">
+              <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-xl font-black" data-i18n="admin.weeklySales">
+                  ยอดขาย 7 วัน
+                </h2>
+                <span class="text-sm text-slate-400" data-i18n="common.baht">
+                  บาท
+                </span>
+              </div>
+              <div class="h-72">
+                <canvas id="sales-chart" aria-label="Sales chart">
+                </canvas>
+              </div>
+            </section>
+            <section class="rounded-2xl bg-white p-5 shadow-sm xl:col-span-2">
+              <h2 class="mb-4 text-xl font-black" data-i18n="admin.topMenus">
+                Top 5 เมนูขายดี
+              </h2>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead class="border-b text-slate-500">
+                    <tr>
+                      <th class="py-3 pr-3" data-i18n="admin.topMenusHeader.menu">
+                        เมนู
+                      </th>
+                      <th class="py-3 text-right" data-i18n="admin.topMenusHeader.qty">
+                        จำนวน
+                      </th>
+                      <th class="py-3 text-right" data-i18n="admin.topMenusHeader.sales">
+                        ยอดขาย
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-menu-rows">
+                  </tbody>
+                </table>
+              </div>
+              <p id="top-menu-empty" class="hidden py-6 text-center text-slate-500" data-i18n="admin.noSalesData">
+                ยังไม่มีข้อมูลยอดขาย
+              </p>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/staff-auth.js">
+    </script>
+    <script src="/js/admin/common.js">
+    </script>
+    <script src="/js/admin/dashboard.js">
+    </script>
+    <header class="fixed right-3 top-3 z-[100] flex items-center gap-2 rounded-xl bg-white/95 p-2 shadow-lg">
+      <label for="langSwitcher" class="text-sm font-bold" data-i18n="language.label">
+        ภาษา
+      </label>
+      <select id="langSwitcher" class="select select-bordered select-sm" aria-label="Language">
+        <option value="th" data-i18n="language.th">
+          ไทย
+        </option>
+        <option value="en" data-i18n="language.en">
+          English
+        </option>
+      </select>
+    </header>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>

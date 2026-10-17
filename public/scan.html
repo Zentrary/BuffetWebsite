@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title data-i18n="page.scanTitle">
+      ยืนยันคิว
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+  </head>
+  <body class="min-h-screen bg-orange-50 text-slate-800">
+    <main class="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-4 py-8">
+      <a href="/queue.html" class="mb-6 inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white" data-i18n="scan.back">
+        ← กลับหน้ารับคิว
+      </a>
+      <section class="rounded-3xl bg-white p-5 text-slate-800 shadow-2xl sm:p-7">
+        <div class="text-center">
+          <p class="text-sm font-bold uppercase tracking-widest text-orange-600" data-i18n="scan.confirm">
+            ยืนยันการเข้ารับบริการ
+          </p>
+          <h1 class="mt-2 text-3xl font-black" data-i18n="scan.title">
+            สแกน QR Code
+          </h1>
+          <p class="mt-2 text-slate-500">
+            กรอกรหัสกู้คืนจากบัตรคิวเพื่อดูสถานะและยืนยันเมื่อพนักงานเรียก
+          </p>
+        </div>
+        <div id="secure-context-warning" class="alert mt-5 hidden rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900" role="alert">
+          เบราว์เซอร์บล็อกกล้องบน HTTP ที่ไม่ใช่ localhost. กรุณาใช้ HTTPS หรือเปิดด้วย queueId ใน URL แทน
+        </div>
+        <p id="scan-status" class="mt-4 text-center text-sm text-slate-500" aria-live="polite">
+          กรอกรหัสคิวและรหัสกู้คืนเพื่อเริ่มติดตาม
+        </p>
+        <div id="scan-spinner" class="mx-auto mt-4 hidden h-8 w-8 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600" aria-label="กำลังเริ่มเซสชัน" data-i18n="scan.starting" data-i18n-attr="aria-label">
+        </div>
+        <p id="scan-error" class="mt-4 hidden rounded-xl bg-red-50 p-3 text-sm text-red-700" role="alert">
+        </p>
+        <form id="queue-id-form" class="mt-5 space-y-3 border-t border-slate-200 pt-5">
+          <label for="queue-id-input" class="block font-semibold">
+            Queue ID
+          </label>
+          <input id="queue-id-input" name="queueId" type="text" autocomplete="off" inputmode="text"
+          class="input input-bordered w-full" placeholder="วาง Queue ID ที่นี่">
+          <label for="queue-access-input" class="block font-semibold">
+            รหัสกู้คืน
+          </label>
+          <input id="queue-access-input" name="accessToken" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="32" required
+          class="input input-bordered w-full" placeholder="รหัสกู้คืน 32 ตัวอักษร">
+          <button type="submit" class="btn btn-primary min-h-11 w-full">
+            ติดตามคิว
+          </button>
+        </form>
+        <button id="scan-confirm-button" type="button" class="btn btn-primary mt-4 hidden w-full">
+          ยืนยันพร้อมนั่งโต๊ะ
+        </button>
+      </section>
+    </main>
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/customer/scan.js">
+    </script>
+    <header class="fixed right-3 top-3 z-[100] flex items-center gap-2 rounded-xl bg-white/95 p-2 shadow-lg">
+      <label for="langSwitcher" class="text-sm font-bold" data-i18n="language.label">
+        ภาษา
+      </label>
+      <select id="langSwitcher" class="select select-bordered select-sm" aria-label="Language">
+        <option value="th" data-i18n="language.th">
+          ไทย
+        </option>
+        <option value="en" data-i18n="language.en">
+          English
+        </option>
+      </select>
+    </header>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>

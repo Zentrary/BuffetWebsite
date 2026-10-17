@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title data-i18n="page.adminMenuTitle">
+      จัดการเมนู
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+    <style>
+      .file-upload-input {
+      position: absolute;
+      width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
+    }
+    .file-upload-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      background: #ffedd5;
+      color: #9a3412;
+      font-weight: 700;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      border: 1px solid transparent;
+    }
+    .file-upload-button:hover { background: #fed7aa; }
+    .file-upload-button:focus-within { outline: 3px solid #f59e0b; outline-offset: 2px; }
+    .file-upload-button svg { width: 14px; height: 14px; flex-shrink: 0; }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-800">
+    <div class="min-h-screen lg:flex">
+      <aside id="admin-sidebar">
+      </aside>
+      <main class="min-w-0 flex-1 px-4 pt-20 pb-6 sm:px-7 lg:px-9">
+        <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="font-bold uppercase tracking-widest text-orange-600" data-i18n="admin.restaurantManagement">
+              การจัดการร้าน
+            </p>
+            <h1 class="mt-1 text-3xl font-black" data-i18n="admin.menu">
+              จัดการเมนู
+            </h1>
+          </div>
+          <button id="add-menu-button" class="rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700" data-i18n="admin.addMenu">
+            + เพิ่มเมนู
+          </button>
+        </header>
+        <p id="page-message" class="mb-4 hidden rounded-xl p-4" role="status">
+        </p>
+        <div id="menu-loading" class="flex min-h-24 items-center justify-center gap-3 text-slate-500" role="status">
+          <span class="h-6 w-6 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600">
+          </span>
+          <span data-i18n="kitchen.loadingMenu">
+            กำลังโหลดเมนู...
+          </span>
+        </div>
+        <section class="overflow-hidden rounded-2xl bg-white shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[760px] text-left">
+              <thead class="bg-slate-50 text-sm text-slate-500">
+                <tr>
+                  <th class="p-4" data-i18n="admin.menuName">
+                    เมนู
+                  </th>
+                  <th class="p-4" data-i18n="admin.category">
+                    หมวดหมู่
+                  </th>
+                  <th class="p-4" data-i18n="admin.price">
+                    ราคา
+                  </th>
+                  <th class="p-4" data-i18n="admin.availability">
+                    สถานะ
+                  </th>
+                  <th class="p-4 text-right" data-i18n="admin.actions">
+                    จัดการ
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="menu-rows" class="divide-y divide-slate-100">
+              </tbody>
+            </table>
+          </div>
+          <p id="menu-empty" class="hidden p-8 text-center text-slate-500" data-i18n="admin.noMenus">
+            ยังไม่มีเมนู
+          </p>
+        </section>
+      </main>
+    </div>
+    <!-- Menu modal -->
+    <div id="menu-modal" class="fixed inset-0 z-40 hidden items-center justify-center overflow-y-auto bg-slate-950/60 p-0 sm:p-4" role="dialog" aria-modal="true">
+      <form id="menu-form" data-no-modal-box class="min-h-screen w-full bg-white sm:my-4 sm:min-h-0 sm:max-w-3xl sm:rounded-2xl sm:shadow-2xl">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3 sm:px-7">
+          <div>
+            <h2 id="menu-modal-title" class="text-2xl font-black" data-i18n-skip>
+              เพิ่มเมนู
+            </h2>
+            <p class="mt-0.5 text-xs text-slate-500" data-i18n="form.modalSubtitle">
+              กรอกรายละเอียดเมนู แล้วกด "บันทึกเมนู" ด้านล่าง
+            </p>
+          </div>
+          <button data-close-modal type="button" class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-lg font-bold text-slate-600 hover:bg-slate-200">
+            ×
+          </button>
+        </div>
+        <!-- Body -->
+        <div class="space-y-4 px-5 py-5 sm:px-7 sm:py-6">
+          <input id="menu-form-id" name="menuId" type="hidden">
+          <!-- Row 1: Image + basic info -->
+          <div class="grid gap-4 sm:grid-cols-[200px_minmax(0,1fr)]">
+            <!-- Image column -->
+            <div class="space-y-2">
+              <label class="block text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="form.menuImage">
+                รูปภาพ
+              </label>
+              <div class="flex h-36 items-center justify-center overflow-hidden rounded-xl bg-slate-50 ring-1 ring-slate-200">
+                <img id="menu-image-preview" src="/assets/images/default-food.jpg" alt="" class="h-full w-full object-cover" onerror="this.onerror=null;this.src='/assets/images/default-food.jpg'">
+              </div>
+              <input id="menuImageFile" name="imageFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="file-upload-input">
+              <label for="menuImageFile" class="file-upload-button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+                <span data-i18n="form.chooseFromDevice">
+                  เลือกรูปจากเครื่อง
+                </span>
+              </label>
+              <p data-file-name="menuImageFile" class="truncate text-center text-[10px] text-slate-500">
+              </p>
+              <label class="block text-xs font-semibold text-slate-600">
+                <span data-i18n="form.imageUrl">
+                  URL รูปภาพ
+                </span>
+                <input id="menu-form-imageUrl" name="imageUrl" class="mt-1 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" placeholder="/assets/images/menu/...">
+              </label>
+            </div>
+            <!-- Info column -->
+            <div class="space-y-3">
+              <label class="block text-sm font-semibold">
+                <span data-i18n="form.menuName">
+                  ชื่อเมนู
+                </span>
+                <input id="menu-form-name" name="name" required maxlength="120" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+              </label>
+              <label class="block text-sm font-semibold">
+                <span data-i18n="form.menuDetails">
+                  รายละเอียด
+                </span>
+                <textarea id="menu-form-description" name="description" rows="2" class="mt-1 w-full resize-y rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+                </textarea>
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="block text-sm font-semibold">
+                  <span data-i18n="form.price">
+                    ราคา (฿)
+                  </span>
+                  <input id="menu-form-price" name="price" type="number" min="0" step="0.01" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+                </label>
+                <label class="block text-sm font-semibold">
+                  <span data-i18n="form.preparationTime">
+                    เวลาเตรียม (นาที)
+                  </span>
+                  <input id="menu-form-preparationTime" name="preparationTime" type="number" min="0" value="10" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+                </label>
+              </div>
+              <label class="block text-sm font-semibold">
+                <span data-i18n="form.category">
+                  หมวดหมู่
+                </span>
+                <select id="menu-form-category" name="category" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+                  <option value="set_menu" data-i18n="menu.category.set_menu">
+                    เซ็ตบุฟเฟต์
+                  </option>
+                  <option value="sukiyaki" data-i18n="menu.category.sukiyaki">
+                    สุกี้
+                  </option>
+                  <option value="hotpan" data-i18n="menu.category.hotpan">
+                    กระทะร้อน
+                  </option>
+                  <option value="sushi" data-i18n="menu.category.sushi">
+                    ซูชิ
+                  </option>
+                  <option value="maki" data-i18n="menu.category.maki">
+                    โรล
+                  </option>
+                  <option value="sashimi" data-i18n="menu.category.sashimi">
+                    ซาซิมิ
+                  </option>
+                  <option value="japanese_main" data-i18n="menu.category.japanese_main">
+                    อาหารญี่ปุ่นจานหลัก
+                  </option>
+                  <option value="chinese" data-i18n="menu.category.chinese">
+                    อาหารจีน
+                  </option>
+                  <option value="fried" data-i18n="menu.category.fried">
+                    ของทอด
+                  </option>
+                  <option value="dim_sum" data-i18n="menu.category.dim_sum">
+                    ติ่มซำ
+                  </option>
+                  <option value="yum" data-i18n="menu.category.yum">
+                    ยำ
+                  </option>
+                  <option value="salad" data-i18n="menu.category.salad">
+                    สลัด
+                  </option>
+                  <option value="fresh_meat" data-i18n="menu.category.fresh_meat">
+                    เนื้อสัตว์สด (ชาบู)
+                  </option>
+                  <option value="offal" data-i18n="menu.category.offal">
+                    เครื่องใน
+                  </option>
+                  <option value="seafood" data-i18n="menu.category.seafood">
+                    อาหารทะเลสด
+                  </option>
+                  <option value="vegetable" data-i18n="menu.category.vegetable">
+                    ผักสด
+                  </option>
+                  <option value="mushroom" data-i18n="menu.category.mushroom">
+                    เห็ด
+                  </option>
+                  <option value="tofu" data-i18n="menu.category.tofu">
+                    เต้าหู้
+                  </option>
+                  <option value="noodle" data-i18n="menu.category.noodle">
+                    เส้น
+                  </option>
+                  <option value="rice" data-i18n="menu.category.rice">
+                    ข้าว
+                  </option>
+                  <option value="side" data-i18n="menu.category.side">
+                    เครื่องเคียง
+                  </option>
+                  <option value="soup" data-i18n="menu.category.soup">
+                    น้ำซุป
+                  </option>
+                  <option value="sauce" data-i18n="menu.category.sauce">
+                    น้ำจิ้ม
+                  </option>
+                  <option value="dessert" data-i18n="menu.category.dessert">
+                    ของหวาน
+                  </option>
+                  <option value="drink" data-i18n="menu.category.drink">
+                    เครื่องดื่ม
+                  </option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <!-- Row 2: Stock settings -->
+          <div>
+            <p class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="form.sectionStock">
+              สต็อกและจำนวน
+            </p>
+            <div class="grid gap-3 sm:grid-cols-3">
+              <label class="block text-sm font-semibold">
+                <span data-i18n="form.stockQuantity">
+                  คงเหลือ
+                </span>
+                <input id="menu-form-stockQuantity" name="stockQuantity" type="number" min="0" step="1"
+                data-i18n="form.stockQuantityHint" data-i18n-attr="placeholder"
+                class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="ว่าง = ไม่จำกัด">
+                <span class="mt-1 block text-[11px] font-normal text-slate-500" data-i18n="form.stockQuantityHint">
+                  เว้นว่าง = ไม่จำกัดจำนวน
+                </span>
+              </label>
+              <label class="block text-sm font-semibold">
+                <span data-i18n="form.lowStock">
+                  แจ้งเตือนใกล้หมด
+                </span>
+                <input id="menu-form-lowStockThreshold" name="lowStockThreshold" type="number" min="0" step="1" value="5" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+              </label>
+              <label class="block text-sm font-semibold">
+                <span data-i18n="form.maxOrder">
+                  สั่งสูงสุด/ออเดอร์
+                </span>
+                <input id="menu-form-maxOrderQuantity" name="maxOrderQuantity" type="number" min="1" step="1" value="99" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+              </label>
+            </div>
+          </div>
+        </div>
+        <!-- Footer -->
+        <div class="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:flex-row sm:justify-end sm:px-7">
+          <button data-close-modal type="button" class="min-h-11 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100" data-i18n="common.cancel">
+            ยกเลิก
+          </button>
+          <button type="submit" class="min-h-11 rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-orange-700" data-i18n="form.saveMenu">
+            บันทึกเมนู
+          </button>
+        </div>
+      </form>
+    </div>
+    <script src="/js/staff-auth.js">
+    </script>
+    <script src="/js/admin/common.js">
+    </script>
+    <script src="/js/admin/manageMenu.js">
+    </script>
+    <header class="fixed right-3 top-3 z-[100] flex items-center gap-2 rounded-xl bg-white/95 p-2 shadow-lg">
+      <label for="langSwitcher" class="text-sm font-bold" data-i18n="language.label">
+        ภาษา
+      </label>
+      <select id="langSwitcher" class="select select-bordered select-sm" aria-label="Language">
+        <option value="th" data-i18n="language.th">
+          ไทย
+        </option>
+        <option value="en" data-i18n="language.en">
+          English
+        </option>
+      </select>
+    </header>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>

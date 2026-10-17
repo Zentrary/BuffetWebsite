@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title data-i18n="page.adminReportsTitle">
+      รายงาน
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+    <style>
+      @media print {
+      body { background: #fff !important; }
+      aside, header.fixed, .no-print { display: none !important; }
+      main { padding: 0 !important; }
+      .report-panel.hidden { display: block !important; }
+      .rounded-2xl, .rounded-xl { break-inside: avoid; }
+      canvas { max-width: 100%; }
+    }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-800">
+    <div class="min-h-screen lg:flex">
+      <aside id="admin-sidebar">
+      </aside>
+      <main class="min-w-0 flex-1 px-4 pt-20 pb-6 sm:px-7 lg:px-9">
+        <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p class="font-bold uppercase tracking-widest text-orange-600" data-i18n="reports.analyticsKicker">
+              วิเคราะห์ผลประกอบการ
+            </p>
+            <h1 class="mt-1 text-3xl font-black" data-i18n="reports.title">
+              รายงาน
+            </h1>
+            <p id="report-range-label" class="mt-1 text-sm text-slate-500">
+              —
+            </p>
+          </div>
+        </header>
+        <section class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="flex flex-wrap items-end gap-2">
+            <div class="flex flex-wrap gap-2">
+              <button type="button" data-range="today" data-i18n="reports.rangeToday" class="range-preset min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                วันนี้
+              </button>
+              <button type="button" data-range="yesterday" data-i18n="reports.rangeYesterday" class="range-preset min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                เมื่อวาน
+              </button>
+              <button type="button" data-range="7d" data-i18n="reports.range7d" class="range-preset min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                7 วัน
+              </button>
+              <button type="button" data-range="30d" data-i18n="reports.range30d" class="range-preset min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                30 วัน
+              </button>
+              <button type="button" data-range="this-month" data-i18n="reports.rangeThisMonth" class="range-preset min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                เดือนนี้
+              </button>
+              <button type="button" data-range="last-month" data-i18n="reports.rangeLastMonth" class="range-preset min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                เดือนก่อน
+              </button>
+            </div>
+            <div class="ml-auto flex flex-wrap items-end gap-2">
+              <label class="text-sm font-semibold text-slate-500" data-i18n="reports.rangeFrom">
+                จาก
+                <input type="date" id="range-from" class="ml-1 rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              </label>
+              <label class="text-sm font-semibold text-slate-500">
+                ถึง
+                <input type="date" id="range-to" class="ml-1 rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              </label>
+              <button id="apply-range" type="button" class="min-h-10 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-700" data-i18n="reports.applyRange">
+                ใช้ช่วงนี้
+              </button>
+              <button id="export-csv" type="button" class="min-h-10 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800" data-i18n="reports.exportCsv">
+                Export CSV
+              </button>
+              <button id="export-excel" type="button" class="min-h-10 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 no-print" data-i18n="reports.exportExcel">
+                Export Excel
+              </button>
+              <button id="print-report" type="button" class="min-h-10 rounded-xl bg-slate-600 px-4 py-2 text-sm font-bold text-white hover:bg-slate-700 no-print" data-i18n="reports.print">
+                พิมพ์
+              </button>
+            </div>
+          </div>
+        </section>
+        <p id="page-message" class="mb-4 hidden rounded-xl p-4 text-sm" role="alert">
+        </p>
+        <div id="report-loading" class="flex min-h-32 items-center justify-center gap-3 text-slate-500" role="status">
+          <span class="h-6 w-6 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600">
+          </span>
+          กำลังโหลดรายงาน...
+        </div>
+        <div id="report-content" class="hidden">
+          <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="reports.metricTotalSales">
+                ยอดขายรวม
+              </p>
+              <p id="m-sales" class="mt-2 text-3xl font-black text-orange-700">
+                ฿0.00
+              </p>
+              <p id="m-sales-delta" class="mt-1 text-xs font-semibold text-slate-400">
+                —
+              </p>
+            </article>
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="reports.metricBills">
+                จำนวนบิล
+              </p>
+              <p id="m-bills" class="mt-2 text-3xl font-black">
+                0
+              </p>
+              <p id="m-bills-delta" class="mt-1 text-xs font-semibold text-slate-400">
+                —
+              </p>
+            </article>
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="reports.metricAvgBill">
+                บิลเฉลี่ย / โต๊ะ
+              </p>
+              <p id="m-avg-bill" class="mt-2 text-3xl font-black">
+                ฿0.00
+              </p>
+              <p id="m-avg-bill-delta" class="mt-1 text-xs font-semibold text-slate-400">
+                —
+              </p>
+            </article>
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="reports.metricCustomers">
+                ลูกค้ารวม
+              </p>
+              <p id="m-customers" class="mt-2 text-3xl font-black">
+                0
+              </p>
+              <p id="m-customers-delta" class="mt-1 text-xs font-semibold text-slate-400">
+                —
+              </p>
+            </article>
+          </div>
+          <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="reports.metricQueues">
+                จำนวนคิว
+              </p>
+              <p id="m-queues" class="mt-2 text-3xl font-black">
+                0
+              </p>
+              <p id="m-queues-delta" class="mt-1 text-xs font-semibold text-slate-400">
+                —
+              </p>
+            </article>
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="reports.metricNoShow">
+                No-show rate
+              </p>
+              <p id="m-noshow" class="mt-2 text-3xl font-black text-red-600">
+                0%
+              </p>
+              <p id="m-noshow-delta" class="mt-1 text-xs font-semibold text-slate-400">
+                —
+              </p>
+            </article>
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="reports.metricDiningTime">
+                เวลาทานเฉลี่ย
+              </p>
+              <p id="m-dining" class="mt-2 text-3xl font-black text-blue-700">
+                0 นาที
+              </p>
+              <p id="m-dining-delta" class="mt-1 text-xs font-semibold text-slate-400">
+                —
+              </p>
+            </article>
+            <article class="rounded-2xl bg-white p-5 shadow-sm">
+              <p class="font-semibold text-slate-500" data-i18n="reports.metricTurnover">
+                Turnover / โต๊ะ
+              </p>
+              <p id="m-turnover" class="mt-2 text-3xl font-black">
+                0.0
+              </p>
+              <p id="m-turnover-unit" class="mt-1 text-xs font-semibold text-slate-400">
+                ครั้งในช่วงนี้
+              </p>
+            </article>
+          </div>
+          <nav class="mb-4 flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm" role="tablist">
+            <button type="button" class="report-tab min-h-11 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white sm:text-base" data-tab="overview" data-tab="overview" data-i18n="reports.tabOverview">
+              ภาพรวม
+            </button>
+            <button type="button" class="report-tab min-h-11 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-orange-50 sm:text-base" data-tab="menu" data-i18n="reports.tabMenu">
+              เมนู
+            </button>
+            <button type="button" class="report-tab min-h-11 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-orange-50 sm:text-base" data-tab="staff" data-i18n="reports.tabStaff">
+              พนักงาน
+            </button>
+            <button type="button" class="report-tab min-h-11 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-orange-50 sm:text-base" data-tab="bills" data-i18n="reports.tabBills">
+              บิล
+            </button>
+            <button type="button" class="report-tab min-h-11 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-orange-50 sm:text-base" data-tab="customer" data-i18n="reports.tabCustomer">
+              ลูกค้า
+            </button>
+          </nav>
+          <section class="report-panel space-y-4" id="panel-overview">
+            <div class="rounded-2xl bg-white p-5 shadow-sm">
+              <h2 class="mb-4 text-xl font-black" data-i18n="reports.dailySales">
+                ยอดขายรายวัน
+              </h2>
+              <div class="h-72">
+                <canvas id="chart-daily">
+                </canvas>
+              </div>
+            </div>
+            <div class="rounded-2xl bg-white p-5 shadow-sm">
+              <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-xl font-black" data-i18n="reports.comparison">
+                  เปรียบเทียบช่วงก่อน
+                </h2>
+                <span id="comparison-range" class="text-xs text-slate-500">
+                </span>
+              </div>
+              <div class="grid gap-4 lg:grid-cols-3">
+                <div>
+                  <p class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="reports.metricTotalSales">
+                    ยอดขาย
+                  </p>
+                  <div class="h-40">
+                    <canvas id="chart-cmp-sales">
+                    </canvas>
+                  </div>
+                </div>
+                <div>
+                  <p class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="reports.metricBills">
+                    จำนวนบิล
+                  </p>
+                  <div class="h-40">
+                    <canvas id="chart-cmp-bills">
+                    </canvas>
+                  </div>
+                </div>
+                <div>
+                  <p class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="reports.metricCustomers">
+                    ลูกค้า
+                  </p>
+                  <div class="h-40">
+                    <canvas id="chart-cmp-customers">
+                    </canvas>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4">
+                <p class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="reports.dailyOverlay">
+                  เทียบยอดขายรายวัน (ทับซ้อน)
+                </p>
+                <div class="h-64">
+                  <canvas id="chart-cmp-daily">
+                  </canvas>
+                </div>
+              </div>
+            </div>
+            <div class="grid gap-4 lg:grid-cols-2">
+              <div class="rounded-2xl bg-white p-5 shadow-sm">
+                <h2 class="mb-4 text-lg font-black" data-i18n="reports.hourlySales">
+                  ยอดขายรายชั่วโมง
+                </h2>
+                <div class="h-64">
+                  <canvas id="chart-hourly">
+                  </canvas>
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white p-5 shadow-sm">
+                <h2 class="mb-4 text-lg font-black" data-i18n="reports.paymentMethods">
+                  ช่องทางชำระเงิน
+                </h2>
+                <div class="h-64">
+                  <canvas id="chart-payment">
+                  </canvas>
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white p-5 shadow-sm">
+                <h2 class="mb-4 text-lg font-black" data-i18n="reports.sessionDurations">
+                  ระยะเวลาทาน
+                </h2>
+                <div class="h-64">
+                  <canvas id="chart-duration">
+                  </canvas>
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white p-5 shadow-sm">
+                <h2 class="mb-4 text-lg font-black" data-i18n="reports.zoneSales">
+                  ยอดขายตามโซน
+                </h2>
+                <div class="h-64">
+                  <canvas id="chart-zone">
+                  </canvas>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="report-panel hidden" id="panel-menu">
+            <div class="mb-4 grid gap-4 lg:grid-cols-2">
+              <div class="rounded-2xl bg-white p-5 shadow-sm">
+                <h2 class="mb-4 text-lg font-black" data-i18n="reports.top10">
+                  Top 10 ขายดี
+                </h2>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-sm">
+                    <thead class="border-b-2 border-slate-200 text-xs uppercase text-slate-500">
+                      <tr>
+                        <th class="py-2">
+                          เมนู
+                        </th>
+                        <th class="py-2 text-right">
+                          จำนวน
+                        </th>
+                        <th class="py-2 text-right">
+                          ยอด
+                        </th>
+                        <th class="py-2 text-right">
+                          แนวโน้ม
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody id="menu-top-rows">
+                    </tbody>
+                  </table>
+                </div>
+                <p id="menu-top-empty" class="hidden py-6 text-center text-sm text-slate-400">
+                  ไม่มีข้อมูล
+                </p>
+              </div>
+              <div class="rounded-2xl bg-white p-5 shadow-sm">
+                <h2 class="mb-4 text-lg font-black" data-i18n="reports.bottom10">
+                  Bottom 10 (ขายน้อยสุด)
+                </h2>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-sm">
+                    <thead class="border-b-2 border-slate-200 text-xs uppercase text-slate-500">
+                      <tr>
+                        <th class="py-2">
+                          เมนู
+                        </th>
+                        <th class="py-2 text-right">
+                          จำนวน
+                        </th>
+                        <th class="py-2 text-right">
+                          ยอด
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody id="menu-bottom-rows">
+                    </tbody>
+                  </table>
+                </div>
+                <p id="menu-bottom-empty" class="hidden py-6 text-center text-sm text-slate-400">
+                  ไม่มีข้อมูล
+                </p>
+              </div>
+            </div>
+            <div class="rounded-2xl bg-white p-5 shadow-sm">
+              <h2 class="mb-4 text-lg font-black" data-i18n="reports.byCategory">
+                สัดส่วนตามหมวดหมู่
+              </h2>
+              <div class="mx-auto max-w-md h-72">
+                <canvas id="chart-category">
+                </canvas>
+              </div>
+            </div>
+          </section>
+          <section class="report-panel hidden" id="panel-staff">
+            <div class="rounded-2xl bg-white p-5 shadow-sm">
+              <h2 class="mb-4 text-lg font-black">
+                ผลงานพนักงาน (เรียงตามยอดขาย)
+              </h2>
+              <div class="overflow-x-auto">
+                <table class="w-full min-w-[700px] text-left text-sm">
+                  <thead class="border-b-2 border-slate-200 text-xs uppercase text-slate-500">
+                    <tr>
+                      <th class="py-3 pr-3">
+                        #
+                      </th>
+                      <th class="py-3 pr-3">
+                        พนักงาน
+                      </th>
+                      <th class="py-3 pr-3">
+                        บทบาท
+                      </th>
+                      <th class="py-3 pr-3 text-right">
+                        บิล
+                      </th>
+                      <th class="py-3 pr-3 text-right">
+                        ยอดรวม
+                      </th>
+                      <th class="py-3 pr-3 text-right">
+                        บิลเฉลี่ย
+                      </th>
+                      <th class="py-3 pr-3 text-right">
+                        สด / QR
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="staff-rows">
+                  </tbody>
+                </table>
+              </div>
+              <p id="staff-empty" class="hidden py-8 text-center text-sm text-slate-400">
+                ไม่มีข้อมูล
+              </p>
+            </div>
+          </section>
+          <section class="report-panel hidden" id="panel-bills">
+            <div class="rounded-2xl bg-white p-5 shadow-sm">
+              <div class="mb-4 flex flex-wrap items-end gap-3">
+                <label class="text-sm font-semibold text-slate-600">
+                  วิธีชำระ
+                  <select id="bills-method" class="ml-2 rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                    <option value="">
+                      ทั้งหมด
+                    </option>
+                    <option value="cash">
+                      เงินสด
+                    </option>
+                    <option value="qr_payment">
+                      QR Payment
+                    </option>
+                  </select>
+                </label>
+                <label class="text-sm font-semibold text-slate-600">
+                  ต่อหน้า
+                  <select id="bills-limit" class="ml-2 rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                    <option value="20">
+                      20
+                    </option>
+                    <option value="50">
+                      50
+                    </option>
+                    <option value="100">
+                      100
+                    </option>
+                  </select>
+                </label>
+                <button id="bills-refresh" type="button" class="min-h-10 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-700">
+                  โหลดใหม่
+                </button>
+                <button id="bills-export" type="button" class="min-h-10 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+                  Export CSV
+                </button>
+                <div id="bills-count" class="ml-auto text-sm font-semibold text-slate-500">
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full min-w-[900px] text-left text-sm">
+                  <thead class="border-b-2 border-slate-200 text-xs uppercase text-slate-500">
+                    <tr>
+                      <th class="py-3 pr-3">
+                        เวลา
+                      </th>
+                      <th class="py-3 pr-3">
+                        โต๊ะ
+                      </th>
+                      <th class="py-3 pr-3">
+                        คิว / ลูกค้า
+                      </th>
+                      <th class="py-3 pr-3">
+                        ระยะเวลา
+                      </th>
+                      <th class="py-3 pr-3">
+                        วิธีชำระ
+                      </th>
+                      <th class="py-3 pr-3">
+                        พนักงาน
+                      </th>
+                      <th class="py-3 pr-3 text-right">
+                        ยอด
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="bills-rows">
+                  </tbody>
+                </table>
+              </div>
+              <p id="bills-empty" class="hidden py-8 text-center text-slate-500">
+                ไม่มีบิลในช่วงเวลานี้
+              </p>
+              <div id="bills-loading" class="hidden py-8 text-center text-slate-500">
+                กำลังโหลด...
+              </div>
+              <div class="mt-4 flex items-center justify-between gap-3">
+                <button id="bills-prev" type="button" class="min-h-9 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                  ← ก่อนหน้า
+                </button>
+                <span id="bills-page" class="text-sm font-semibold text-slate-500">
+                  หน้า 1 / 1
+                </span>
+                <button id="bills-next" type="button" class="min-h-9 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                  ถัดไป →
+                </button>
+              </div>
+            </div>
+          </section>
+          <section class="report-panel hidden" id="panel-customer">
+            <div class="mb-4 grid gap-4 lg:grid-cols-3">
+              <article class="rounded-2xl bg-white p-5 shadow-sm">
+                <p class="font-semibold text-slate-500">
+                  คะแนนเฉลี่ย
+                </p>
+                <p id="fb-avg" class="mt-2 text-3xl font-black text-orange-700">
+                  0.0
+                </p>
+                <p class="mt-1 text-xs text-slate-400">
+                  จาก
+                  <span id="fb-total">
+                    0
+                  </span>
+                  รีวิว
+                </p>
+              </article>
+              <article class="rounded-2xl bg-white p-5 shadow-sm lg:col-span-2">
+                <p class="mb-2 font-semibold text-slate-500">
+                  การกระจายคะแนน
+                </p>
+                <div id="fb-dist" class="space-y-1.5 text-sm">
+                </div>
+              </article>
+            </div>
+            <div class="mb-4 rounded-2xl bg-white p-5 shadow-sm">
+              <h2 class="mb-4 text-lg font-black">
+                ช่วงเวลาขายดี (Day × Hour)
+              </h2>
+              <div id="peak-heatmap" class="overflow-x-auto">
+              </div>
+              <p class="mt-2 text-xs text-slate-400">
+                สีเข้ม = ยอดขายสูง · สีจาง = ยอดขายต่ำ
+              </p>
+            </div>
+            <div class="rounded-2xl bg-white p-5 shadow-sm">
+              <h2 class="mb-4 text-lg font-black">
+                รีวิวล่าสุด
+              </h2>
+              <div id="fb-recent" class="space-y-3">
+              </div>
+              <p id="fb-recent-empty" class="hidden py-6 text-center text-sm text-slate-400">
+                ยังไม่มีรีวิวในช่วงเวลานี้
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="/js/staff-auth.js">
+    </script>
+    <script src="/js/admin/common.js">
+    </script>
+    <script src="/js/admin/reports.js">
+    </script>
+    <header class="fixed right-3 top-3 z-[100] flex items-center gap-2 rounded-xl bg-white/95 p-2 shadow-lg">
+      <label for="langSwitcher" class="text-sm font-bold" data-i18n="language.label">
+        ภาษา
+      </label>
+      <select id="langSwitcher" class="select select-bordered select-sm" aria-label="Language">
+        <option value="th" data-i18n="language.th">
+          ไทย
+        </option>
+        <option value="en" data-i18n="language.en">
+          English
+        </option>
+      </select>
+    </header>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>

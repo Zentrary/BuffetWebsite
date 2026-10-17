@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title data-i18n="page.checkoutTitle">
+      เช็คบิล
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+  </head>
+  <body class="min-h-screen bg-orange-50 text-slate-800">
+    <main class="mx-auto max-w-xl px-4 py-8 sm:py-12">
+      <button id="back-to-menu" type="button"
+      class="mb-5 inline-flex text-sm font-semibold text-orange-700 hover:text-orange-900"
+      data-i18n="checkout.back">
+        ← กลับไปที่เมนู
+      </button>
+      <section class="rounded-3xl bg-white p-5 shadow-xl shadow-orange-100 sm:p-8">
+        <div class="text-center">
+          <p class="font-semibold uppercase tracking-widest text-orange-600" data-i18n="checkout.summary">
+            สรุปค่าใช้จ่าย
+          </p>
+          <h1 class="mt-2 text-3xl font-black" data-i18n="checkout.title">
+            เช็คบิล
+          </h1>
+        </div>
+        <section id="customer-session-card" class="my-5 rounded-xl border border-orange-100 bg-orange-50 p-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-slate-500" data-i18n="checkout.table">
+                โต๊ะของคุณ
+              </p>
+              <p id="checkout-table-number" class="text-2xl font-black">
+                —
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-semibold text-slate-500" data-i18n="checkout.timeRemaining">
+                เวลาคงเหลือ
+              </p>
+              <p id="checkout-countdown" class="text-2xl font-black text-orange-700">
+                --:--
+              </p>
+            </div>
+          </div>
+          <p id="checkout-time-message" class="mt-2 text-sm text-slate-600" aria-live="polite">
+          </p>
+        </section>
+        <div id="checkout-loading" class="flex min-h-40 items-center justify-center gap-3 text-orange-700" role="status">
+          <span class="h-6 w-6 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600">
+          </span>
+          <span data-i18n="checkout.loading">
+            กำลังคำนวณบิล...
+          </span>
+        </div>
+        <p id="checkout-error" class="mt-5 hidden rounded-xl bg-red-50 p-4 text-red-700" role="alert">
+        </p>
+        <div id="checkout-content" class="hidden">
+          <section class="my-6">
+            <h2 class="mb-3 font-bold" data-i18n="checkout.items">
+              รายการอาหาร
+            </h2>
+            <div id="checkout-orders" class="space-y-2">
+            </div>
+            <p id="checkout-no-orders" class="hidden text-sm text-slate-500" data-i18n="checkout.empty">
+              ไม่มีรายการอาหาร
+            </p>
+          </section>
+          <dl class="space-y-3 border-t border-slate-100 pt-4">
+            <div class="flex justify-between">
+              <dt class="text-slate-500" data-i18n="checkout.subtotal">
+                ยอดอาหาร
+              </dt>
+              <dd id="bill-subtotal" class="font-semibold">
+                ฿0.00
+              </dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-slate-500" data-bill-service-label>
+                ค่าบริการ
+              </dt>
+              <dd id="bill-service" class="font-semibold">
+                ฿0.00
+              </dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-slate-500" data-bill-vat-label>
+                VAT
+              </dt>
+              <dd id="bill-vat" class="font-semibold">
+                ฿0.00
+              </dd>
+            </div>
+            <div id="discount-row" class="hidden flex justify-between">
+              <dt class="text-slate-500" data-i18n="checkout.discount">
+                ส่วนลด
+              </dt>
+              <dd id="bill-discount" class="font-semibold">
+                -฿0.00
+              </dd>
+            </div>
+            <div class="flex justify-between border-t border-slate-100 pt-4 text-xl font-black">
+              <dt data-i18n="checkout.grandTotal">
+                ยอดสุทธิ
+              </dt>
+              <dd id="bill-total" class="text-orange-700">
+                ฿0.00
+              </dd>
+            </div>
+          </dl>
+          <section class="mt-7 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+            <h2 class="font-bold" data-i18n="checkout.payAtCounter">
+              ชำระเงินที่เคาน์เตอร์
+            </h2>
+            <p class="mt-1 text-sm text-slate-600" data-i18n="checkout.payAtCounterDesc">
+              ชำระเงินสดที่เคาน์เตอร์ หรือสแกน QR Payment ให้พนักงานตรวจสอบ
+            </p>
+          </section>
+          <button id="request-checkout" type="button"
+          class="mt-6 flex w-full items-center justify-center gap-3 rounded-xl bg-orange-600 px-4 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-60">
+            <span id="checkout-spinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white">
+            </span>
+            <span data-i18n="checkout.pay">
+              จ่ายเงิน
+            </span>
+          </button>
+          <p id="wait-staff" class="mt-4 hidden rounded-xl bg-green-50 p-4 text-center font-semibold text-green-800" role="status"
+           data-i18n="checkout.finish">
+            จบมื้อแล้ว กรุณาชำระเงินที่เคาน์เตอร์
+          </p>
+          <button id="resume-dining" type="button"
+          class="mt-3 hidden w-full rounded-xl border border-orange-300 bg-white px-4 py-3 font-bold text-orange-800 hover:bg-orange-50"
+          data-i18n="checkout.resume">
+            กลับไปรับประทานต่อ
+          </button>
+        </div>
+      </section>
+      <div id="checkout-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true">
+        <section class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+          <h2 class="text-xl font-black text-slate-900" data-i18n="checkout.confirmTitle">
+            ยืนยันจบมื้อ
+          </h2>
+          <p class="mt-2 text-sm text-slate-600" data-i18n="checkout.confirmMessage">
+            คุณต้องการจบมื้อนี้และไปชำระเงินที่เคาน์เตอร์ใช่หรือไม่?
+          </p>
+          <div class="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-900" data-i18n="checkout.confirmWarn">
+            หลังยืนยันแล้ว ออเดอร์ใหม่จะถูกระงับ จนกว่าจะกลับไปรับประทานต่อ
+          </div>
+          <div class="mt-5 flex gap-2">
+            <button id="checkout-confirm-cancel" type="button"
+            class="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-700 hover:bg-slate-50"
+            data-i18n="checkout.confirmCancel">
+              ยกเลิก
+            </button>
+            <button id="checkout-confirm-ok" type="button"
+            class="flex-1 rounded-xl bg-orange-600 px-4 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-50"
+            data-i18n="checkout.confirmOk">
+              ยืนยันจบมื้อ
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/customer/checkout.js">
+    </script>
+    <header class="fixed right-3 top-3 z-[100] flex items-center gap-2 rounded-xl bg-white/95 p-2 shadow-lg">
+      <label for="langSwitcher" class="text-sm font-bold" data-i18n="language.label">
+        ภาษา
+      </label>
+      <select id="langSwitcher" class="select select-bordered select-sm" aria-label="Language">
+        <option value="th" data-i18n="language.th">
+          ไทย
+        </option>
+        <option value="en" data-i18n="language.en">
+          English
+        </option>
+      </select>
+    </header>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>

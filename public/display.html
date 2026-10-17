@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0f1a">
+    <title data-i18n="display.title">
+      จอแสดงคิว
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+    <style>
+      html, body { height: 100%; overflow: hidden; }
+    body {
+      background: #070b14 !important;
+      color: #f8fafc;
+    }
+
+    @keyframes card-flash {
+      0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.6); }
+      50%  { transform: scale(1.025); box-shadow: 0 0 0 32px rgba(251, 146, 60, 0); }
+      100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
+    }
+    .card-flash { animation: card-flash 1.5s ease-out 3; }
+
+    @keyframes live-pulse {
+      0%, 100% { opacity: 1;   transform: scale(1); }
+      50%      { opacity: 0.4; transform: scale(0.85); }
+    }
+    .live-dot { animation: live-pulse 1.8s ease-in-out infinite; }
+
+    .top-accent {
+      background: linear-gradient(90deg, transparent 0%, #ea580c 30%, #f97316 50%, #ea580c 70%, transparent 100%);
+      height: 3px;
+    }
+
+    .now-serving-grid {
+      align-content: center;
+      justify-content: center;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Adaptive grid: the TV screen shows 1-4 columns depending on how many
+       queues are being called right now. */
+    #now-serving[data-count="1"] { max-width: 38rem; }
+    #now-serving[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #now-serving[data-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #now-serving[data-count="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .serving-card {
+      position: relative;
+      display: flex;
+      min-height: 9rem;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      border-radius: 1.25rem;
+      background: radial-gradient(circle at 50% -30%, rgba(249, 115, 22, 0.24), rgba(15, 23, 42, 0.9) 68%);
+      padding: 1.25rem 1rem;
+      text-align: center;
+      box-shadow: 0 24px 60px -38px rgba(249, 115, 22, 0.7);
+    }
+
+    .serving-kicker {
+      color: #fdba74;
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+    }
+
+    .serving-number {
+      color: #fff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: clamp(2.25rem, 4.5vw, 3.75rem);
+      font-variant-numeric: tabular-nums;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      line-height: 0.95;
+    }
+
+    #now-serving[data-count="2"] .serving-number { font-size: clamp(3rem, 8vw, 6rem); }
+    #now-serving[data-count="1"] .serving-number { font-size: clamp(4rem, 12vw, 8rem); }
+
+    .serving-table {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.35rem;
+      border-radius: 9999px;
+      background: #f97316;
+      color: #0b1120;
+      font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+      font-weight: 900;
+      padding: 0.35rem 1rem;
+    }
+
+    .serving-table span {
+      font-size: 0.65em;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      opacity: 0.75;
+      text-transform: uppercase;
+    }
+
+    .serving-table-pending {
+      background: #334155;
+      color: #e2e8f0;
+      font-size: clamp(0.78rem, 1.1vw, 0.95rem);
+    }
+
+    .serving-people {
+      color: #94a3b8;
+      font-size: clamp(0.72rem, 1vw, 0.9rem);
+      font-weight: 600;
+      margin-top: 0.35rem;
+    }
+
+    #now-serving[data-count="3"] .serving-card,
+    #now-serving[data-count="4"] .serving-card {
+      min-height: 7.5rem;
+      padding: 0.9rem 0.75rem;
+    }
+
+    .serving-empty {
+      display: flex;
+      grid-column: 1 / -1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 1.5rem 1rem;
+      text-align: center;
+    }
+
+    .serving-empty-icon {
+      display: flex;
+      height: 5rem;
+      width: 5rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+      border: 1px solid #1e293b;
+      border-radius: 1.25rem;
+      background: #0f172a;
+      color: #475569;
+    }
+
+    .serving-empty-title {
+      color: #e2e8f0;
+      font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+      font-weight: 800;
+    }
+
+    .serving-empty-hint {
+      color: #64748b;
+      font-size: clamp(0.8rem, 1.2vw, 1rem);
+    }
+
+    .serving-more {
+      grid-column: 1 / -1;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .waiting-chip {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      border: 1px solid #1e293b;
+      border-radius: 0.6rem;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: clamp(0.78rem, 1.1vw, 0.95rem);
+      font-weight: 800;
+      padding: 0.3rem 0.6rem;
+    }
+
+    .waiting-chip small {
+      color: #64748b;
+      font-family: inherit;
+      font-size: 0.72em;
+      font-weight: 600;
+    }
+
+    .waiting-more {
+      color: #94a3b8;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.3rem 0.35rem;
+    }
+
+    .waiting-empty {
+      color: #64748b;
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 1100px) {
+      #now-serving[data-count="3"],
+      #now-serving[data-count="4"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      #now-serving[data-count="1"] { max-width: 100%; }
+    }
+
+    @media (max-width: 640px) {
+      #now-serving,
+      #now-serving[data-count="2"],
+      #now-serving[data-count="3"],
+      #now-serving[data-count="4"] {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 100%;
+      }
+      .serving-number { font-size: clamp(2.5rem, 14vw, 4rem); }
+    }
+    </style>
+  </head>
+  <body class="flex h-screen w-screen flex-col overflow-hidden">
+    <div class="top-accent shrink-0">
+    </div>
+    <!-- ===== HEADER ===== -->
+    <header class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-800/80 bg-slate-950/80 px-5 py-3.5 backdrop-blur sm:px-8 sm:py-4">
+      <div class="flex min-w-0 items-center gap-3.5">
+        <img data-shop-logo src="/assets/images/logo.png" alt="" class="h-11 w-11 shrink-0 rounded-xl bg-slate-900 object-contain p-1 ring-1 ring-slate-800 sm:h-12 sm:w-12">
+        <div class="min-w-0">
+          <p class="text-[10px] font-bold uppercase tracking-[0.28em] text-orange-400/90 sm:text-[11px]" data-i18n="display.kicker">
+            Queue Display
+          </p>
+          <h1 data-shop-name class="truncate text-lg font-black leading-tight tracking-tight text-white sm:text-xl">
+            Restaurant
+          </h1>
+        </div>
+      </div>
+      <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+        <!-- Live indicator -->
+        <span id="live-indicator" class="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-[11px] font-bold text-slate-400 sm:text-xs">
+          <span id="live-dot" class="live-dot inline-block h-2 w-2 rounded-full bg-slate-500">
+          </span>
+          <span id="live-label" data-i18n="display.connecting">
+            กำลังเชื่อมต่อ
+          </span>
+        </span>
+        <!-- Clock -->
+        <span id="clock" class="hidden font-mono text-base font-bold tabular-nums text-slate-200 sm:inline sm:text-lg">
+          --:--
+        </span>
+        <!-- Sound toggle — enlarged -->
+        <button id="sound-btn" type="button"
+        class="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-slate-700 bg-slate-900 text-orange-400 transition hover:border-orange-500 hover:bg-slate-800 hover:text-orange-300 sm:h-14 sm:w-14"
+        aria-label="Toggle sound" title="Toggle sound">
+          <svg id="sound-on-icon" viewBox="0 0 24 24" class="h-6 w-6 sm:h-7 sm:w-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M11 5 6 9H2v6h4l5 4z"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>
+          <svg id="sound-off-icon" viewBox="0 0 24 24" class="hidden h-6 w-6 sm:h-7 sm:w-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M11 5 6 9H2v6h4l5 4z"/>
+            <line x1="23" y1="9" x2="17" y2="15"/>
+            <line x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
+        </button>
+        <!-- Fullscreen toggle — enlarged -->
+        <button id="fullscreen-btn" type="button"
+        class="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-slate-700 bg-slate-900 text-orange-400 transition hover:border-orange-500 hover:bg-slate-800 hover:text-orange-300 sm:h-14 sm:w-14"
+        aria-label="Fullscreen" title="Fullscreen">
+          <svg viewBox="0 0 24 24" class="h-6 w-6 sm:h-7 sm:w-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+    <!-- ===== NOW SERVING ===== -->
+    <section class="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-4 py-5 sm:px-8 sm:py-6">
+      <div class="mb-5 flex shrink-0 items-center gap-3 sm:mb-6">
+        <span class="h-px w-8 bg-orange-500/60 sm:w-12">
+        </span>
+        <h2 class="text-center text-[11px] font-bold uppercase tracking-[0.45em] text-orange-400 sm:text-sm" data-i18n="display.nowServing">
+          กำลังเรียก
+        </h2>
+        <span class="h-px w-8 bg-orange-500/60 sm:w-12">
+        </span>
+      </div>
+      <div id="now-serving" class="now-serving-grid grid w-full max-w-7xl flex-1 gap-3 sm:gap-5" aria-live="polite" aria-busy="true">
+      </div>
+    </section>
+    <!-- ===== WAITING ===== -->
+    <section class="shrink-0 border-t border-slate-800/80 bg-slate-950/90 px-4 py-3.5 sm:px-8 sm:py-4">
+      <div class="flex items-start gap-4 sm:items-center">
+        <div class="shrink-0 border-r border-slate-800 pr-4 sm:pr-5">
+          <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-500 sm:text-xs" data-i18n="display.waitingTitle">
+            รอเรียก
+          </p>
+          <p id="waiting-count" class="mt-0.5 font-mono text-2xl font-black leading-none text-white tabular-nums sm:text-3xl">
+            0
+          </p>
+        </div>
+        <div id="waiting-list" class="flex max-h-24 min-w-0 flex-1 flex-wrap items-center gap-2 overflow-hidden sm:max-h-none">
+        </div>
+      </div>
+    </section>
+    <!-- ===== AUDIO PROMPT ===== -->
+    <div id="audio-prompt" class="pointer-events-none fixed bottom-28 right-5 z-50 hidden rounded-xl border border-amber-400/30 bg-amber-500 px-4 py-2.5 text-sm font-bold text-slate-900 shadow-2xl" data-i18n="display.audioPrompt">
+      คลิกที่หน้าจอ 1 ครั้งเพื่อเปิดเสียงแจ้งเตือน
+    </div>
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/customer/shop-info.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+    <script src="/js/display.js">
+    </script>
+  </body>
+</html>

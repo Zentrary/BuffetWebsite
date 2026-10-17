@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="buffet">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title data-i18n="page.loginTitle">
+      เข้าสู่ระบบพนักงาน
+    </title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="icon" type="image/png" href="/api/settings/favicon?v=1">
+  </head>
+  <body class="flex min-h-screen items-center justify-center bg-orange-50 px-4 py-10 text-slate-800">
+    <main class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-9">
+      <div class="mb-7 text-center">
+        <img src="/assets/images/logo.png" alt="Smart Queue Restaurant" class="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain">
+        <p class="text-sm font-bold uppercase tracking-widest text-orange-600" data-i18n="login.portal">
+          พอร์ทัลพนักงาน
+        </p>
+        <h1 class="mt-2 text-3xl font-black">
+          เข้าสู่ระบบ
+        </h1>
+        <p class="mt-2 text-slate-500">
+          Smart Queue Restaurant
+        </p>
+      </div>
+      <form id="login-form" class="space-y-5">
+        <label class="block">
+          <span class="mb-2 block font-semibold" data-i18n="login.username">
+            ชื่อผู้ใช้
+          </span>
+          <input name="username" type="text" autocomplete="username" required
+          class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100">
+        </label>
+        <label class="block">
+          <span class="mb-2 block font-semibold" data-i18n="login.password">
+            รหัสผ่าน
+          </span>
+          <input name="password" type="password" autocomplete="current-password" required
+          class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100">
+        </label>
+        <button id="login-submit" type="submit" class="flex w-full items-center justify-center gap-3 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-60">
+          <span id="login-spinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white">
+          </span>
+          <span id="login-label" data-i18n="login.submit">
+            เข้าสู่ระบบ
+          </span>
+        </button>
+      </form>
+      <p id="login-error" class="mt-4 hidden rounded-xl bg-red-50 p-3 text-sm text-red-700" role="alert">
+      </p>
+      <a href="/" class="mt-6 block text-center text-sm font-semibold text-slate-500 hover:text-orange-700" data-i18n="login.customerLink">
+        ← กลับหน้าแรก
+      </a>
+    </main>
+    <script src="/js/admin/login.js">
+    </script>
+    <header class="fixed right-3 top-3 z-[100] flex items-center gap-2 rounded-xl bg-white/95 p-2 shadow-lg">
+      <label for="langSwitcher" class="text-sm font-bold" data-i18n="language.label">
+        ภาษา
+      </label>
+      <select id="langSwitcher" class="select select-bordered select-sm" aria-label="Language">
+        <option value="th" data-i18n="language.th">
+          ไทย
+        </option>
+        <option value="en" data-i18n="language.en">
+          English
+        </option>
+      </select>
+    </header>
+    <script src="/js/i18n.js">
+    </script>
+    <script src="/js/brand.js">
+    </script>
+  </body>
+</html>
