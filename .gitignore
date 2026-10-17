@@ -1,0 +1,9 @@
+node_modules/
+.vercel/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.DS_Store
+# Runtime uploads are stored locally only; existing tracked examples remain tracked.
+public/uploads/*

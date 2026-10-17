@@ -8,7 +8,7 @@ router.get('/public', settingsController.getPublicSettings);
 router.get('/shop', protect, authorize('admin'), settingsController.getSettings);
 router.put('/shop', protect, authorize('admin'), settingsController.updateSettings);
 router.post('/shop/open', protect, authorize('admin'), settingsController.openShopEarly);
-router.post('/shop/image', protect, authorize('admin'), uploadImage.single('image'), settingsController.uploadShopImage);
+router.post('/shop/image', protect, authorize('admin'), uploadImage.requirePersistentStorage, uploadImage.single('image'), settingsController.uploadShopImage);
 router.get('/favicon', settingsController.getFavicon);
 exports.getFavicon = async (req, res) => {
   try {

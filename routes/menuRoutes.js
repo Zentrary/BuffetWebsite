@@ -14,7 +14,7 @@ router.get('/:id', menuController.getMenuById);
 
 // Add a menu item; administrators and managers are permitted.
 router.post('/', protect, authorize('admin', 'manager'), menuController.createMenu);
-router.post('/image', protect, authorize('admin', 'manager'), uploadImage.single('image'), (req, res) => {
+router.post('/image', protect, authorize('admin', 'manager'), uploadImage.requirePersistentStorage, uploadImage.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, code: 'INVALID_IMAGE', message: 'รองรับเฉพาะ JPG, PNG, WEBP หรือ GIF ขนาดไม่เกิน 5 MB' });
   return res.status(201).json({ success: true, data: { imageUrl: `/uploads/${req.file.filename}` } });
 });
