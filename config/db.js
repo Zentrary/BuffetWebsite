@@ -1,16 +1,15 @@
-// ใช้ Public DNS สำหรับค้นหา SRV record ของ MongoDB Atlas
+// Keep the system resolver on Vercel. Local environments may use the public
+// resolvers below to work around ISP DNS failures for MongoDB SRV records.
 const dns = require('dns');
-dns.setServers(['8.8.8.8', '1.1.1.1']);
+if (!process.env.VERCEL) {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+}
 
 const mongoose = require('mongoose');
 
 const DEFAULT_DB_NAME = process.env.DB_NAME || 'Buffetdb';
-
-// Cache connection สำหรับ serverless (Vercel)
-let cachedConnection = global.__mongoConnection || null;
-if (!cachedConnection) {
-  cachedConnection = null;
-}
+const connectionCache = global.__buffetMongoCache || { connection: null, promise: null };
+global.__buffetMongoCache = connectionCache;
 
 mongoose.connection.on('connected', () => {
   console.log('MongoDB connection established.');
@@ -19,6 +18,7 @@ mongoose.connection.on('error', (error) => {
   console.error('MongoDB connection error:', error.message);
 });
 mongoose.connection.on('disconnected', () => {
+  connectionCache.connection = null;
   console.warn('MongoDB connection disconnected.');
 });
 
@@ -41,29 +41,40 @@ async function connectDB() {
     throw new Error('MONGO_URI is not configured.');
   }
 
-  // ถ้ามี connection อยู่แล้ว → ใช้ต่อ (Serverless reuse)
-  if (cachedConnection && mongoose.connection.readyState === 1) {
-    return cachedConnection;
+  // Reuse an established connection, and share an in-flight connection attempt
+  // between concurrent Vercel requests in the same warm function instance.
+  if (mongoose.connection.readyState === 1) {
+    return connectionCache.connection || mongoose;
+  }
+  if (connectionCache.promise) {
+    return connectionCache.promise;
   }
 
   const uri = ensureDatabaseName(MONGO_URI);
-
-  try {
-    const connection = await mongoose.connect(uri, {
-      dbName: DEFAULT_DB_NAME,
-      serverSelectionTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
-      family: 4,
-    });
-    cachedConnection = connection;
-    global.__mongoConnection = connection;
+  const pendingConnection = mongoose.connect(uri, {
+    dbName: DEFAULT_DB_NAME,
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+    family: 4,
+  }).then((connection) => {
+    connectionCache.connection = connection;
     const activeDb = mongoose.connection.db?.databaseName || DEFAULT_DB_NAME;
     console.log(`MongoDB connected: ${connection.connection.host}`);
     console.log(`MongoDB database: ${activeDb}`);
     return connection;
-  } catch (error) {
+  }).catch((error) => {
+    connectionCache.connection = null;
     console.error('MongoDB connection failed:', error.message);
     throw error;
+  });
+
+  connectionCache.promise = pendingConnection;
+  try {
+    return await pendingConnection;
+  } finally {
+    if (connectionCache.promise === pendingConnection) {
+      connectionCache.promise = null;
+    }
   }
 }
 

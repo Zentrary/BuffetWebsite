@@ -6,6 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const os = require('os');
+const path = require('path');
 const mongoose = require('mongoose');
 const { Server } = require('socket.io');
 const connectDB = require('./config/db');
@@ -42,22 +43,29 @@ function getLanIPv4() {
 const app = express();
 const httpServer = http.createServer(app);
 
-// Configure Socket.io on the same HTTP server as Express.
-const io = new Server(httpServer, {
+// Vercel functions are request-scoped and do not keep Socket.IO connections
+// alive. Use a no-op emitter there; the browser clients use their polling
+// fallback. Long-running deployments still use the full Socket.IO server.
+const isServerless = Boolean(process.env.VERCEL);
+const noOpIo = {
+  to() { return this; },
+  emit() { return this; },
+};
+const io = isServerless ? noOpIo : new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_ORIGIN || '*',
     methods: ['GET', 'POST'],
   },
 });
 
-// Make Socket.io available to request handlers through req.app.get('io').
+// Make Socket.IO (or the serverless no-op) available to request handlers.
 app.set('io', io);
 
 // Register the required request parsing, cross-origin, and static-file middleware.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api', rateLimit({
   name: 'api-global',
   windowMs: 60_000,
@@ -65,6 +73,15 @@ app.use('/api', rateLimit({
   keyGenerator: keyByIp,
   message: 'คุณเรียกใช้งานบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่',
 }));
+
+// Expose a minimal readiness check without leaking database connection details.
+app.get('/api/health', (_req, res) => {
+  res.json({
+    success: true,
+    service: 'buffet-api',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  });
+});
 
 // Mount each feature router under its API prefix.
 app.use('/api/auth', authRoutes);
@@ -130,16 +147,13 @@ async function startServer() {
   }
 }
 
-// Start the application and expose a rejected startup promise as a process error.
+// Start the application only when invoked as a long-running Node server.
+// Vercel's api/[...path].js handler connects to MongoDB before forwarding each
+// request, so importing this module has no asynchronous startup side effects.
 if (require.main === module) {
   startServer().catch((error) => {
     console.error('Unexpected startup error:', error);
     process.exitCode = 1;
-  });
-} else {
-  // บน Vercel: เชื่อมต่อ DB แต่ไม่ listen
-  connectDB().catch((error) => {
-    console.error('MongoDB connection failed:', error.message);
   });
 }
 
