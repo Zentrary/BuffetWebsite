@@ -1,8 +1,38 @@
 {
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/socket.io/socket.io.js",
-      "destination": "/api/socket-client"
+      "src": "api/[...path].js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/socket-client.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/[...path].js"
+    },
+    {
+      "src": "/socket.io/socket.io.js",
+      "dest": "/api/socket-client.js"
+    },
+    {
+      "src": "/",
+      "dest": "/public/index.html"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ]
 }
