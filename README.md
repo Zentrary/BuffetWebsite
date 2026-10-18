@@ -116,13 +116,6 @@
 
 MongoDB Atlas ต้องอนุญาตการเชื่อมต่อจาก Vercel ใน Network Access ด้วย ใช้ผู้ใช้ฐานข้อมูลที่มีสิทธิ์เท่าที่จำเป็น และอย่าเปิดการเข้าถึงแบบกว้างโดยไม่เข้าใจความเสี่ยง
 
-## หมายเหตุสำหรับ Vercel
-
-- Vercel ใช้ serverless functions จึงไม่เหมาะกับการเปิด Socket.IO connection แบบต่อเนื่อง หน้าเว็บใช้การ polling ผ่าน HTTP แทนในสภาพแวดล้อมนี้
-- ไฟล์ที่อัปโหลดไปยัง filesystem ของฟังก์ชันไม่ใช่พื้นที่เก็บถาวร บน Vercel ให้ใช้ URL รูปภาพที่โฮสต์ภายนอกแทนการอัปโหลดไฟล์
-- ตั้ง Build Command เป็น `npm run build`, Root Directory เป็น `./` และไม่ต้องกำหนด Output Directory สำหรับการตั้งค่า Express ของโปรเจกต์นี้
-- กำหนด environment variables แยกตาม Preview และ Production และพิจารณาใช้ฐานข้อมูลทดสอบแยกจาก Production
-
 ## คำสั่งที่มีให้
 
 | คำสั่ง | รายละเอียด |
