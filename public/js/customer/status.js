@@ -3,7 +3,9 @@
   const T = (key, vars) => (window.t ? window.t(key, vars) : key);
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get('sessionId') || localStorage.getItem('sessionId');
-  const socket = typeof io === 'function' ? io() : null;
+  const POLL_INTERVAL_MS = 30000;
+  const Live = window.LiveUpdates;
+  const socket = Live.openSocket();
 
   const tableLabel = document.getElementById('table-label');
   const queueLabel = document.getElementById('queue-label');
@@ -18,6 +20,10 @@
   const orderModalItems = document.getElementById('order-modal-items');
   const liveBadge = document.getElementById('live-badge');
   const backLink = document.getElementById('back-link');
+  const connection = Live.createStatus({
+    element: liveBadge, intervalMs: POLL_INTERVAL_MS, resources: ['session', 'orders'],
+    baseClass: 'shrink-0 rounded-full px-3 py-1 text-xs font-bold',
+  });
 
   let sessionData = null;
   let ordersData = [];
@@ -193,8 +199,8 @@
     const id = typeof t === 'object' && t._id ? t._id : t;
     if (!id) return null;
     try {
-      const res = await fetch('/api/table', { cache: 'no-store' });
-      const payload = await res.json();
+      const { response, payload } = await Live.fetchJSON('/api/table');
+      if (!response.ok || payload.success === false) return null;
       const list = Array.isArray(payload.data) ? payload.data : [];
       const match = list.find((row) => String(row._id) === String(id));
       if (match && match.tableNumber) return match.tableNumber;
@@ -202,11 +208,12 @@
     return null;
   }
 
-  async function loadSession() {
+  const loadSession = Live.createLoader(async () => {
     try {
-      const res = await fetch(`/api/session/${encodeURIComponent(sessionId)}`, { cache: 'no-store' });
-      const payload = await res.json();
-      if (!payload.success) throw new Error(payload.message || T('error.REQUEST_FAILED'));
+      const { response, payload } = await Live.fetchJSON(`/api/session/${encodeURIComponent(sessionId)}`);
+      if (!response.ok || !payload.success || !payload.data || Array.isArray(payload.data) || typeof payload.data !== 'object') {
+        throw new Error(payload.message || T('error.REQUEST_FAILED'));
+      }
       sessionData = payload.data;
 
       if (sessionData.isPaid || sessionData.status === 'completed') {
@@ -229,20 +236,28 @@
         countdownTimer = window.setInterval(() => updateTimerDisplay(sessionData.endTime), 1000);
       }
       renderStages();
+      connection.success('session');
     } catch (error) {
+      connection.failure('session');
       tableLabel.textContent = T('status.loadFailed');
       queueLabel.textContent = error.message || '';
     }
-  }
+  });
 
-  async function loadOrders() {
+  const loadOrders = Live.createLoader(async () => {
     try {
-      const res = await fetch(`/api/order/session/${encodeURIComponent(sessionId)}`, { cache: 'no-store' });
-      const payload = await res.json();
-      ordersData = Array.isArray(payload.data) ? payload.data : [];
+      const { response, payload } = await Live.fetchJSON(`/api/order/session/${encodeURIComponent(sessionId)}`);
+      if (!response.ok || payload.success === false || !Array.isArray(payload.data)) {
+        throw new Error(payload.message || T('error.REQUEST_FAILED'));
+      }
+      ordersData = payload.data;
       renderOrders();
-    } catch {}
-  }
+      connection.success('orders');
+    } catch {
+      // Retain the last successful snapshot, but make its failed refresh visible.
+      connection.failure('orders');
+    }
+  });
 
   if (!sessionId) {
     window.location.replace('/queue.html');
@@ -257,13 +272,12 @@
     socket.on('connect', () => {
       socket.emit('joinRoom', 'customer');
       socket.emit('joinSession', sessionId);
-      liveBadge.textContent = T('status.live');
-      liveBadge.className = 'rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700';
+      connection.setSocketConnected(true);
+      loadSession();
+      loadOrders();
     });
-    socket.on('disconnect', () => {
-      liveBadge.textContent = T('status.offline');
-      liveBadge.className = 'rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-600';
-    });
+    socket.on('disconnect', () => connection.setSocketConnected(false));
+    socket.on('connect_error', () => connection.setSocketConnected(false));
     socket.on('order_status_changed', (payload) => {
       if (payload && String(payload.sessionId) === String(sessionId)) {
         loadOrders();
@@ -278,7 +292,8 @@
     if (ordersData.length) renderOrders();
   });
 
-  window.setInterval(() => { loadOrders(); loadSession(); }, 30000);
+  window.addEventListener('online', () => { loadOrders(); loadSession(); });
+  window.setInterval(() => { loadOrders(); loadSession(); }, POLL_INTERVAL_MS);
 
   loadSession();
   loadOrders();

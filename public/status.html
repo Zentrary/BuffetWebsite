@@ -59,8 +59,8 @@
             <p id="queue-label" class="mt-1 text-sm text-slate-500">
             </p>
           </div>
-          <span id="live-badge" class="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-            กำลังเชื่อมต่อ
+          <span id="live-badge" data-i18n="connection.loading" class="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+            กำลังโหลดข้อมูล
           </span>
         </div>
         <ol id="session-stages" class="mt-5 flex w-full items-stretch gap-1.5 sm:gap-2">
@@ -111,6 +111,8 @@
       </section>
     </div>
     <script src="/socket.io/socket.io.js">
+    </script>
+    <script src="/js/live-updates.js">
     </script>
     <script src="/js/customer/status.js">
     </script>

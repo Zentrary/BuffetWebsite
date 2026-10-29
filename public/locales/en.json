@@ -343,6 +343,11 @@
   "scan.checkedIn": "Seat confirmed",
   "scan.waitingForCall": "Your queue has not been called yet. Keep this page open; your session will start automatically when staff calls you.",
 
+  "connection.loading": "Loading data",
+  "connection.live": "Live updates",
+  "connection.polling": "Auto-refresh every {seconds}s",
+  "connection.error": "Data unavailable — retrying",
+
   "status.title": "Your status",
   "status.orders": "My orders",
   "status.noOrders": "No orders yet",

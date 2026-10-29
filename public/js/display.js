@@ -27,30 +27,18 @@
     fullscreenButton: document.getElementById('fullscreen-btn'),
   };
 
-  const CONNECTION_STYLES = {
-    live: {
-      container: 'inline-flex items-center gap-2 rounded-full border border-green-500/40 bg-green-500/10 px-3 py-1.5 text-[11px] font-bold text-green-300 sm:text-xs',
-      dot: 'live-dot inline-block h-2 w-2 rounded-full bg-green-400',
-      label: 'display.live',
-    },
-    connecting: {
-      container: 'inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-bold text-amber-300 sm:text-xs',
-      dot: 'live-dot inline-block h-2 w-2 rounded-full bg-amber-400',
-      label: 'display.connecting',
-    },
-    offline: {
-      container: 'inline-flex items-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-[11px] font-bold text-red-300 sm:text-xs',
-      dot: 'inline-block h-2 w-2 rounded-full bg-red-500',
-      label: 'display.offline',
-    },
-  };
+  const Live = window.LiveUpdates;
+  const connection = Live.createStatus({
+    element: dom.liveIndicator, label: dom.liveLabel, dot: dom.liveDot,
+    intervalMs: POLL_INTERVAL_MS, resources: ['queue'], theme: 'dark',
+    baseClass: 'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold sm:text-xs',
+  });
 
   let soundEnabled = readPreference(SOUND_PREFERENCE_KEY) !== 'off';
   let audioContext = null;
   let audioArmed = false;
 
   let socket = null;
-  let socketConnected = false;
   let fetchFailed = false;
   let latestData = null;
   let lastSignature = '';
@@ -90,29 +78,6 @@
   function updateClock() {
     if (!dom.clock) return;
     dom.clock.textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
-  }
-
-  function setConnectionState(state) {
-    const style = CONNECTION_STYLES[state] || CONNECTION_STYLES.connecting;
-    if (dom.liveIndicator) dom.liveIndicator.className = style.container;
-    if (dom.liveDot) dom.liveDot.className = style.dot;
-    if (dom.liveLabel) {
-      dom.liveLabel.dataset.i18n = style.label;
-      dom.liveLabel.textContent = translated(style.label, style.label);
-    }
-  }
-
-  function updateConnectionState() {
-    if (fetchFailed) {
-      setConnectionState('offline');
-    } else if (!socket) {
-      // Polling-only fallback still keeps the board current.
-      setConnectionState('live');
-    } else if (socketConnected) {
-      setConnectionState('live');
-    } else {
-      setConnectionState('connecting');
-    }
   }
 
   function updateSoundButton() {
@@ -393,21 +358,20 @@
     retryTimer = null;
 
     try {
-      const response = await fetch('/api/queue/display', {
+      const { response, payload } = await Live.fetchJSON('/api/queue/display', {
         cache: 'no-store',
         headers: { Accept: 'application/json' },
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload = await response.json();
-      if (!payload || payload.success === false || !payload.data) {
+      if (!payload || payload.success === false || !Array.isArray(payload.data?.nowServing) || !Array.isArray(payload.data?.waiting)) {
         throw new Error((payload && payload.message) || 'Invalid queue display payload');
       }
       fetchFailed = false;
       renderData(payload.data);
-      updateConnectionState();
+      connection.success('queue');
     } catch (error) {
       fetchFailed = true;
-      updateConnectionState();
+      connection.failure('queue');
       console.warn('Queue display refresh failed:', error);
       if (!latestData) renderUnavailable();
       clearTimeout(retryTimer);
@@ -434,44 +398,20 @@
   }
 
   function connectSocket() {
-    if (typeof window.io !== 'function') {
-      socket = null;
-      updateConnectionState();
-      return;
-    }
-
-    socketConnected = false;
-    try {
-      socket = window.io({
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        timeout: 10000,
-      });
-    } catch (error) {
-      console.warn('Queue display socket could not start; using polling only:', error);
-      socket = null;
-      updateConnectionState();
-      return;
-    }
-    updateConnectionState();
-
+    socket = Live.openSocket({
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 10000,
+    });
+    if (!socket) return;
     socket.on('connect', () => {
-      socketConnected = true;
-      updateConnectionState();
+      connection.setSocketConnected(true);
       socket.emit('joinRoom', 'customer');
       scheduleRefresh(100);
     });
-
-    socket.on('disconnect', () => {
-      socketConnected = false;
-      updateConnectionState();
-    });
-
-    socket.on('connect_error', () => {
-      socketConnected = false;
-      updateConnectionState();
-    });
+    socket.on('disconnect', () => connection.setSocketConnected(false));
+    socket.on('connect_error', () => connection.setSocketConnected(false));
 
     // Every queue change emits queue_board_updated to the public customer room.
     ['queue_board_updated', 'queue_called', 'queue_seated', 'queue_cancelled', 'new_queue'].forEach((eventName) => {
@@ -510,14 +450,14 @@
   window.addEventListener('languageChanged', () => {
     updateClock();
     updateSoundButton();
-    updateConnectionState();
+    connection.render();
     forceRerender();
   });
 
   window.addEventListener('online', () => refreshData());
   window.addEventListener('offline', () => {
     fetchFailed = true;
-    updateConnectionState();
+    connection.failure('queue');
   });
 
   function start() {
@@ -526,7 +466,7 @@
     clockTimer = setInterval(updateClock, 1000);
     updateSoundButton();
     updateAudioPrompt();
-    updateConnectionState();
+    connection.render();
     renderLoading();
     connectSocket();
     refreshData();

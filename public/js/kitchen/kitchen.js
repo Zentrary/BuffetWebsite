@@ -11,13 +11,19 @@
     cooking: { key: 'kitchen.order.status.cooking', className: 'bg-orange-400 text-slate-950', bar: 'bg-orange-400', next: 'ready', actionKey: 'kitchen.order.action.ready' },
     ready: { key: 'kitchen.order.status.ready', className: 'bg-green-400 text-slate-950', bar: 'bg-green-400' },
   };
-  const socket = typeof io === 'function' ? io({ auth: { token } }) : null;
+  const POLL_INTERVAL_MS = 20000;
+  const Live = window.LiveUpdates;
+  const socket = Live.openSocket({ auth: { token } });
   const orderContainer = document.getElementById('kitchen-orders');
   const errorElement = document.getElementById('kitchen-error');
   const loadingElement = document.getElementById('orders-loading');
   const emptyElement = document.getElementById('orders-empty');
   const statusElement = document.getElementById('connection-status');
   const connectionLabel = document.getElementById('connection-label');
+  const connection = Live.createStatus({
+    element: statusElement, label: connectionLabel, dot: document.getElementById('connection-dot'),
+    intervalMs: POLL_INTERVAL_MS, resources: ['orders', 'menus'],
+  });
   const orderModal = document.getElementById('order-modal');
   const orderModalBody = document.getElementById('order-modal-body');
   const menuSearchForm = document.getElementById('kitchen-menu-search');
@@ -25,6 +31,7 @@
   let audioArmed = false;
   let lastOrdersSignature = '';
   let lastOrdersData = [];
+  const newOrders = Live.createChangeTracker();
 
   // Menu state
   let menus = [];
@@ -36,7 +43,7 @@
   }
 
   async function armAudio() {
-    if (audioArmed) return;
+    if (audioArmed && audioContext?.state === 'running') return;
     try {
       audioContext = audioContext || new window.AudioContext();
       if (audioContext.state === 'suspended') await audioContext.resume();
@@ -58,8 +65,7 @@
 
   async function playNotification() {
     try {
-      await armAudio();
-      if (!audioArmed) {
+      if (!audioArmed || audioContext?.state !== 'running') {
         const toast = document.getElementById('audio-toast');
         if (toast) toast.classList.remove('hidden');
         return;
@@ -83,8 +89,7 @@
   }
 
   async function api(path, options = {}) {
-    const response = await fetch(path, { ...options, headers: { Authorization: `Bearer ${token}`, ...(options.headers || {}) } });
-    const payload = await response.json();
+    const { response, payload } = await Live.fetchJSON(path, { ...options, headers: { Authorization: `Bearer ${token}`, ...(options.headers || {}) } });
     if (response.status === 401 || response.status === 403) { window.StaffAuth.clearCredentials(); window.location.replace(window.StaffAuth.loginUrl()); throw new Error(payload.message || T('error.UNAUTHORIZED')); }
     if (!response.ok || payload.success === false) throw new Error((payload.code && T(`error.${payload.code}`)) || payload.message || T('error.REQUEST_FAILED'));
     return payload;
@@ -226,18 +231,22 @@
     }
   }
 
-  async function loadOrders() {
+  const loadOrders = Live.createLoader(async () => {
     try {
       const payload = await api('/api/order?status=pending,accepted,cooking,ready');
-      renderOrders(Array.isArray(payload.data) ? payload.data : []);
-      errorElement.classList.add('hidden');
+      if (!Array.isArray(payload.data)) throw new Error(T('kitchen.loadOrdersFailed'));
+      renderOrders(payload.data);
+      connection.success('orders');
+      if (connection.state() !== 'error') errorElement.classList.add('hidden');
+      if (newOrders.observe(payload.data).length) playNotification();
     } catch (error) {
+      connection.failure('orders');
       errorElement.textContent = error.message || T('kitchen.loadOrdersFailed');
       errorElement.classList.remove('hidden');
     } finally {
       loadingElement.classList.add('hidden');
     }
-  }
+  });
 
   // ---------- Menus with view switcher + search ----------
 
@@ -323,22 +332,24 @@
     if (emptyEl) emptyEl.classList.toggle('hidden', visible.length > 0);
   }
 
-  async function loadMenus() {
+  const loadMenus = Live.createLoader(async () => {
     const loading = document.getElementById('menu-loading');
     if (loading) { loading.classList.remove('hidden'); loading.classList.add('flex'); }
     try {
-      const response = await fetch('/api/menu');
-      const payload = await response.json();
-      if (!response.ok || !payload.success) throw new Error(payload.message || T('kitchen.loadMenuFailed'));
-      menus = Array.isArray(payload.data) ? payload.data : [];
+      const payload = await api('/api/menu');
+      if (!Array.isArray(payload.data)) throw new Error(T('kitchen.loadMenuFailed'));
+      menus = payload.data;
       renderMenus();
+      connection.success('menus');
+      if (connection.state() !== 'error') errorElement.classList.add('hidden');
     } catch (error) {
+      connection.failure('menus');
       errorElement.textContent = error.message || T('kitchen.loadMenuFailed');
       errorElement.classList.remove('hidden');
     } finally {
       if (loading) { loading.classList.add('hidden'); loading.classList.remove('flex'); }
     }
-  }
+  });
 
   async function toggleAvailability(menuId, button) {
     button.disabled = true;
@@ -383,29 +394,20 @@
   }
 
   if (socket) {
-    const dot = document.getElementById('connection-dot');
     socket.on('connect', () => {
-      statusElement.className = 'inline-flex h-9 items-center gap-1.5 rounded-lg bg-green-900/60 px-3 text-xs font-bold text-green-300';
-      if (dot) dot.className = 'h-2 w-2 rounded-full bg-green-400 animate-pulse';
-      if (connectionLabel) connectionLabel.textContent = T('kitchen.socketOnline');
+      connection.setSocketConnected(true);
       socket.emit('joinRoom', 'kitchen');
+      loadOrders();
+      loadMenus();
     });
-    socket.on('disconnect', () => {
-      statusElement.className = 'inline-flex h-9 items-center gap-1.5 rounded-lg bg-red-900/60 px-3 text-xs font-bold text-red-300';
-      if (dot) dot.className = 'h-2 w-2 rounded-full bg-red-400';
-      if (connectionLabel) connectionLabel.textContent = T('kitchen.socketOffline');
-    });
-    socket.on('new_order', () => { loadOrders(); playNotification(); });
+    socket.on('disconnect', () => connection.setSocketConnected(false));
+    socket.on('connect_error', () => connection.setSocketConnected(false));
+    // The successful snapshot, not the event itself, decides whether to chime.
+    socket.on('new_order', loadOrders);
     socket.on('order_status_changed', loadOrders);
-    socket.on('connect_error', (error) => {
-      statusElement.textContent = T('kitchen.socketError');
-      statusElement.className = 'rounded-lg bg-red-800 px-3 py-1.5 text-sm font-bold';
-      console.warn('Kitchen socket connection failed:', error.message);
-    });
-  } else {
-    statusElement.textContent = T('kitchen.socketUnavailable');
-    statusElement.className = 'rounded-lg bg-amber-700 px-3 py-1.5 text-sm font-bold';
   }
+
+  window.addEventListener('online', () => { loadOrders(); loadMenus(); });
 
   window.addEventListener('languageChanged', () => {
     // Re-render orders to update labels and re-render menus.
@@ -416,7 +418,7 @@
   });
 
   window.setInterval(updateElapsedLabels, 1000);
-  window.setInterval(loadOrders, 20000);
+  window.setInterval(loadOrders, POLL_INTERVAL_MS);
   window.setInterval(loadMenus, 60000);
   loadOrders();
   loadMenus();
