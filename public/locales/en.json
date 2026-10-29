@@ -221,6 +221,10 @@
   "menu.orderStatus.short.paid": "Paid",
   "menu.orderStatus.short.cancelled": "Order cancelled",
 
+  "menu.category.set": "Sets",
+  "menu.category.veg": "Vegetables, mushrooms & tofu",
+  "menu.category.dessert_drink": "Desserts & drinks",
+  "menu.category.uncategorized": "Uncategorized",
   "menu.category.set_menu": "Buffet sets",
   "menu.category.sukiyaki": "Sukiyaki",
   "menu.category.hotpan": "Hot pan",

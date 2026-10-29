@@ -10,6 +10,8 @@
     "predev": "npm run build:css",
     "dev": "node --watch server.js",
     "seed": "node seed.js",
+    "test": "node --test tests/menu-categories.test.js",
+    "test:menu-ui": "node scripts/test-menu-ui.js",
     "test:mongo": "node scripts/test-mongo.js",
     "test:browser": "node scripts/browser-smoke-test.js",
     "start:force-dns": "node -e \"require('dns').setServers(['8.8.8.8','1.1.1.1']);require('./server.js')\"",
