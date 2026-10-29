@@ -24,8 +24,8 @@
           <span id="connection-status" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-800 px-3 text-xs font-bold text-slate-300">
             <span id="connection-dot" class="h-2 w-2 rounded-full bg-slate-500">
             </span>
-            <span id="connection-label" data-i18n="kitchen.socketConnecting">
-              กำลังเชื่อมต่อ
+            <span id="connection-label" data-i18n="connection.loading">
+              กำลังโหลดข้อมูล
             </span>
           </span>
           <button id="logout-button" type="button" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-red-600 px-3 text-xs font-bold text-white transition hover:bg-red-500">
@@ -213,7 +213,7 @@
         </div>
       </section>
     </div>
-    <div id="audio-toast" class="pointer-events-none fixed bottom-4 right-4 z-[200] hidden rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-slate-900 shadow-lg" data-i18n="kitchen.audioNotice">
+    <div id="audio-toast" class="pointer-events-none fixed bottom-4 right-4 z-[200] rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-slate-900 shadow-lg" data-i18n="kitchen.audioNotice">
       คลิกที่หน้าเว็บ 1 ครั้งเพื่อเปิดเสียงแจ้งเตือน
     </div>
     <script src="/socket.io/socket.io.js">
@@ -221,6 +221,8 @@
     <script src="/js/i18n.js">
     </script>
     <script src="/js/staff-auth.js">
+    </script>
+    <script src="/js/live-updates.js">
     </script>
     <script src="/js/waiter/waiter.js">
     </script>

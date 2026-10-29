@@ -4,9 +4,15 @@
   const token = sessionStorage.getItem('token');
   if (!token) { window.location.replace(window.StaffAuth.loginUrl()); return; }
 
-  const socket = typeof io === 'function' ? io({ auth: { token } }) : null;
+  const POLL_INTERVAL_MS = 30000;
+  const Live = window.LiveUpdates;
+  const socket = Live.openSocket({ auth: { token } });
   const statusElement = document.getElementById('connection-status');
   const connectionLabel = document.getElementById('connection-label');
+  const connection = Live.createStatus({
+    element: statusElement, label: connectionLabel, dot: document.getElementById('connection-dot'),
+    intervalMs: POLL_INTERVAL_MS, resources: ['orders', 'tables'],
+  });
   const errorElement = document.getElementById('waiter-error');
   const successElement = document.getElementById('waiter-success');
   const loadingElement = document.getElementById('waiter-loading');
@@ -16,9 +22,11 @@
   let audioArmed = false;
   let lastReadyOrders = [];
   let lastTables = [];
+  const readyChanges = Live.createChangeTracker();
+  const tableChanges = Live.createChangeTracker({ value: (table) => table.status });
 
   async function armAudio() {
-    if (audioArmed) return;
+    if (audioArmed && audioContext?.state === 'running') return;
     try {
       audioContext = audioContext || new window.AudioContext();
       if (audioContext.state === 'suspended') await audioContext.resume();
@@ -45,8 +53,7 @@
 
   async function playNotification() {
     try {
-      await armAudio();
-      if (!audioArmed) {
+      if (!audioArmed || audioContext?.state !== 'running') {
         const toast = document.getElementById('audio-toast');
         if (toast) toast.classList.remove('hidden');
         return;
@@ -65,14 +72,13 @@
   }
 
   async function api(path, options = {}) {
-    let response;
+    let response, payload;
     try {
-      response = await fetch(path, { ...options, headers: { Authorization: `Bearer ${token}`, ...(options.headers || {}) } });
+      ({ response, payload } = await Live.fetchJSON(path, { ...options, headers: { Authorization: `Bearer ${token}`, ...(options.headers || {}) } }));
     } catch (error) {
       if (error instanceof TypeError) throw new Error(`Cannot reach server at ${window.location.host}`);
       throw error;
     }
-    const payload = await response.json();
     if (response.status === 401 || response.status === 403) {
       window.StaffAuth.clearCredentials();
       window.location.replace(window.StaffAuth.loginUrl());
@@ -89,10 +95,11 @@
 
   // ---------- Ready orders ----------
 
-  async function loadReadyOrders() {
+  const loadReadyOrders = Live.createLoader(async () => {
     try {
       const payload = await api('/api/order?status=ready');
-      const orders = Array.isArray(payload.data) ? payload.data : [];
+      if (!Array.isArray(payload.data)) throw new Error(T('waiter.loadReadyFailed'));
+      const orders = payload.data;
       lastReadyOrders = orders;
       const container = document.getElementById('ready-orders');
       container.replaceChildren();
@@ -121,11 +128,14 @@
         card.addEventListener('click', () => openOrderModal(order));
         container.append(card);
       }
-      errorElement.classList.add('hidden');
+      connection.success('orders');
+      if (connection.state() !== 'error') errorElement.classList.add('hidden');
+      if (readyChanges.observe(orders).length) playNotification();
     } catch (error) {
+      connection.failure('orders');
       showError(error.message || T('waiter.loadReadyFailed'));
     }
-  }
+  });
 
   function openOrderModal(order) {
     const tableNumber = order.tableId && order.tableId.tableNumber ? order.tableId.tableNumber : '—';
@@ -205,10 +215,11 @@
     }
   }
 
-  async function loadTables() {
+  const loadTables = Live.createLoader(async () => {
     try {
       const payload = await api('/api/table');
-      const tables = Array.isArray(payload.data) ? payload.data : [];
+      if (!Array.isArray(payload.data)) throw new Error(T('waiter.loadTablesFailed'));
+      const tables = payload.data;
       lastTables = tables;
       renderCleaningTables(tables);
 
@@ -253,10 +264,14 @@
         section.append(heading, grid);
         container.append(section);
       }
+      connection.success('tables');
+      if (connection.state() !== 'error') errorElement.classList.add('hidden');
+      if (tableChanges.observe(tables).some((table) => table.status === 'cleaning')) playNotification();
     } catch (error) {
+      connection.failure('tables');
       showError(error.message || T('waiter.loadTablesFailed'));
     }
-  }
+  });
 
   async function clearTable(tableId, button) {
     button.disabled = true;
@@ -314,32 +329,24 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !orderModal.classList.contains('hidden')) closeOrderModal(); });
 
   if (socket) {
-    const dot = document.getElementById('connection-dot');
     socket.on('connect', () => {
-      statusElement.className = 'inline-flex h-9 items-center gap-1.5 rounded-lg bg-green-900/60 px-3 text-xs font-bold text-green-300';
-      if (dot) dot.className = 'h-2 w-2 rounded-full bg-green-400 animate-pulse';
-      if (connectionLabel) connectionLabel.textContent = T('kitchen.socketOnline');
+      connection.setSocketConnected(true);
       socket.emit('joinRoom', 'waiter');
+      loadReadyOrders();
+      loadTables();
     });
-    socket.on('disconnect', () => {
-      statusElement.className = 'inline-flex h-9 items-center gap-1.5 rounded-lg bg-red-900/60 px-3 text-xs font-bold text-red-300';
-      if (dot) dot.className = 'h-2 w-2 rounded-full bg-red-400';
-      if (connectionLabel) connectionLabel.textContent = T('kitchen.socketOffline');
+    socket.on('disconnect', () => connection.setSocketConnected(false));
+    socket.on('connect_error', () => connection.setSocketConnected(false));
+    socket.on('order_ready', loadReadyOrders);
+    socket.on('order_status_changed', (payload) => {
+      if (payload && ['ready', 'served'].includes(payload.status)) loadReadyOrders();
     });
-    socket.on('order_ready', () => { playNotification(); loadReadyOrders(); });
-    socket.on('order_status_changed', (payload) => { if (payload && payload.status === 'served') loadReadyOrders(); });
-    socket.on('table_waiting_for_cleaning', () => { playNotification(); loadTables(); });
+    socket.on('table_waiting_for_cleaning', loadTables);
     socket.on('table_cleared', loadTables);
     socket.on('table_board_updated', loadTables);
-    socket.on('connect_error', (error) => {
-      statusElement.textContent = T('kitchen.socketError');
-      statusElement.className = 'rounded-lg bg-red-800 px-3 py-1.5 text-sm font-bold';
-      console.warn('Waiter socket connection failed:', error.message);
-    });
-  } else {
-    statusElement.textContent = T('kitchen.socketUnavailable');
-    statusElement.className = 'rounded-lg bg-amber-700 px-3 py-1.5 text-sm font-bold';
   }
+
+  window.addEventListener('online', () => { loadReadyOrders(); loadTables(); });
 
   window.addEventListener('languageChanged', () => {
     renderCleaningTables(lastTables);
@@ -347,7 +354,7 @@
     loadTables();
   });
 
-  window.setInterval(() => { loadReadyOrders(); loadTables(); }, 30000);
+  window.setInterval(() => { loadReadyOrders(); loadTables(); }, POLL_INTERVAL_MS);
   loadReadyOrders();
   loadTables();
 })();

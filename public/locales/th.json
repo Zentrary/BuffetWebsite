@@ -341,6 +341,11 @@
   "scan.checkedIn": "ยืนยันที่นั่งแล้ว",
   "scan.waitingForCall": "คิวนี้ยังไม่ถูกเรียก กรุณาคงหน้านี้ไว้ ระบบจะเริ่มให้อัตโนมัติเมื่อพนักงานเรียกคิว",
 
+  "connection.loading": "กำลังโหลดข้อมูล",
+  "connection.live": "อัปเดตแบบทันที",
+  "connection.polling": "อัปเดตทุก {seconds} วินาที",
+  "connection.error": "โหลดข้อมูลไม่สำเร็จ กำลังลองใหม่",
+
   "status.title": "สถานะของคุณ",
   "status.orders": "ออเดอร์ของฉัน",
   "status.noOrders": "ยังไม่มีออเดอร์",
