@@ -221,6 +221,10 @@
   "menu.orderStatus.short.paid": "ชำระเงินแล้ว",
   "menu.orderStatus.short.cancelled": "ออเดอร์ถูกยกเลิก",
 
+  "menu.category.set": "ชุดเซต",
+  "menu.category.veg": "ผัก เห็ด & เต้าหู้",
+  "menu.category.dessert_drink": "ของหวาน & เครื่องดื่ม",
+  "menu.category.uncategorized": "ไม่ระบุหมวดหมู่",
   "menu.category.set_menu": "เซ็ตบุฟเฟต์",
   "menu.category.sukiyaki": "สุกี้",
   "menu.category.hotpan": "กระทะร้อน",

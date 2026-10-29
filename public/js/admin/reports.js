@@ -32,7 +32,7 @@
   let billsCache = [];
   const charts = {};
 
-  const catLabel = (c) => T(`menu.category.${c}`) || c;
+  const catLabel = (category) => window.MenuCategories.label(category, T);
   const roleLabel = (r) => T(`staff.role.${r}Short`) || T(`staff.role.${r}`) || r;
   const zoneLabel = (z) => T(`table.zone.${z}`) || z;
 

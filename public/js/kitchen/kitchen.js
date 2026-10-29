@@ -298,7 +298,7 @@
       <img src="${escapeHTML(menu.imageUrl || '/assets/images/default-food.jpg')}" onerror="this.onerror=null;this.src='/assets/images/default-food.jpg'" alt="" loading="lazy" class="h-12 w-12 shrink-0 rounded-md object-cover">
       <div class="min-w-0 flex-1">
         <p class="truncate text-sm font-bold text-slate-900">${escapeHTML(menu.name)}</p>
-        <p class="mt-0.5 text-xs text-slate-500">${escapeHTML(T(`menu.category.${menu.category}`) || menu.category)}</p>
+        <p class="mt-0.5 text-xs text-slate-500" data-i18n-skip>${escapeHTML(window.MenuCategories.label(menu.category, T))}</p>
       </div>
       <span class="shrink-0 rounded-md px-2.5 py-1 text-[11px] font-bold ${available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${available ? T('kitchen.menuAvailable') : T('kitchen.menuUnavailable')}</span>`;
     row.append(buildMenuToggleButton(menu, available));

@@ -49,27 +49,6 @@
     return `<svg viewBox="0 0 24 24" class="h-full w-full" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`;
   };
 
-  function openDisplayWindow() {
-    const width = Math.min(screen.availWidth, 1920);
-    const height = Math.min(screen.availHeight, 1080);
-    const left = Math.round((screen.availWidth - width) / 2);
-    const top = Math.round((screen.availHeight - height) / 2);
-    const features = [
-      `width=${width}`,
-      `height=${height}`,
-      `left=${left}`,
-      `top=${top}`,
-      'menubar=no', 'toolbar=no', 'location=no', 'status=no', 'scrollbars=no', 'resizable=yes',
-    ].join(',');
-
-    const popup = window.open('/display.html', 'queueDisplayWindow', features);
-    if (!popup) {
-      window.alert(T('admin.openDisplayBlocked'));
-      return;
-    }
-    try { popup.focus(); } catch {}
-  }
-
   const sidebar = document.getElementById('admin-sidebar');
   if (sidebar) {
     const currentPage = window.location.pathname.split('/').pop();
@@ -128,14 +107,15 @@
 
         <!-- Footer (pinned bottom): display + divider + logout -->
         <div class="shrink-0 border-t border-white/10 px-3 py-4">
-          <button id="admin-open-display" type="button" data-no-btn
+          <!-- A native link keeps the trusted click and avoids popup-handle false positives. -->
+          <a id="admin-open-display" href="/display.html" target="_blank" rel="noopener noreferrer"
             class="group flex min-h-11 w-full items-center gap-3 rounded-lg border border-orange-500/30 bg-orange-500/10 px-3 py-2.5 text-left text-sm font-semibold text-orange-200 transition hover:border-orange-500/60 hover:bg-orange-600 hover:text-white">
             <span class="flex h-5 w-5 shrink-0 items-center justify-center text-orange-400 transition group-hover:text-white" aria-hidden="true">${navIcon('display')}</span>
             <span class="min-w-0 flex-1 truncate">${T('admin.openDisplay')}</span>
             <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0 opacity-60 transition group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/>
             </svg>
-          </button>
+          </a>
 
           <div class="my-4 border-t border-white/10"></div>
 
@@ -146,7 +126,6 @@
           </button>
         </div>`;
 
-      document.getElementById('admin-open-display').addEventListener('click', openDisplayWindow);
       document.getElementById('admin-logout').addEventListener('click', () => {
         window.StaffAuth.clearCredentials();
         window.location.replace('/login.html');
@@ -307,7 +286,7 @@
   }
 
   window.Admin = {
-    token, user, api, currency, escapeHTML, message, confirm, bindFileInput, openDisplayWindow,
+    token, user, api, currency, escapeHTML, message, confirm, bindFileInput,
     t: T,
     isAdmin: user.role === 'admin',
     connectSocket() {

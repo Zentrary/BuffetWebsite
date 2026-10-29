@@ -1,5 +1,6 @@
 // Import Mongoose to define menu items.
 const mongoose = require('mongoose');
+const { DEFAULT_CATEGORY } = require('../config/menuCategories');
 
 // Define food and drink offered by the restaurant.
 const menuSchema = new mongoose.Schema(
@@ -21,7 +22,7 @@ const menuSchema = new mongoose.Schema(
     category: {
       type: String,
       trim: true,
-      default: 'uncategorized',
+      default: DEFAULT_CATEGORY,
     },
     imageUrl: {
       type: String,

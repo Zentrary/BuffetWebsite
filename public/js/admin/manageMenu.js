@@ -3,6 +3,7 @@
   const Admin = window.Admin;
   if (!Admin) return;
   const T = (key, vars) => (window.t ? window.t(key, vars) : key);
+  const Categories = window.MenuCategories;
 
   const form = document.getElementById('menu-form');
   const $ = (id) => document.getElementById(id);
@@ -20,11 +21,11 @@
     imageFile: $('menuImageFile'),
   };
 
-  let categoryFilterOptions = [];
   let menus = [];
   let searchForm;
   let menuView = localStorage.getItem('menuView') || 'table';
   let editingMenu = null;
+  let categoryManuallySelected = false;
 
   function updateMenuModalTitle() {
     const titleEl = document.getElementById('menu-modal-title');
@@ -40,26 +41,7 @@
     document.body.classList.toggle('overflow-hidden', open);
   }
 
-  // แปลงชื่อหมวดหมู่สำหรับแสดงผล
-  function catLabel(cat) {
-    const map = {
-      uncategorized: 'ไม่ระบุ',
-      set: 'ชุดเซต',
-      appetizer: 'อาหารทานเล่น',
-      main: 'อาหารหลัก',
-      sushi: 'ซูชิ',
-      meat: 'เนื้อสัตว์',
-      seafood: 'อาหารทะเล',
-      veg: 'ผัก',
-      noodle: 'เส้นและข้าว',
-      soup: 'น้ำซุป',
-      sauce: 'น้ำจิ้ม',
-      side: 'เครื่องเคียง',
-      dessert: 'ของหวาน',
-      drink: 'เครื่องดื่ม',
-    };
-    return map[cat] || map.uncategorized;
-  }
+  const catLabel = (category) => Categories.label(category, T);
 
   // ระบบทายหมวดหมู่อัตโนมัติ (Auto-Categorize) จากชื่อเมนู
   function guessCategory(name) {
@@ -120,6 +102,7 @@
   }
 
   function installInventoryControls() {
+    const previousFilters = searchForm ? Object.fromEntries(new FormData(searchForm)) : {};
     const rowsEl = document.getElementById('menu-rows');
     if (!rowsEl) return;
     const table = rowsEl.closest('table');
@@ -224,6 +207,13 @@
     searchForm.addEventListener('change', renderMenus);
     searchForm.addEventListener('submit', (event) => event.preventDefault());
     searchForm.addEventListener('reset', () => window.setTimeout(renderMenus, 0));
+    syncCategoryFilterOptions();
+    for (const [name, value] of Object.entries(previousFilters)) {
+      const input = searchForm.elements.namedItem(name);
+      if (input && (name !== 'category' || [...input.options].some((option) => option.value === value))) {
+        input.value = value;
+      }
+    }
   }
 
   function stockState(menu) {
@@ -253,7 +243,7 @@
         available ? T('admin.available') : T('admin.soldOut')].join(' ').toLocaleLowerCase();
       const price = Number(menu.price) || 0;
       return (!query || searchable.includes(query))
-        && (!filters.category || menu.category === filters.category)
+        && (!filters.category || Categories.key(menu.category) === filters.category)
         && (!filters.availability || (filters.availability === 'available' ? available : !available))
         && (!filters.stockStatus || stock === filters.stockStatus)
         && (filters.minPrice === '' || price >= Number(filters.minPrice))
@@ -265,22 +255,43 @@
     if (!searchForm) return;
     const select = searchForm.querySelector('select[name="category"]');
     if (!select) return;
-    const next = [...new Set(menus.map((menu) => menu.category).filter(Boolean))].sort();
-    if (next.join('|') === categoryFilterOptions.join('|')) return;
+    const next = Categories.orderedKeys(menus.map((menu) => menu.category));
     const selected = select.value;
-    categoryFilterOptions = next;
     select.replaceChildren();
     const allOption = document.createElement('option');
     allOption.value = '';
     allOption.textContent = T('admin.filterAllCategories');
+    allOption.dataset.i18n = 'admin.filterAllCategories';
     select.append(allOption);
     for (const category of next) {
       const option = document.createElement('option');
       option.value = category;
       option.textContent = catLabel(category);
+      option.dataset.i18nSkip = '';
       select.append(option);
     }
     select.value = next.includes(selected) ? selected : '';
+  }
+
+  function syncCategoryEditorOptions(selectedCategory = fields.category && fields.category.value) {
+    if (!fields.category) return;
+    const selected = Categories.key(selectedCategory);
+    const categories = Categories.orderedKeys([
+      ...Categories.MENU_CATEGORIES,
+      ...menus.map((menu) => menu.category),
+      selected,
+    ]);
+    fields.category.replaceChildren();
+    for (const category of categories) {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = catLabel(category);
+      option.dataset.i18nSkip = '';
+      fields.category.append(option);
+    }
+    // An unknown/custom category is deliberately an option too. Assigning a
+    // value that isn't in a <select> would otherwise erase it on the next save.
+    fields.category.value = selected;
   }
 
   async function loadMenus() {
@@ -289,6 +300,7 @@
       const payload = await Admin.api('/api/menu');
       menus = Array.isArray(payload.data) ? payload.data : [];
       syncCategoryFilterOptions();
+      syncCategoryEditorOptions();
       renderMenus();
     } catch (error) {
       Admin.message(error.message || T('kitchen.loadMenuFailed'), true);
@@ -335,7 +347,7 @@
       const row = document.createElement('tr');
       row.innerHTML = `
         <td class="p-4"><div class="flex items-center gap-3"><img src="${Admin.escapeHTML(menu.imageUrl || '')}" alt="" class="h-12 w-12 rounded-lg bg-slate-100 object-cover"><span class="font-bold">${Admin.escapeHTML(menu.name)}</span></div></td>
-        <td class="p-4">${catLabel(menu.category)}</td>
+        <td class="p-4" data-i18n-skip>${Admin.escapeHTML(catLabel(menu.category))}</td>
         <td class="p-4 font-semibold">${priceDisplay}</td>
         <td class="p-4">${stockMarkup(menu)}</td>
         <td class="p-4"><span class="rounded-md px-3 py-1 text-xs font-bold ${available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${available ? T('admin.available') : T('admin.soldOut')}</span></td>
@@ -358,6 +370,7 @@
               <h3 class="min-w-0 flex-1 font-black leading-tight">${Admin.escapeHTML(menu.name)}</h3>
               <span class="mt-1 inline-block shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold ${available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${available ? T('admin.available') : T('admin.unavailable')}</span>
             </div>
+            <p class="mt-1 text-xs text-slate-500" data-i18n-skip>${Admin.escapeHTML(catLabel(menu.category))}</p>
             <p class="mt-1 text-sm text-slate-500">${Admin.escapeHTML(menu.description || '')}</p>
             <p class="mt-3 font-bold text-orange-700">${priceDisplay}</p>
             <p class="mt-1 text-xs">${stockMarkup(menu)}</p>
@@ -398,9 +411,8 @@
     if (fields.price) fields.price.value = (menu && menu.price > 0) ? menu.price : '';
     if (fields.preparationTime) fields.preparationTime.value = menu ? menu.preparationTime : 10;
     
-    if (fields.category) {
-      fields.category.value = menu && menu.category ? menu.category : 'uncategorized';
-    }
+    syncCategoryEditorOptions(menu ? menu.category : Categories.DEFAULT_CATEGORY);
+    categoryManuallySelected = false;
 
     if (fields.imageUrl) fields.imageUrl.value = menu ? menu.imageUrl || '' : '';
     if (fields.stockQuantity) {
@@ -423,7 +435,10 @@
     const menuId = values.menuId;
     delete values.menuId;
     
-    if (!values.category) values.category = 'uncategorized';
+    if (!values.category) {
+      Admin.message(T('error.INVALID_MENU_CATEGORY'), true);
+      return;
+    }
 
     const imageFile = fields.imageFile && fields.imageFile.files[0];
     delete values.imageFile;
@@ -480,10 +495,11 @@
   document.getElementById('add-menu-button').addEventListener('click', () => openEditor());
   installInventoryControls();
   
-  // ทายหมวดหมู่อัตโนมัติเมื่อพิมพ์ชื่อเมนู
+  // Auto-categorize new items only until the user explicitly selects a category.
+  if (fields.category) fields.category.addEventListener('change', () => { categoryManuallySelected = true; });
   if (fields.name) {
     fields.name.addEventListener('input', (e) => {
-      if (!editingMenu && fields.category) {
+      if (!editingMenu && !categoryManuallySelected && fields.category) {
         const guessed = guessCategory(e.target.value);
         if (guessed) {
           fields.category.value = guessed;
@@ -520,6 +536,7 @@
     langTimer = window.setTimeout(() => {
       langTimer = null;
       installInventoryControls();
+      syncCategoryEditorOptions();
       const addBtn = document.getElementById('add-menu-button');
       if (addBtn) addBtn.textContent = T('admin.addMenu');
       updateMenuModalTitle();

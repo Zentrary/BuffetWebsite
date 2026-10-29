@@ -3,24 +3,7 @@
   const T = (key, vars) => (window.t ? window.t(key, vars) : key);
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get('sessionId') || localStorage.getItem('sessionId');
-  // Display order of the menu categories (must match config/menuCategories.js).
-  const CATEGORY_KEYS = [
-    'set_menu', 'sukiyaki', 'hotpan', 'sushi', 'maki', 'sashimi',
-    'japanese_main', 'chinese', 'fried', 'dim_sum', 'yum', 'salad',
-    'fresh_meat', 'offal', 'seafood', 'vegetable', 'mushroom', 'tofu',
-    'noodle', 'rice', 'side', 'soup', 'sauce', 'dessert', 'drink',
-  ];
-
-  // Keep any unexpected/legacy category visible instead of silently dropping it.
-  function orderedCategoryKeys(menuList) {
-    const known = new Set(CATEGORY_KEYS);
-    const extras = [];
-    for (const menu of menuList) {
-      const category = menu && menu.category;
-      if (category && !known.has(category) && !extras.includes(category)) extras.push(category);
-    }
-    return [...CATEGORY_KEYS, ...extras];
-  }
+  const Categories = window.MenuCategories;
 
   const cart = new Map();
   let menuView = localStorage.getItem('menuView') || 'list';
@@ -273,7 +256,7 @@
   const CAT_ACTIVE = 'bg-orange-600 text-white shadow-sm';
   const CAT_IDLE = 'text-slate-600 hover:bg-orange-50 hover:text-orange-800';
 
-  function catLabel(cat) { return T(`menu.category.${cat}`) || cat; }
+  const catLabel = (category) => Categories.label(category, T);
 
   function buildCategoryButton(group) {
     const button = document.createElement('button');
@@ -282,7 +265,7 @@
     button.className = `${CAT_BASE} ${activeCategory === group.category ? CAT_ACTIVE : CAT_IDLE}`;
     button.innerHTML = `
       <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-60" aria-hidden="true"></span>
-      <span class="min-w-0 flex-1 truncate">${escapeHTML(catLabel(group.category))}</span>`;
+      <span class="min-w-0 flex-1 truncate" data-i18n-skip>${escapeHTML(catLabel(group.category))}</span>`;
     button.addEventListener('click', () => scrollToCategory(group.category));
     return button;
   }
@@ -340,8 +323,8 @@
   function renderMenus() {
     const content = document.getElementById('menu-content');
     const categoryNav = document.getElementById('category-nav');
-    const groups = orderedCategoryKeys(menus)
-      .map((category) => ({ category, items: menus.filter((menu) => menu.category === category) }))
+    const groups = Categories.orderedKeys(menus.map((menu) => menu.category))
+      .map((category) => ({ category, items: menus.filter((menu) => Categories.key(menu.category) === category) }))
       .filter((group) => group.items.length > 0);
 
     document.querySelectorAll('[data-menu-view]').forEach((btn) => {
@@ -368,7 +351,7 @@
       section.className = 'scroll-mt-24';
       section.innerHTML = `<h2 class="mb-3 flex items-center gap-2 text-lg font-extrabold text-slate-900">
         <span class="h-5 w-1.5 rounded-md bg-orange-500"></span>
-        ${escapeHTML(catLabel(group.category))}
+        <span data-i18n-skip>${escapeHTML(catLabel(group.category))}</span>
       </h2>`;
 
       if (menuView === 'cards') {

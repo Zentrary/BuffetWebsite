@@ -172,27 +172,12 @@
                 </label>
               </div>
               
-              <!-- Dropdown หมวดหมู่แบบใหม่ -->
+              <!-- Options come from the shared registry and existing database values. -->
               <label class="block text-sm font-semibold">
                 <span data-i18n="form.category">
                   หมวดหมู่
                 </span>
-                <select id="menu-form-category" name="category" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white">
-                  <option value="uncategorized">ไม่ระบุ</option>
-                  <option value="set">ชุดเซต</option>
-                  <option value="appetizer">อาหารทานเล่น</option>
-                  <option value="main">อาหารหลัก</option>
-                  <option value="sushi">ซูชิ</option>
-                  <option value="meat">เนื้อสัตว์</option>
-                  <option value="seafood">อาหารทะเล</option>
-                  <option value="veg">ผัก</option>
-                  <option value="noodle">เส้นและข้าว</option>
-                  <option value="soup">น้ำซุป</option>
-                  <option value="sauce">น้ำจิ้ม</option>
-                  <option value="side">เครื่องเคียง</option>
-                  <option value="dessert">ของหวาน</option>
-                  <option value="drink">เครื่องดื่ม</option>
-                </select>
+                <select id="menu-form-category" name="category" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-white"></select>
               </label>
             </div>
           </div>
@@ -242,6 +227,8 @@
     <script src="/js/staff-auth.js">
     </script>
     <script src="/js/admin/common.js">
+    </script>
+    <script src="/js/menu-categories.js">
     </script>
     <script src="/js/admin/manageMenu.js">
     </script>

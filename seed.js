@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 const User = require('./models/User');
 const Table = require('./models/Table');
 const Menu = require('./models/Menu');
+const { ALL_MENU_CATEGORIES } = require('./config/menuCategories');
 
 const DEMO_PASSWORD = 'Demo@12345';
 
@@ -419,6 +420,9 @@ function getRandomInt(min, max) {
 // ---------- สร้างรายการเมนู (ดึงหมวดหมู่จากคีย์ของ menuCatalog) ----------
 const menuEntriesByName = new Map();
 for (const [categoryKey, entries] of Object.entries(menuCatalog)) {
+  if (!ALL_MENU_CATEGORIES.includes(categoryKey)) {
+    throw new Error(`Unknown seed menu category: ${categoryKey}. Add it to the shared category registry and locales first.`);
+  }
   for (const [name, price, imageFile, description] of entries) {
     const resolved = resolveMenuImage(imageFile);
     const candidate = {
