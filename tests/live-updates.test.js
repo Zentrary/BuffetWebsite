@@ -177,9 +177,20 @@ test('status translations exist in both languages and every affected page loads 
     ['public/waiter/waiter.html', '/js/waiter/waiter.js'],
     ['public/status.html', '/js/customer/status.js'],
     ['public/display.html', '/js/display.js'],
+    ['public/admin/dashboard.html', '/js/admin/dashboard.js'],
   ]) {
     const html = fs.readFileSync(path.resolve(__dirname, '..', page), 'utf8');
     const index = html.indexOf('src="/js/live-updates.js"');
     assert.ok(index >= 0 && index < html.indexOf(`src="${script}"`), page);
   }
+});
+
+test('the dashboard badge starts loading as a modestly rounded rectangle, not a pill', () => {
+  const html = fs.readFileSync(path.resolve(__dirname, '../public/admin/dashboard.html'), 'utf8');
+  const badge = html.match(/<span id="dashboard-live"[^>]*>/)?.[0];
+  assert.ok(badge);
+  assert.match(badge, /\brounded-md\b/);
+  assert.doesNotMatch(badge, /rounded-full|status\.connecting/);
+  assert.match(badge, /data-i18n="connection\.loading"/);
+  assert.match(badge, /role="status"/);
 });

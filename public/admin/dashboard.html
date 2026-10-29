@@ -30,8 +30,8 @@
             <p id="dashboard-date" class="mt-1 text-sm text-slate-400">
             </p>
           </div>
-          <span id="dashboard-live" class="rounded-full bg-slate-200 px-4 py-2 font-semibold text-slate-600" data-i18n="status.connecting">
-            กำลังเชื่อมต่อ...
+          <span id="dashboard-live" class="inline-flex max-w-full items-center rounded-md bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600" data-i18n="connection.loading" role="status" aria-live="polite">
+            กำลังโหลดข้อมูล
           </span>
         </header>
         <p id="admin-error" class="mb-5 hidden rounded-xl bg-red-100 p-4 text-red-800" role="alert">
@@ -167,6 +167,8 @@
     <script src="/js/staff-auth.js">
     </script>
     <script src="/js/admin/common.js">
+    </script>
+    <script src="/js/live-updates.js">
     </script>
     <script src="/js/admin/dashboard.js">
     </script>

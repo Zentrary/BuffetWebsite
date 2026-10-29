@@ -7,6 +7,13 @@
   const content = document.getElementById('dashboard-content');
   const error = document.getElementById('admin-error');
   const live = document.getElementById('dashboard-live');
+  const POLL_INTERVAL_MS = 30000;
+  const REQUEST_TIMEOUT_MS = 15000;
+  const Live = window.LiveUpdates;
+  const connection = Live.createStatus({
+    element: live, intervalMs: POLL_INTERVAL_MS, resources: ['reports'],
+    baseClass: 'inline-flex max-w-full items-center rounded-md px-4 py-2 text-sm font-semibold',
+  });
   let chart;
   const role = Admin.user.role;
   const rolePrefix = role === 'manager' ? 'admin.dashboardManager' : 'admin.dashboardAdmin';
@@ -46,9 +53,6 @@
     });
     const dateEl = document.getElementById('dashboard-date');
     if (dateEl) dateEl.textContent = new Date().toLocaleDateString(currentLocale(), { dateStyle: 'full' });
-    if (live && !live.dataset.state) live.textContent = T('status.connecting');
-    else if (live && live.dataset.state === 'online') live.textContent = T('status.live');
-    else if (live && live.dataset.state === 'offline') live.textContent = T('status.offline');
     if (chart) chart.data.datasets[0].label = `${T('admin.todaySales')} (${T('common.baht')})`;
     if (chart) chart.update();
   }
@@ -65,16 +69,32 @@
     });
   }
 
-  async function loadDashboard() {
+  const loadDashboard = Live.createLoader(async () => {
     loading.classList.remove('hidden');
+    // Treat the five reports as one snapshot: no healthy badge or partial
+    // metric replacement until every required report has loaded successfully.
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const options = { cache: 'no-store', signal: controller.signal };
     try {
       const [salesToday, salesWeek, queueStats, dining, topMenus] = await Promise.all([
-        Admin.api('/api/report/daily-sales'),
-        Admin.api('/api/report/daily-sales?days=7'),
-        Admin.api('/api/report/queue-stats'),
-        Admin.api('/api/report/dining-time'),
-        Admin.api('/api/report/top-menus'),
+        Admin.api('/api/report/daily-sales', options),
+        Admin.api('/api/report/daily-sales?days=7', options),
+        Admin.api('/api/report/queue-stats', options),
+        Admin.api('/api/report/dining-time', options),
+        Admin.api('/api/report/top-menus', options),
       ]);
+      if (!Number.isFinite(salesToday?.data?.totalSales)
+        || !Array.isArray(salesWeek?.data?.salesByDay)
+        || !salesWeek.data.salesByDay.every((row) => typeof row?.date === 'string' && Number.isFinite(row.totalSales))
+        || !Number.isFinite(queueStats?.data?.customerCount ?? queueStats?.data?.totalQueues)
+        || !Number.isFinite(queueStats?.data?.waitingCount)
+        || !Number.isFinite(dining?.data?.averageMinutes)
+        || !Array.isArray(topMenus?.data)
+        || !topMenus.data.every((menu) => menu && typeof menu.name === 'string'
+          && Number.isFinite(menu.quantitySold) && Number.isFinite(menu.sales))) {
+        throw new Error(T('error.REQUEST_FAILED'));
+      }
       document.getElementById('sales-today').textContent = Admin.currency(salesToday.data.totalSales);
       document.getElementById('customers-today').textContent =
         String(queueStats.data.customerCount ?? queueStats.data.totalQueues ?? 0);
@@ -130,35 +150,36 @@
 
       error.classList.add('hidden');
       content.classList.remove('hidden');
+      connection.success('reports');
     } catch (loadError) {
-      error.textContent = loadError.message || 'Failed to load dashboard';
+      connection.failure('reports');
+      error.textContent = loadError.name === 'AbortError' ? T('error.REQUEST_FAILED')
+        : loadError.message || T('error.REQUEST_FAILED');
       error.classList.remove('hidden');
     } finally {
+      window.clearTimeout(timeout);
+      controller.abort(); // Cancel any sibling reads left pending after failure.
       loading.classList.add('hidden');
       document.getElementById('dashboard-date').textContent =
         new Date().toLocaleDateString(currentLocale(), { dateStyle: 'full' });
     }
-  }
+  });
 
-  const socket = Admin.connectSocket();
+  const socket = Live.openSocket({ auth: { token: Admin.token } });
   if (socket) {
     socket.on('connect', () => {
-      live.dataset.state = 'online';
-      live.textContent = T('status.live');
-      live.className = 'rounded-xl bg-green-100 px-4 py-2 font-semibold text-green-800';
+      socket.emit('joinRoom', 'admin');
+      connection.setSocketConnected(true);
+      loadDashboard();
     });
-    socket.on('disconnect', () => {
-      live.dataset.state = 'offline';
-      live.textContent = T('status.connecting');
-      live.className = 'rounded-xl bg-amber-100 px-4 py-2 font-semibold text-amber-800';
-    });
+    socket.on('disconnect', () => connection.setSocketConnected(false));
+    socket.on('connect_error', () => connection.setSocketConnected(false));
     ['payment_completed', 'new_queue', 'queue_called', 'order_status_changed'].forEach((eventName) => {
       socket.on(eventName, loadDashboard);
     });
-  } else {
-    live.textContent = 'Auto-refresh 30s';
   }
 
-  window.setInterval(loadDashboard, 30000);
+  window.addEventListener('online', loadDashboard);
+  window.setInterval(loadDashboard, POLL_INTERVAL_MS);
   loadDashboard();
 })();
