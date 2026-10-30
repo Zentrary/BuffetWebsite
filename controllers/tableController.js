@@ -1,5 +1,6 @@
 // Import the table model for table inventory and availability operations.
 const Table = require('../models/Table');
+const { completeSeatedQueues } = require('../services/queueLifecycle');
 const Session = require('../models/Session');
 const { canTransitionTable } = require('../utils/sessionLifecycle');
 
@@ -254,6 +255,22 @@ async function clearTable(req, res) {
     if (!table) {
       return res.status(409).json({ success: false, code: 'TABLE_STATE_CHANGED', data: null, message: 'สถานะโต๊ะเปลี่ยนไปแล้ว กรุณาโหลดผังโต๊ะใหม่' });
     }
+    // The table is ready for the next party: close any queue still marked as seated
+    // on it (or on the session that just paid) so it leaves the staff board.
+    try {
+      await completeSeatedQueues(
+        {
+          $or: [
+            { tableId: table._id },
+            ...(lastSessionId ? [{ sessionId: lastSessionId }] : []),
+          ],
+        },
+        { io: req.app.get('io'), reason: 'table cleared' }
+      );
+    } catch (queueError) {
+      console.error('Closing seated queue after clearTable failed:', queueError);
+    }
+
     const io = req.app.get('io');
     if (io) {
       io.to('admin').to('waiter').emit('table_cleared', table);

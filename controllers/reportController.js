@@ -4,6 +4,10 @@ const Order = require('../models/Order');
 const Session = require('../models/Session');
 const Queue = require('../models/Queue');
 
+// A seated queue closes as `completed` when the meal ends, so "seated" totals
+// must count both states or today's numbers would drop after every payment.
+const SEATED_QUEUE_STATUSES = ['seated', 'completed'];
+
 // Wrap any async operation. If it fails, log the exact error and return a safe default
 // so a single failure does not crash the entire report.
 async function safe(promise, label, fallback = []) {
@@ -120,7 +124,7 @@ async function getQueueStats(req, res) {
       Queue.countDocuments({ createdAt: { $gte: start, $lt: end } }),
       Queue.countDocuments({ createdAt: { $gte: start, $lt: end }, status: 'no_show' }),
       Queue.countDocuments({ createdAt: { $gte: start, $lt: end }, status: 'waiting' }),
-      Queue.countDocuments({ createdAt: { $gte: start, $lt: end }, status: 'seated' }),
+      Queue.countDocuments({ createdAt: { $gte: start, $lt: end }, status: { $in: SEATED_QUEUE_STATUSES } }),
       Queue.aggregate([{ $match: { createdAt: { $gte: start, $lt: end }, status: { $nin: ['cancelled', 'no_show'] } } }, { $group: { _id: null, total: { $sum: '$customerCount' } } }]),
     ]);
     return res.json({ success: true, data: { totalQueues, noShowCount, waitingCount, seatedCount, customerCount: customerCount[0]?.total || 0 }, message: 'ดึงสถิติคิวสำเร็จ' });
@@ -145,7 +149,7 @@ async function getDashboardSummary(req, res) {
       Queue.countDocuments({ createdAt: { $gte: start, $lt: end } }),
       Queue.countDocuments({ createdAt: { $gte: start, $lt: end }, status: 'no_show' }),
       Queue.countDocuments({ createdAt: { $gte: start, $lt: end }, status: 'waiting' }),
-      Queue.countDocuments({ createdAt: { $gte: start, $lt: end }, status: 'seated' }),
+      Queue.countDocuments({ createdAt: { $gte: start, $lt: end }, status: { $in: SEATED_QUEUE_STATUSES } }),
       Queue.aggregate([{ $match: { createdAt: { $gte: start, $lt: end }, status: { $nin: ['cancelled', 'no_show'] } } }, { $group: { _id: null, total: { $sum: '$customerCount' } } }]),
     ]);
     const sales = salesResult[0] || { totalSales: 0, paymentCount: 0 };

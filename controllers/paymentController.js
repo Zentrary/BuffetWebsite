@@ -6,6 +6,7 @@ const Table = require('../models/Table');
 const { calculateTotal } = require('../utils/calculateBilling');
 const { calculateCashChange } = require('../utils/calculateCashChange');
 const { calculateOrderSubtotal } = require('../utils/calculateOrderSubtotal');
+const { completeSeatedQueuesForSession } = require('../services/queueLifecycle');
 const {
   canCompletePayment,
   canTransitionTable,
@@ -237,6 +238,13 @@ async function processPayment(req, res) {
         console.error('Payment rollback was incomplete:', { sessionId: paidSession._id });
       }
       throw error;
+    }
+
+    // The meal is paid: close the seated queue so it leaves the staff board.
+    try {
+      await completeSeatedQueuesForSession(paidSession._id, { io: req.app.get('io'), reason: 'payment completed' });
+    } catch (queueError) {
+      console.error('Closing seated queue after payment failed:', queueError);
     }
 
         const io = req.app.get('io');
@@ -524,6 +532,13 @@ async function confirmQrPayment(req, res) {
       }
       if (rollbackFailed) console.error('QR confirmation rollback was incomplete:', { sessionId: paidSession._id });
       throw error;
+    }
+
+    // QR payment confirmed: the meal is over, so close the seated queue.
+    try {
+      await completeSeatedQueuesForSession(paidSession._id, { io: req.app.get('io'), reason: 'QR payment confirmed' });
+    } catch (queueError) {
+      console.error('Closing seated queue after QR payment failed:', queueError);
     }
 
     const io = req.app.get('io');
