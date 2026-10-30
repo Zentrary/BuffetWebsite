@@ -85,13 +85,16 @@ test('a shop that closes before midnight still gets one business day', () => {
 
 test('queue numbers are allocated per business day through a dated counter', () => {
   const controller = fs.readFileSync(path.resolve(__dirname, '../controllers/queueController.js'), 'utf8');
-  assert.match(controller, /function queueCounterId\(businessDate\)/);
-  assert.match(controller, /queue-number:\$\{businessDate\}/);
+  const numberingService = fs.readFileSync(path.resolve(__dirname, '../services/queueNumbering.js'), 'utf8');
+  // Allocation lives in the shared service so it can be tested and repaired.
+  assert.match(numberingService, /function queueCounterId\(businessDate\)/);
+  assert.match(numberingService, /queue-number:\$\{businessDate\}/);
   // createQueue stores the business date and sequence with the ticket.
   assert.match(controller, /const businessDate = getBusinessDateKey\(shopSettings, now\);/);
-  assert.match(controller, /businessDate,\n\s+sequence: Number\(queueNumber\.slice\(1\)\),/);
+  assert.match(controller, /businessDate,\n\s+sequence: allocation\.sequence,/);
   // It no longer falls back to a single global counter id.
   assert.doesNotMatch(controller, /_id: 'queue-number'/);
+  assert.doesNotMatch(numberingService, /_id: 'queue-number'/);
 });
 
 test('the queue model scopes uniqueness to the business day', () => {

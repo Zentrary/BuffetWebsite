@@ -7,6 +7,11 @@ const {
   getQueueAcceptance,
 } = require('../utils/businessDay');
 const { completeQueueById } = require('../services/queueLifecycle');
+const {
+  allocateQueueNumber,
+  queueCounterId,
+  skipSequence,
+} = require('../services/queueNumbering');
 const Table = require('../models/Table');
 const Session = require('../models/Session');
 const Order = require('../models/Order');
@@ -43,66 +48,6 @@ function zoneForCount(count) {
 
 function zoneLabel(zone) {
   return (ZONE_RULES[zone] && ZONE_RULES[zone].label) || zone;
-}
-
-function queueCounterId(businessDate) {
-  return `queue-number:${businessDate}`;
-}
-
-/**
- * Highest sequence already stored for a business day (used to seed a missing counter).
- * @param {string} businessDate - Business date key.
- * @returns {Promise<number>} Highest sequence, or 0 when the day has no queues yet.
- */
-async function highestSequenceFor(businessDate) {
-  const [latest] = await Queue.find({ businessDate })
-    .select('sequence')
-    .sort({ sequence: -1 })
-    .limit(1)
-    .lean();
-  return (latest && Number.isSafeInteger(latest.sequence) && latest.sequence) || 0;
-}
-
-/**
- * Allocate the next queue number of a business day, restarting at Q001 each day.
- * @param {string} businessDate - Business date key ("YYYY-MM-DD").
- * @returns {Promise<string>} Queue number such as "Q001".
- */
-async function getNextQueueNumber(businessDate) {
-  // Never guess the day here: callers resolve it from the shop's opening hours.
-  if (!businessDate) throw new Error('A business date is required to allocate a queue number.');
-  const counterId = queueCounterId(businessDate);
-  let counter;
-  try {
-    counter = await QueueCounter.findOneAndUpdate(
-      { _id: counterId },
-      { $inc: { sequence: 1 } },
-      { new: true, upsert: true }
-    );
-  } catch (error) {
-    if (error.code !== 11000) throw error;
-    counter = await QueueCounter.findOneAndUpdate(
-      { _id: counterId },
-      { $inc: { sequence: 1 } },
-      { new: true }
-    );
-  }
-  if (!counter) {
-    throw new Error('Queue sequence counter is not available.');
-  }
-  // A counter created before its queues were migrated can lag behind them.
-  const highest = await highestSequenceFor(businessDate);
-  if (highest > counter.sequence) {
-    counter = await QueueCounter.findOneAndUpdate(
-      { _id: counterId },
-      { $set: { sequence: highest + 1 } },
-      { new: true }
-    );
-  }
-  if (!counter || !Number.isSafeInteger(counter.sequence)) {
-    throw new Error('Queue sequence counter is not available.');
-  }
-  return `Q${String(counter.sequence).padStart(3, '0')}`;
 }
 
 /**
@@ -261,13 +206,15 @@ async function createQueue(req, res) {
 
     let queueNumber;
     let queue;
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      queueNumber = await getNextQueueNumber(businessDate);
+    let lastDuplicate = null;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const allocation = await allocateQueueNumber(businessDate);
+      queueNumber = allocation.queueNumber;
       try {
         queue = await Queue.create({
           queueNumber,
           businessDate,
-          sequence: Number(queueNumber.slice(1)),
+          sequence: allocation.sequence,
           customerCount: count,
           customerName,
           customerPhone,
@@ -278,9 +225,17 @@ async function createQueue(req, res) {
         });
         break;
       } catch (error) {
-        if (error.code !== 11000 || attempt === 2) throw error;
-        console.warn('Queue number collided with an existing ticket; retrying allocation.');
+        const duplicateQueueNumber = error.code === 11000
+          && String(error.message || '').includes('queueNumber');
+        if (!duplicateQueueNumber) throw error;
+        lastDuplicate = error;
+        // Push the day's counter past the number that just collided and retry.
+        await skipSequence(businessDate, allocation.sequence).catch(() => {});
+        console.warn(`Queue number ${queueNumber} collided; allocating the next one.`);
       }
+    }
+    if (!queue) {
+      throw Object.assign(new Error('คิวหมายเลขซ้ำกันบ่อยเกินไป กรุณากดลองอีกครั้ง'), { code: 'QUEUE_NUMBER_CONFLICT', cause: lastDuplicate });
     }
 
     const io = req.app.get('io');
@@ -315,12 +270,27 @@ async function createQueue(req, res) {
     });
   } catch (error) {
     console.error('Create queue failed:', error);
-    const status = error.name === 'ValidationError' || error.code === 11000 ? 400 : 500;
-    return res.status(status).json({
+    if (error.code === 'QUEUE_NUMBER_CONFLICT' || error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        code: 'QUEUE_NUMBER_CONFLICT',
+        data: null,
+        message: 'ระบบกำลังออกเลขคิวใหม่ กรุณากด “ยืนยัน” อีกครั้ง',
+      });
+    }
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        code: 'INVALID_QUEUE_PAYLOAD',
+        data: null,
+        message: error.message || 'ข้อมูลคิวไม่ถูกต้อง',
+      });
+    }
+    return res.status(500).json({
       success: false,
       code: 'REQUEST_FAILED',
       data: null,
-      message: status === 400 ? error.message : 'เกิดข้อผิดพลาดในระบบ',
+      message: 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่',
     });
   }
 }
@@ -1145,7 +1115,8 @@ async function getDisplayData(req, res) {
 module.exports = {
   createQueue, getQueues, callQueue, cancelQueue, cancelQueueByCustomer, completeQueue,
   getQueueById, recoverQueue, recoverQueueById, confirmQueue,
-  getNextQueueNumber, getEntryQRCode, getTicketData, queueCounterId,
+  getEntryQRCode, getTicketData, queueCounterId,
+  getNextQueueNumber: async (businessDate) => (await allocateQueueNumber(businessDate)).queueNumber,
   findTableForQueue, zoneForCount, ZONE_RULES, MAX_PARTY_SIZE,
   getDisplayData,
 };

@@ -6,6 +6,7 @@ if (!process.env.VERCEL) {
 }
 
 const mongoose = require('mongoose');
+const { repairQueueIndexesOnce } = require('../services/queueIndexes');
 
 const DEFAULT_DB_NAME = process.env.DB_NAME || 'Buffetdb';
 const connectionCache = global.__buffetMongoCache || { connection: null, promise: null };
@@ -61,6 +62,10 @@ async function connectDB() {
     const activeDb = mongoose.connection.db?.databaseName || DEFAULT_DB_NAME;
     console.log(`MongoDB connected: ${connection.connection.host}`);
     console.log(`MongoDB database: ${activeDb}`);
+    // Queue numbers restart per business day, which requires the legacy global
+    // unique index on queueNumber to be gone. Repair it (and backfill old rows)
+    // in the background so a deploy never leaves customers unable to take a queue.
+    repairQueueIndexesOnce();
     return connection;
   }).catch((error) => {
     connectionCache.connection = null;

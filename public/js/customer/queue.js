@@ -72,6 +72,17 @@
   window.setInterval(loadQueueStatus, 60000);
   window.addEventListener('languageChanged', loadQueueStatus);
 
+  // Server messages are already localised and specific (e.g. "ระบบกำลังออกเลขคิวใหม่…"),
+  // so prefer them over the generic fallback that used to hide the real reason.
+  function apiErrorMessage(payload) {
+    if (payload && typeof payload.message === 'string' && payload.message.trim()) return payload.message;
+    if (payload && payload.code) {
+      const translated = T(`error.${payload.code}`);
+      if (translated && translated !== `error.${payload.code}`) return translated;
+    }
+    return T('error.REQUEST_FAILED');
+  }
+
   function setLoading(loading) {
     submitButton.disabled = loading || !queueAccepting;
     spinner.classList.toggle('hidden', !loading);
@@ -341,7 +352,7 @@
       });
       const payload = await response.json();
       if (!response.ok || !payload.success) {
-        throw new Error((payload.code && T(`error.${payload.code}`)) || payload.message || T('error.REQUEST_FAILED'));
+        throw new Error(apiErrorMessage(payload));
       }
       closeConfirmModal();
       const queue = payload.data;
