@@ -15,6 +15,7 @@
     baseClass: 'inline-flex max-w-full items-center rounded-md px-4 py-2 text-sm font-semibold',
   });
   let chart;
+  let averageDiningMinutes = null;
   const role = Admin.user.role;
   const rolePrefix = role === 'manager' ? 'admin.dashboardManager' : 'admin.dashboardAdmin';
 
@@ -39,6 +40,16 @@
     return currentLang() === 'en' ? 'en-US' : 'th-TH';
   }
 
+  // The average dining card mixes a number with a translated unit ("นาที"), so
+  // it is rendered from data instead of data-i18n; otherwise the translation
+  // pass overwrites the number with the bare unit.
+  function renderAverageDining() {
+    const element = document.getElementById('average-dining');
+    if (!element) return;
+    const minutes = Number.isFinite(averageDiningMinutes) ? Math.round(averageDiningMinutes) : 0;
+    element.textContent = `${minutes} ${T('common.minutes')}`;
+  }
+
   function updateRoleHeader() {
     const fallback = roleCopy[role][currentLang()];
     const keys = [`${rolePrefix}Label`, `${rolePrefix}Title`, `${rolePrefix}Description`];
@@ -55,6 +66,7 @@
     if (dateEl) dateEl.textContent = new Date().toLocaleDateString(currentLocale(), { dateStyle: 'full' });
     if (chart) chart.data.datasets[0].label = `${T('admin.todaySales')} (${T('common.baht')})`;
     if (chart) chart.update();
+    renderAverageDining();
   }
   updateRoleHeader();
   window.addEventListener('languageChanged', updateRoleHeader);
@@ -99,8 +111,8 @@
       document.getElementById('customers-today').textContent =
         String(queueStats.data.customerCount ?? queueStats.data.totalQueues ?? 0);
       document.getElementById('queues-waiting').textContent = String(queueStats.data.waitingCount || 0);
-      document.getElementById('average-dining').textContent =
-        `${Math.round(dining.data.averageMinutes || 0)} ${T('common.minutes')}`;
+      averageDiningMinutes = dining.data.averageMinutes || 0;
+      renderAverageDining();
 
       const salesByDay = new Map((salesWeek.data.salesByDay || []).map((row) => [row.date, row.totalSales]));
       const dates = lastSevenDays();

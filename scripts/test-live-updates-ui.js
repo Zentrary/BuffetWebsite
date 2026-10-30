@@ -187,6 +187,13 @@ async function main() {
       await ready(page);
       assert.equal(await page.locator('#connection-label').textContent(), 'อัปเดตทุก 30 วินาที');
       await chimes(page, 0); // Existing ready orders/cleaning tables are silent.
+      // The cleaning queue and its duplicate panels were removed from the
+      // waiter screen; the table map is the single source of table status.
+      assert.equal(await page.locator('.waiter-tab').count(), 2);
+      assert.equal(await page.locator('#tab-tables').count(), 1);
+      assert.equal(await page.locator('#table-map').count(), 1);
+      assert.equal(await page.locator('#cleaning-tables').count(), 0);
+      assert.equal(await page.locator('#refresh-cleaning').count(), 0);
       await page.locator('h1').click();
       fixture.readyOrders.push(order('new-ready', 'ready'));
       await tick(page, 30); await chimes(page, 1);
@@ -194,9 +201,10 @@ async function main() {
       await chimes(page, 1);
       fixture.tables[0].status = 'occupied';
       await tick(page, 30);
-      await page.waitForFunction(() => document.getElementById('cleaning-count').textContent === '0');
+      await page.waitForFunction(() => document.querySelectorAll('#table-map [data-table-status="cleaning"]').length === 0);
       fixture.tables[0].status = 'cleaning';
       await tick(page, 30); await chimes(page, 2);
+      await page.waitForFunction(() => document.querySelectorAll('#table-map [data-table-status="cleaning"]').length === 1);
       await tick(page, 30); await chimes(page, 2);
       await page.evaluate(() => window.setLang('en'));
       await page.waitForLoadState('networkidle');
@@ -274,7 +282,7 @@ async function main() {
       await chimes(page, 1);
       fixture.tables[0].status = 'occupied';
       await tick(page, 30);
-      await page.waitForFunction(() => document.getElementById('cleaning-count').textContent === '0');
+      await page.waitForFunction(() => document.querySelectorAll('#table-map [data-table-status="cleaning"]').length === 0);
       fixture.tables[0].status = 'cleaning';
       await page.evaluate(() => {
         window.__socket.dispatch('table_waiting_for_cleaning');
