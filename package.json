@@ -10,7 +10,7 @@
     "predev": "npm run build:css",
     "dev": "node --watch server.js",
     "seed": "node seed.js",
-    "test": "node --test tests/menu-categories.test.js tests/live-updates.test.js tests/queue-lifecycle.test.js tests/business-day.test.js tests/queue-numbering.test.js",
+    "test": "node --test tests/menu-categories.test.js tests/live-updates.test.js tests/queue-lifecycle.test.js tests/business-day.test.js tests/queue-numbering.test.js tests/display-board.test.js",
     "test:live-ui": "node scripts/test-live-updates-ui.js",
     "test:menu-ui": "node scripts/test-menu-ui.js",
     "test:mongo": "node scripts/test-mongo.js",

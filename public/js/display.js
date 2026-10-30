@@ -31,7 +31,7 @@
   const connection = Live.createStatus({
     element: dom.liveIndicator, label: dom.liveLabel, dot: dom.liveDot,
     intervalMs: POLL_INTERVAL_MS, resources: ['queue'], theme: 'dark',
-    baseClass: 'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold sm:text-xs',
+    baseClass: 'pill-status inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-bold sm:text-xs',
   });
 
   let soundEnabled = readPreference(SOUND_PREFERENCE_KEY) !== 'off';
@@ -205,6 +205,19 @@
       </div>`;
   }
 
+  const ICONS = {
+    queue: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7"/></svg>',
+    table: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M5 10V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3M6 10v9M18 10v9"/></svg>',
+    people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3"/><path d="M22 20v-2a4 4 0 0 0-3-3.87"/></svg>',
+  };
+
+  function servingTime(calledAt) {
+    if (!calledAt) return '';
+    const date = new Date(calledAt);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+
   function servingCardHTML(queue, isNew) {
     const queueNumber = escapeHTML(queue.queueNumber || '—');
     const tableNumber = queue.tableNumber ? escapeHTML(queue.tableNumber) : '';
@@ -215,17 +228,22 @@
       ? translated('common.person', 'person')
       : translated('common.people', 'people');
     const meta = [`${people} ${peopleLabel}`, zone].filter(Boolean).join(' · ');
+    const zoneName = ['small', 'medium', 'large'].includes(queue.zone) ? queue.zone : '';
+    const calledAt = servingTime(queue.calledAt);
 
     const tableLine = tableNumber
-      ? `<p class="serving-table"><span>${escapeHTML(translated('queue.table', 'Table'))}</span>${tableNumber}</p>`
+      ? `<p class="serving-table">${ICONS.table}<span>${escapeHTML(translated('queue.table', 'Table'))}</span><b>${tableNumber}</b></p>`
       : `<p class="serving-table serving-table-pending">${escapeHTML(translated('display.assigningTable', 'Assigning a table'))}</p>`;
 
     return `
-      <article class="serving-card${isNew ? ' card-flash' : ''}">
-        <p class="serving-kicker">${escapeHTML(translated('display.queue', 'Queue'))}</p>
+      <article class="serving-card${isNew ? ' card-flash' : ''}"${zoneName ? ` data-zone="${zoneName}"` : ''}>
+        <div class="serving-head">
+          <span class="serving-kicker">${ICONS.queue}${escapeHTML(translated('display.queue', 'Queue'))}</span>
+          ${calledAt ? `<span class="serving-time">${escapeHTML(calledAt)}</span>` : ''}
+        </div>
         <p class="serving-number">${queueNumber}</p>
         ${tableLine}
-        <p class="serving-people">${escapeHTML(meta)}</p>
+        ${meta ? `<p class="serving-meta">${ICONS.people}${escapeHTML(meta)}</p>` : ''}
       </article>`;
   }
 
