@@ -38,8 +38,42 @@
     document.getElementById('menu-access-notice').classList.remove('hidden');
   }
 
+  // Queue acceptance window (shop may keep serving after queues close at 02:00).
+  const closedNotice = document.getElementById('queue-closed-notice');
+  const closedMessage = document.getElementById('queue-closed-message');
+  let queueAccepting = true;
+  const CLOSED_COPY = {
+    cutoff: 'queue.closedCutoff',
+    closed: 'queue.closedShop',
+    test_mode: 'queue.closedTest',
+  };
+
+  function applyQueueStatus(queueStatus) {
+    if (!closedNotice || !closedMessage || !queueStatus) return;
+    const accepting = Boolean(queueStatus.accepting);
+    queueAccepting = accepting;
+    closedNotice.classList.toggle('hidden', accepting);
+    if (!accepting) closedMessage.textContent = T(CLOSED_COPY[queueStatus.reason] || 'queue.closedShop');
+    if (submitButton) {
+      submitButton.disabled = !accepting;
+      submitButton.classList.toggle('opacity-50', !accepting);
+    }
+  }
+
+  async function loadQueueStatus() {
+    try {
+      const response = await fetch('/api/settings/public', { cache: 'no-store' });
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (payload && payload.data) applyQueueStatus(payload.data.queueStatus);
+    } catch {}
+  }
+  loadQueueStatus();
+  window.setInterval(loadQueueStatus, 60000);
+  window.addEventListener('languageChanged', loadQueueStatus);
+
   function setLoading(loading) {
-    submitButton.disabled = loading;
+    submitButton.disabled = loading || !queueAccepting;
     spinner.classList.toggle('hidden', !loading);
     submitLabel.textContent = loading ? T('queue.submit') : T('queue.submit');
   }
@@ -422,6 +456,8 @@
     });
     socket.on('queue_seated', refreshQueue);
     socket.on('queue_board_updated', refreshQueue);
+    socket.on('queue_status_changed', applyQueueStatus);
+    socket.on('shop_status_changed', loadQueueStatus);
     socket.on('queue_cancelled', (payload) => {
       if (payload && String(payload.queueId) === String(activeQueueId)) {
         clearQueueState();

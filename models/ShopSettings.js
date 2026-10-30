@@ -5,6 +5,9 @@ const shopSettingsSchema = new mongoose.Schema({
   _id: { type: String, default: 'shop-settings' },
   openTime: { type: String, default: '10:30', match: /^([01]\d|2[0-3]):[0-5]\d$/ },
   closeTime: { type: String, default: '03:00', match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+  // New queue tickets stop at `lastQueueTime` (business day), which is usually
+  // earlier than `closeTime` so the kitchen stops taking tables before closing.
+  lastQueueTime: { type: String, default: '02:00', match: /^([01]\d|2[0-3]):[0-5]\d$/ },
   timezone: { type: String, default: 'Asia/Bangkok' },
   isTestMode: { type: Boolean, default: false },
   manualOpenAt: { type: Date, default: null },

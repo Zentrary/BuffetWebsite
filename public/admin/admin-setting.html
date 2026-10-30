@@ -295,6 +295,26 @@
                   </span>
                   <input id="close-time" name="closeTime" required type="time" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
                 </label>
+                <label class="block font-semibold">
+                  <span data-i18n="admin.settings.lastQueueTime">
+                    ปิดรับคิวเวลา
+                  </span>
+                  <input id="last-queue-time" name="lastQueueTime" type="time" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-3">
+                  <span class="mt-1 block text-xs font-normal text-slate-500" data-i18n="admin.settings.lastQueueTimeDesc">
+                    ลูกค้ารับคิวใหม่ได้ถึงเวลานี้ ส่วนการเรียกคิว ชำระเงิน และเคลียร์โต๊ะยังทำได้จนถึงเวลาปิดร้าน
+                  </span>
+                </label>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p class="text-xs font-semibold text-slate-500" data-i18n="admin.settings.businessDate">
+                    วันทำการปัจจุบัน
+                  </p>
+                  <p id="business-date" class="mt-1 text-lg font-black text-slate-800">
+                    —
+                  </p>
+                  <p class="mt-1 text-xs text-slate-500" data-i18n="admin.settings.businessDateDesc">
+                    เลขคิวจะเริ่มที่ Q001 ใหม่ทุกวันทำการ (นับจากเวลาเปิดร้านถึงเวลาปิดร้าน)
+                  </p>
+                </div>
               </div>
               
               <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 transition hover:bg-amber-100/50">

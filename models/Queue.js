@@ -4,11 +4,22 @@ const mongoose = require('mongoose');
 // Define customer queue entries and the lifecycle timestamps for each entry.
 const queueSchema = new mongoose.Schema(
   {
+    // Queue numbers restart at Q001 on every business day, so the number alone
+    // is no longer unique — { businessDate, queueNumber } is (see indexes below).
     queueNumber: {
       type: String,
       required: true,
-      unique: true,
       match: /^Q\d{3,}$/,
+    },
+    businessDate: {
+      type: String,
+      match: /^\d{4}-\d{2}-\d{2}$/,
+      default: null,
+    },
+    sequence: {
+      type: Number,
+      min: 1,
+      default: null,
     },
     customerCount: {
       type: Number,
@@ -89,6 +100,8 @@ const queueSchema = new mongoose.Schema(
 );
 
 queueSchema.index({ accessTokenHash: 1 }, { unique: true, sparse: true });
+queueSchema.index({ businessDate: 1, queueNumber: 1 }, { unique: true, partialFilterExpression: { businessDate: { $type: 'string' } } });
+queueSchema.index({ businessDate: 1, sequence: 1 });
 queueSchema.index({ status: 1, createdAt: 1 });
 queueSchema.index({ status: 1, seatedAt: 1 });
 queueSchema.index({ preferredZone: 1, status: 1 });

@@ -3,6 +3,14 @@ const Payment = require('../models/Payment');
 const Order = require('../models/Order');
 const Session = require('../models/Session');
 const Queue = require('../models/Queue');
+const ShopSettings = require('../models/ShopSettings');
+const {
+  getBusinessDateKeys,
+  getBusinessDayRange,
+  getBusinessDayRangeForKeys,
+  openMinutesOf,
+  timezoneOf,
+} = require('../utils/businessDay');
 
 // A seated queue closes as `completed` when the meal ends, so "seated" totals
 // must count both states or today's numbers would drop after every payment.
@@ -19,16 +27,54 @@ async function safe(promise, label, fallback = []) {
   }
 }
 
+// Reports follow the shop's business day (10:30 -> 03:00) instead of the
+// calendar day, so an 01:00 payment belongs to the evening that just ended.
+let cachedSettings = { value: null, at: 0 };
+
+async function loadReportSettings() {
+  const now = Date.now();
+  if (cachedSettings.value && now - cachedSettings.at < 30_000) return cachedSettings.value;
+  try {
+    const settings = await ShopSettings.findById('shop-settings').lean();
+    cachedSettings = { value: settings || {}, at: now };
+  } catch (error) {
+    console.error('[report] settings load failed:', error.message);
+    cachedSettings = { value: cachedSettings.value || {}, at: now };
+  }
+  return cachedSettings.value;
+}
+
 function getRangeFromDates(from, to) {
   const start = new Date(from); start.setHours(0, 0, 0, 0);
   const end = new Date(to); end.setHours(24, 0, 0, 0);
   return { start, end };
 }
 
-function getTodayRange(days = 1) {
-  const end = new Date(); end.setHours(24, 0, 0, 0);
-  const start = new Date(end); start.setDate(start.getDate() - days); start.setHours(0, 0, 0, 0);
-  return { start, end };
+/**
+ * Business-day range for the last `days` business days (current day last).
+ * @param {number} days - Number of business days to include.
+ * @returns {Promise<{start: Date, end: Date, businessDate: string, days: number}>} Range.
+ */
+async function getBusinessRange(days = 1) {
+  const settings = await loadReportSettings();
+  const range = getBusinessDayRange(settings, new Date(), days);
+  return { ...range, startKey: range.startKey };
+}
+
+async function getTodayRange(days = 1) {
+  return getBusinessRange(days);
+}
+
+// Mongo expression that maps a date field to its business date key.
+function businessDateGroupExpression(settings) {
+  const offsetMinutes = openMinutesOf(settings);
+  return {
+    $dateToString: {
+      format: '%Y-%m-%d',
+      date: { $subtract: ['$paidAt', offsetMinutes * 60 * 1000] },
+      timezone: timezoneOf(settings),
+    },
+  };
 }
 
 function getReportDays(req) {
@@ -36,16 +82,36 @@ function getReportDays(req) {
   return [1, 7, 30].includes(days) ? days : 1;
 }
 
-function resolveRange(req) {
+async function resolveRange(req) {
   const { from, to } = req.query;
   if (from && to) {
+    // Custom ranges are expressed in business dates, so "to" includes the whole
+    // trading day that opens on that date (e.g. 10-07 ends at 10:30 on 10-08).
+    const settings = await loadReportSettings();
+    const businessRange = getBusinessDayRangeForKeys(settings, String(from).slice(0, 10), String(to).slice(0, 10));
+    if (businessRange) {
+      return {
+        start: businessRange.start,
+        end: businessRange.end,
+        days: businessRange.days,
+        businessDate: businessRange.businessDate,
+        dateKeys: businessRange.dateKeys,
+      };
+    }
     const { start, end } = getRangeFromDates(from, to);
     const days = Math.max(1, Math.ceil((end - start) / (24 * 60 * 60 * 1000)));
     return { start, end, days };
   }
   const days = getReportDays(req);
-  const { start, end } = getTodayRange(days);
-  return { start, end, days };
+  const range = await getBusinessRange(days);
+  const settings = await loadReportSettings();
+  return {
+    start: range.start,
+    end: range.end,
+    days,
+    businessDate: range.businessDate,
+    dateKeys: getBusinessDateKeys(settings, new Date(), days),
+  };
 }
 
 function getPreviousRange(range) {
@@ -65,12 +131,13 @@ function diff(current, previous) {
 
 async function getDailySales(req, res) {
   try {
-    const range = resolveRange(req);
+    const range = await resolveRange(req);
     const { start, end } = range;
+    const settings = await loadReportSettings();
     const salesByDay = await Payment.aggregate([
       { $match: { status: 'completed', paidAt: { $gte: start, $lt: end } } },
       { $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$paidAt', timezone: 'Asia/Bangkok' } },
+        _id: businessDateGroupExpression(settings),
         totalSales: { $sum: '$amount' },
         paymentCount: { $sum: 1 },
       } },
@@ -83,6 +150,10 @@ async function getDailySales(req, res) {
       data: {
         totalSales, paymentCount,
         salesByDay: salesByDay.map((r) => ({ date: r._id, totalSales: r.totalSales })),
+        // Business-date labels for the chart (oldest first) so the browser never
+        // has to guess where midnight falls for this shop.
+        dates: range.dateKeys || getBusinessDateKeys(settings, new Date(), range.days),
+        businessDate: range.businessDate || null,
         days: range.days, date: start,
       },
       message: 'ดึงยอดขายสำเร็จ',
@@ -92,7 +163,7 @@ async function getDailySales(req, res) {
 
 async function getTopMenus(req, res) {
   try {
-    const { start, end } = getTodayRange(getReportDays(req));
+    const { start, end } = await getTodayRange(getReportDays(req));
     const menus = await Order.aggregate([
       { $match: { createdAt: { $gte: start, $lt: end }, status: { $ne: 'cancelled' } } },
       { $unwind: '$items' },
@@ -108,7 +179,7 @@ async function getTopMenus(req, res) {
 
 async function getAverageDiningTime(req, res) {
   try {
-    const { start, end } = getTodayRange(getReportDays(req));
+    const { start, end } = await getTodayRange(getReportDays(req));
     const [s] = await Session.aggregate([
       { $match: { status: 'completed', actualEndTime: { $type: 'date' }, startTime: { $type: 'date', $gte: start, $lt: end } } },
       { $group: { _id: null, avgMs: { $avg: { $subtract: ['$actualEndTime', '$startTime'] } }, sessionCount: { $sum: 1 } } },
@@ -119,7 +190,7 @@ async function getAverageDiningTime(req, res) {
 
 async function getQueueStats(req, res) {
   try {
-    const { start, end } = getTodayRange(getReportDays(req));
+    const { start, end } = await getTodayRange(getReportDays(req));
     const [totalQueues, noShowCount, waitingCount, seatedCount, customerCount] = await Promise.all([
       Queue.countDocuments({ createdAt: { $gte: start, $lt: end } }),
       Queue.countDocuments({ createdAt: { $gte: start, $lt: end }, status: 'no_show' }),
@@ -133,7 +204,7 @@ async function getQueueStats(req, res) {
 
 async function getDashboardSummary(req, res) {
   try {
-    const { start, end } = getTodayRange(getReportDays(req));
+    const { start, end } = await getTodayRange(getReportDays(req));
     const [salesResult, topMenus, diningResult, totalQueues, noShowCount, waitingCount, seatedCount, customerCount] = await Promise.all([
       Payment.aggregate([{ $match: { status: 'completed', paidAt: { $gte: start, $lt: end } } }, { $group: { _id: null, totalSales: { $sum: '$amount' }, paymentCount: { $sum: 1 } } }]),
       Order.aggregate([
@@ -162,7 +233,7 @@ async function getDashboardSummary(req, res) {
 
 async function getSummaryReport(req, res) {
   try {
-    const range = resolveRange(req);
+    const range = await resolveRange(req);
     const prev = getPreviousRange(range);
     const { start, end, days } = range;
 
@@ -197,9 +268,10 @@ async function getSummaryReport(req, res) {
       { $match: { status: 'completed', paidAt: { $gte: start, $lt: end } } },
       { $group: { _id: '$method', total: { $sum: '$amount' }, count: { $sum: 1 } } },
     ]), 'paymentMethods');
+    const summarySettings = await loadReportSettings();
     const peak = await safe(Payment.aggregate([
       { $match: { status: 'completed', paidAt: { $gte: start, $lt: end } } },
-      { $group: { _id: { $hour: { date: '$paidAt', timezone: 'Asia/Bangkok' } }, total: { $sum: '$amount' } } },
+      { $group: { _id: { $hour: { date: '$paidAt', timezone: timezoneOf(summarySettings) } }, total: { $sum: '$amount' } } },
       { $sort: { total: -1 } },
       { $limit: 1 },
     ]), 'peakHour');
@@ -268,10 +340,11 @@ async function getSummaryReport(req, res) {
 
 async function getHourlySales(req, res) {
   try {
-    const { start, end } = resolveRange(req);
+    const { start, end } = await resolveRange(req);
+    const settings = await loadReportSettings();
     const rows = await Payment.aggregate([
       { $match: { status: 'completed', paidAt: { $gte: start, $lt: end } } },
-      { $group: { _id: { $hour: { date: '$paidAt', timezone: 'Asia/Bangkok' } }, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+      { $group: { _id: { $hour: { date: '$paidAt', timezone: timezoneOf(settings) } }, total: { $sum: '$amount' }, count: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]);
     const map = new Map(rows.map((r) => [r._id, r]));
@@ -282,7 +355,7 @@ async function getHourlySales(req, res) {
 
 async function getPaymentMethods(req, res) {
   try {
-    const { start, end } = resolveRange(req);
+    const { start, end } = await resolveRange(req);
     const rows = await Payment.aggregate([
       { $match: { status: 'completed', paidAt: { $gte: start, $lt: end } } },
       { $group: { _id: '$method', total: { $sum: '$amount' }, count: { $sum: 1 } } },
@@ -295,7 +368,7 @@ async function getPaymentMethods(req, res) {
 
 async function getSessionDurations(req, res) {
   try {
-    const { start, end } = resolveRange(req);
+    const { start, end } = await resolveRange(req);
     const sessions = await Session.aggregate([
       { $match: { status: 'completed', actualEndTime: { $type: 'date' }, startTime: { $type: 'date', $gte: start, $lt: end } } },
       { $project: { minutes: { $divide: [{ $subtract: ['$actualEndTime', '$startTime'] }, 60000] } } },
@@ -317,7 +390,7 @@ async function getSessionDurations(req, res) {
 
 async function getZoneSales(req, res) {
   try {
-    const { start, end } = resolveRange(req);
+    const { start, end } = await resolveRange(req);
     const rows = await Payment.aggregate([
       { $match: { status: 'completed', paidAt: { $gte: start, $lt: end } } },
       { $lookup: { from: 'sessions', localField: 'sessionId', foreignField: '_id', as: 'session' } },
@@ -340,7 +413,7 @@ async function getZoneSales(req, res) {
 
 async function getBills(req, res) {
   try {
-    const range = resolveRange(req);
+    const range = await resolveRange(req);
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.min(100, Math.max(5, parseInt(req.query.limit, 10) || 20));
     const skip = (page - 1) * limit;
@@ -399,7 +472,7 @@ async function getBills(req, res) {
  */
 async function getMenuTrends(req, res) {
   try {
-    const range = resolveRange(req);
+    const range = await resolveRange(req);
     const prev = getPreviousRange(range);
     const { start, end } = range;
 
@@ -460,7 +533,7 @@ async function getMenuTrends(req, res) {
  */
 async function getStaffPerformance(req, res) {
   try {
-    const { start, end } = resolveRange(req);
+    const { start, end } = await resolveRange(req);
     const rows = await Payment.aggregate([
       { $match: { status: 'completed', paidAt: { $gte: start, $lt: end }, receivedBy: { $ne: null } } },
       { $group: {
@@ -497,13 +570,14 @@ async function getStaffPerformance(req, res) {
  */
 async function getPeakHours(req, res) {
   try {
-    const { start, end } = resolveRange(req);
+    const { start, end } = await resolveRange(req);
+    const settings = await loadReportSettings();
     const rows = await Payment.aggregate([
       { $match: { status: 'completed', paidAt: { $gte: start, $lt: end } } },
       { $group: {
         _id: {
-          dow: { $dayOfWeek: { date: '$paidAt', timezone: 'Asia/Bangkok' } },
-          hour: { $hour: { date: '$paidAt', timezone: 'Asia/Bangkok' } },
+          dow: { $dayOfWeek: { date: '$paidAt', timezone: timezoneOf(settings) } },
+          hour: { $hour: { date: '$paidAt', timezone: timezoneOf(settings) } },
         },
         total: { $sum: '$amount' },
         count: { $sum: 1 },
@@ -533,7 +607,7 @@ async function getPeakHours(req, res) {
  */
 async function getFeedbackSummary(req, res) {
   try {
-    const { start, end } = resolveRange(req);
+    const { start, end } = await resolveRange(req);
     const Feedback = require('../models/Feedback');
     const [dist, agg, recent] = await Promise.all([
       Feedback.aggregate([
@@ -578,7 +652,7 @@ async function getFeedbackSummary(req, res) {
  */
 async function getComparison(req, res) {
   try {
-    const range = resolveRange(req);
+    const range = await resolveRange(req);
     const prev = getPreviousRange(range);
     const { start, end } = range;
 
@@ -607,21 +681,17 @@ async function getComparison(req, res) {
     ]);
 
     // Daily series for line overlay.
-    const buildDaily = async (from, to, offsetMs) => {
+    const settings = await loadReportSettings();
+    const buildDaily = async (from, to) => {
       const rows = await Payment.aggregate([
         { $match: { status: 'completed', paidAt: { $gte: from, $lt: to } } },
-        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$paidAt', timezone: 'Asia/Bangkok' } }, total: { $sum: '$amount' } } },
+        { $group: { _id: businessDateGroupExpression(settings), total: { $sum: '$amount' } } },
         { $sort: { _id: 1 } },
       ]);
       const map = new Map(rows.map((r) => [r._id, r.total]));
-      const dayCount = Math.max(1, Math.round((to - from) / 86400000));
-      const out = [];
-      for (let i = 0; i < dayCount; i += 1) {
-        const d = new Date(from.getTime() + i * 86400000);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        out.push(map.get(key) || 0);
-      }
-      return out;
+      // Buckets follow business dates, matching getDailySales labels.
+      return getBusinessDateKeys(settings, new Date(to.getTime() - 1), Math.max(1, Math.round((to - from) / 86400000)))
+        .map((key) => map.get(key) || 0);
     };
     const [curDaily, prevDaily] = await Promise.all([
       buildDaily(start, end),
@@ -653,7 +723,7 @@ async function getComparison(req, res) {
 async function exportExcel(req, res) {
   try {
     const ExcelJS = require('exceljs');
-    const range = resolveRange(req);
+    const range = await resolveRange(req);
     const { start, end } = range;
 
     // Fetch data

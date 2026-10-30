@@ -2,7 +2,7 @@
 const express = require('express');
 const { protect, authorize } = require('../middlewares/authMiddleware');
 const queueController = require('../controllers/queueController');
-const requireShopOpen = require('../middlewares/requireShopOpen');
+const requireQueueAccepting = require('../middlewares/requireQueueAccepting');
 const { rateLimit, keyByIp } = require('../middlewares/rateLimit');
 
 const router = express.Router();
@@ -10,7 +10,7 @@ const router = express.Router();
 router.post(
   '/',
   rateLimit({ name: 'queue-create', windowMs: 60_000, max: 30, keyGenerator: keyByIp }),
-  requireShopOpen,
+  requireQueueAccepting,
   queueController.createQueue
 );
 
