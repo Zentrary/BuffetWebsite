@@ -21,7 +21,6 @@
   let audioContext;
   let audioArmed = false;
   let lastReadyOrders = [];
-  let lastTables = [];
   const readyChanges = Live.createChangeTracker();
   const tableChanges = Live.createChangeTracker({ value: (table) => table.status });
 
@@ -179,49 +178,13 @@
     }
   }
 
-  // ---------- Cleaning & tables ----------
-
-  function renderCleaningTables(tables) {
-    const container = document.getElementById('cleaning-tables');
-    const cleaningTables = tables
-      .filter((t) => t.status === 'cleaning')
-      .sort((a, b) => (Object.keys(['small', 'medium', 'large']).indexOf(a.zone) - Object.keys(['small', 'medium', 'large']).indexOf(b.zone)) || String(a.tableNumber).localeCompare(String(b.tableNumber), 'th', { numeric: true }));
-    container.replaceChildren();
-    document.getElementById('cleaning-count').textContent = String(cleaningTables.length);
-    document.getElementById('cleaning-empty').classList.toggle('hidden', cleaningTables.length > 0);
-
-    const zones = ['small', 'medium', 'large'];
-    for (const zone of zones) {
-      const zoneLabel = T(`table.zone.${zone}`);
-      const zoneTables = cleaningTables.filter((t) => t.zone === zone);
-      if (zoneTables.length === 0) continue;
-      const section = document.createElement('section');
-      section.innerHTML = `<h3 class="mb-2 text-sm font-bold text-slate-600">${escapeHTML(zoneLabel)}<span class="ml-2 text-xs font-semibold text-slate-400">(${zoneTables.length})</span></h3>`;
-      const grid = document.createElement('div');
-      grid.className = 'grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6';
-      for (const table of zoneTables) {
-        const card = document.createElement('article');
-        card.className = 'flex min-w-0 flex-col gap-1.5 rounded-lg border border-sky-200 bg-white p-2.5 shadow-sm';
-        card.innerHTML = `
-          <p class="text-[10px] font-bold uppercase tracking-widest text-sky-700">${escapeHTML(T('waiter.cleaning'))}</p>
-          <p class="text-2xl font-black leading-none">${escapeHTML(table.tableNumber)}</p>
-          <p class="text-[10px] text-slate-500">${escapeHTML(zoneLabel)} · ${Number(table.capacity) || 0} ${escapeHTML(T('common.people'))}</p>
-          <button type="button" data-clear-table="${escapeHTML(table._id)}" class="mt-1 w-full rounded-md bg-slate-900 px-2 py-1.5 text-xs font-bold text-white hover:bg-slate-700 disabled:opacity-50">${escapeHTML(T('waiter.done'))}</button>`;
-        card.querySelector('[data-clear-table]').addEventListener('click', (e) => clearTable(table._id, e.currentTarget));
-        grid.append(card);
-      }
-      section.append(grid);
-      container.append(section);
-    }
-  }
+  // ---------- Table map ----------
 
   const loadTables = Live.createLoader(async () => {
     try {
       const payload = await api('/api/table');
       if (!Array.isArray(payload.data)) throw new Error(T('waiter.loadTablesFailed'));
       const tables = payload.data;
-      lastTables = tables;
-      renderCleaningTables(tables);
 
       const container = document.getElementById('table-map');
       container.replaceChildren();
@@ -253,6 +216,7 @@
 
         for (const table of zoneTables) {
           const card = document.createElement('article');
+          card.dataset.tableStatus = table.status;
           card.className = `flex min-h-[7.5rem] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl border-l-4 p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${statusStyles[table.status] || 'border-slate-400 bg-white'}`;
           card.innerHTML = `
             <p class="truncate text-[11px] font-bold uppercase tracking-widest opacity-70">${escapeHTML(zoneLabel)}</p>
@@ -273,26 +237,11 @@
     }
   });
 
-  async function clearTable(tableId, button) {
-    button.disabled = true;
-    button.textContent = T('waiter.clearing');
-    try {
-      await api(`/api/table/${encodeURIComponent(tableId)}/clear`, { method: 'POST' });
-      showSuccess(T('waiter.cleared'));
-      await loadTables();
-    } catch (error) {
-      showError(error.message || T('waiter.clearFailed'));
-      button.disabled = false;
-      button.textContent = T('waiter.done');
-    }
-  }
-
   async function loadTab(tabName) {
     loadingElement.classList.remove('hidden');
     loadingElement.classList.add('flex');
     try {
       if (tabName === 'ready') await loadReadyOrders();
-      if (tabName === 'cleaning') await loadTables();
       if (tabName === 'tables') await loadTables();
     } finally {
       loadingElement.classList.add('hidden');
@@ -319,7 +268,6 @@
 
   document.getElementById('refresh-waiter').addEventListener('click', loadReadyOrders);
   document.getElementById('refresh-tables').addEventListener('click', loadTables);
-  document.getElementById('refresh-cleaning').addEventListener('click', loadTables);
   document.getElementById('logout-button').addEventListener('click', () => {
     window.StaffAuth.clearCredentials();
     window.location.replace('/login.html');
@@ -349,7 +297,6 @@
   window.addEventListener('online', () => { loadReadyOrders(); loadTables(); });
 
   window.addEventListener('languageChanged', () => {
-    renderCleaningTables(lastTables);
     loadReadyOrders();
     loadTables();
   });
