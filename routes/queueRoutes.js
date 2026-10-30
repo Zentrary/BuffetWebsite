@@ -51,6 +51,8 @@ router.post(
 router.get('/entry-qr', protect, authorize('admin', 'manager', 'waiter'), queueController.getEntryQRCode);
 router.get('/:id/ticket', protect, authorize('admin', 'manager', 'waiter'), queueController.getTicketData);
 router.post('/cancel/:id', protect, authorize('admin', 'manager', 'waiter'), queueController.cancelQueue);
+// Close a seated queue when the party is done (payment/clearTable do this too).
+router.post('/:id/complete', protect, authorize('admin', 'manager', 'waiter'), queueController.completeQueue);
 
 // Customer cancels their own queue (uses accessToken, not JWT).
 router.post(

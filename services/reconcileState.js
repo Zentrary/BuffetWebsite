@@ -4,13 +4,21 @@ const Table = require('../models/Table');
 const Queue = require('../models/Queue');
 const Order = require('../models/Order');
 const Payment = require('../models/Payment');
+const { completeSeatedQueues, findStaleSeatedQueueIds } = require('./queueLifecycle');
 
 // Extended TTL: 15 minutes for the customer to confirm a called queue.
 const QUEUE_CALL_TTL_MS = 15 * 60 * 1000;
 
 async function reconcileStaleState(io) {
   const now = new Date();
-  const report = { expiredSessions: 0, orphanTables: 0, noShowQueues: 0, releasedReservations: 0, orphanSessions: 0 };
+  const report = {
+    expiredSessions: 0,
+    orphanTables: 0,
+    noShowQueues: 0,
+    releasedReservations: 0,
+    orphanSessions: 0,
+    completedQueues: 0,
+  };
 
   // 1. Sessions past endTime still active → expired
   const expired = await Session.updateMany(
@@ -66,7 +74,17 @@ async function reconcileStaleState(io) {
     report.releasedReservations += 1;
   }
 
-  // 6. Clean up orders of cancelled sessions
+  // 6. Seated queues whose dining session is gone/paid/finished -> completed.
+  //    Without this they stayed on the staff board forever as "นั่งโต๊ะแล้ว 0:00".
+  const staleSeatedQueueIds = await findStaleSeatedQueueIds(Session, now);
+  if (staleSeatedQueueIds.length) {
+    report.completedQueues = await completeSeatedQueues(
+      { _id: { $in: staleSeatedQueueIds } },
+      { reason: 'stale seated queue' }
+    );
+  }
+
+  // 7. Clean up orders of cancelled sessions
   if (report.orphanSessions > 0) {
     const cancelledIds = await Session.find({ status: 'cancelled', actualEndTime: { $gte: now } }).select('_id').lean();
     const ids = cancelledIds.map((s) => s._id);
@@ -82,7 +100,8 @@ async function reconcileStaleState(io) {
     }
   }
 
-  if (io && (report.expiredSessions + report.orphanTables + report.noShowQueues + report.releasedReservations) > 0) {
+  if (io && (report.expiredSessions + report.orphanTables + report.noShowQueues
+    + report.releasedReservations + report.completedQueues) > 0) {
     io.to('admin').to('waiter').to('kitchen').emit('state_reconciled', report);
   }
 

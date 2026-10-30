@@ -73,7 +73,10 @@
     countdownElement.classList.add('hidden');
     hideCancelButton();
 
-    if (queue.status === 'cancelled' || queue.status === 'no_show') {
+    // A seat that has been closed (paid / table cleared / staff finished it) is
+    // no longer waiting, so never show the "waiting for staff" notice again.
+    if (['cancelled', 'no_show', 'completed'].includes(queue.status)) {
+      if (queue.status === 'completed') showError(T('queue.completed'));
       clearQueueState();
       form.classList.remove('hidden');
       if (zoneSection) zoneSection.classList.remove('hidden');

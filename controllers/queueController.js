@@ -1,6 +1,7 @@
 // Import queue-related models and the QR generator.
 const Queue = require('../models/Queue');
 const QueueCounter = require('../models/QueueCounter');
+const { completeQueueById } = require('../services/queueLifecycle');
 const Table = require('../models/Table');
 const Session = require('../models/Session');
 const Order = require('../models/Order');
@@ -10,8 +11,10 @@ const { generateQRCode } = require('../utils/qrGenerator');
 const { SESSION_DURATION } = require('../config/constants');
 const { calculateEndTime } = require('../utils/timer');
 const {
+  canCompleteQueue,
   canTransitionQueue,
   canTransitionTable,
+  isSeatedQueueActive,
 } = require('../utils/sessionLifecycle');
 const {
   createQueueAccessToken,
@@ -304,7 +307,7 @@ async function createQueue(req, res) {
  */
 async function getQueues(req, res) {
   try {
-    const supportedStatuses = ['waiting', 'called', 'seated', 'cancelled', 'no_show'];
+    const supportedStatuses = ['waiting', 'called', 'seated', 'completed', 'cancelled', 'no_show'];
     if (req.query.status && !supportedStatuses.includes(req.query.status)) {
       return res.status(400).json({
         success: false,
@@ -321,9 +324,10 @@ async function getQueues(req, res) {
       .populate('preferredTableId', 'tableNumber zone')
       .populate('sessionId', 'startTime endTime status isPaid')
       .sort({ createdAt: 1 });
-    const activeQueues = queues.filter((queue) => (
-      queue.status !== 'seated' || !queue.sessionId || !queue.sessionId.isPaid
-    ));
+    // A seated queue is only useful while its dining session is still running and
+    // unpaid. Paid/finished/missing sessions are closed by the lifecycle service,
+    // but filtering here keeps the board clean even before reconciliation runs.
+    const activeQueues = queues.filter((queue) => isSeatedQueueActive(queue));
     return res.status(200).json({ success: true, data: activeQueues, message: 'ดึงรายการคิวสำเร็จ' });
   } catch (error) {
     console.error('Get queues failed:', error);
@@ -926,6 +930,60 @@ async function getTicketData(req, res) {
 }
 
 /**
+ * Close a seated queue once the party has finished (staff action).
+ * Only the queue record is closed; the dining session and table are managed by
+ * payment / clearTable so this can never unlock a table that is still in use.
+ * @param {import('express').Request} req - Request with the queue id in params.
+ * @param {import('express').Response} res - HTTP response.
+ * @returns {Promise<import('express').Response>} JSON response with the completed queue.
+ */
+async function completeQueue(req, res) {
+  try {
+    const queue = await Queue.findById(req.params.id);
+    if (!queue) {
+      return res.status(404).json({ success: false, code: 'QUEUE_NOT_FOUND', data: null, message: 'ไม่พบคิวนี้' });
+    }
+    if (queue.status === 'completed') {
+      return res.status(200).json({ success: true, data: queue, message: 'คิวนี้จบรายการแล้ว' });
+    }
+    if (!canCompleteQueue(queue.status)) {
+      return res.status(409).json({
+        success: false,
+        code: 'QUEUE_CANNOT_BE_COMPLETED',
+        data: null,
+        message: 'จบรายการได้เฉพาะคิวที่ลูกค้านั่งโต๊ะแล้ว',
+      });
+    }
+
+    const completed = await completeQueueById(queue._id, { io: req.app.get('io') });
+    if (!completed) {
+      return res.status(409).json({
+        success: false,
+        code: 'QUEUE_STATE_CHANGED',
+        data: null,
+        message: 'สถานะคิวเปลี่ยนไปแล้ว กรุณาโหลดใหม่',
+      });
+    }
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`queue_${completed._id}`).emit('queue_completed', { queueId: completed._id });
+      io.emit('table_board_updated');
+    }
+    return res.status(200).json({ success: true, data: completed, message: 'จบรายการคิวสำเร็จ' });
+  } catch (error) {
+    console.error('Complete queue failed:', error);
+    const status = error.name === 'CastError' ? 400 : 500;
+    return res.status(status).json({
+      success: false,
+      code: 'REQUEST_FAILED',
+      data: null,
+      message: status === 400 ? 'รูปแบบ ID ไม่ถูกต้อง' : 'เกิดข้อผิดพลาดในระบบ',
+    });
+  }
+}
+
+/**
  * Customer cancels their own queue using the access token.
  * Allowed only for 'waiting' or 'called' status.
  * @param {import('express').Request} req - Request with queue id and accessToken.
@@ -1057,7 +1115,7 @@ async function getDisplayData(req, res) {
 }
 
 module.exports = {
-  createQueue, getQueues, callQueue, cancelQueue, cancelQueueByCustomer,
+  createQueue, getQueues, callQueue, cancelQueue, cancelQueueByCustomer, completeQueue,
   getQueueById, recoverQueue, recoverQueueById, confirmQueue,
   getNextQueueNumber, getEntryQRCode, getTicketData,
   findTableForQueue, zoneForCount, ZONE_RULES, MAX_PARTY_SIZE,

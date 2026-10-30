@@ -32,6 +32,29 @@
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
   }
 
+  function isOverdue(endTime) {
+    if (!endTime) return false;
+    return new Date(endTime).getTime() < Date.now();
+  }
+
+  // "นั่งมาแล้ว X นาที" from seatedAt, so staff can tell a fresh table from a stale one.
+  function seatedFor(seatedAt) {
+    if (!seatedAt) return '';
+    const minutes = Math.max(0, Math.floor((Date.now() - new Date(seatedAt).getTime()) / 60000));
+    return T('queue.manage.seatedFor', { minutes });
+  }
+
+  // Seated queue whose booked time is over (still dining, or nobody paid yet).
+  function queueSitsOverdue(queue) {
+    return Boolean(queue && queue.status === 'seated' && isOverdue(queue.sessionId && queue.sessionId.endTime));
+  }
+
+  // Overdue tables show a label instead of a frozen 0:00 countdown.
+  function sessionTimerLabel(endTime) {
+    if (!endTime) return '—';
+    return isOverdue(endTime) ? T('queue.manage.overdue') : remaining(endTime);
+  }
+
   function renderQueues() {
     const groups = {
       waiting: document.getElementById('queue-waiting'),
@@ -42,11 +65,11 @@
     const activeQueues = queues
       .filter((queue) => Object.hasOwn(groups, queue.status))
       .sort((a, b) => {
-        if (a.status !== b.status) return 0;
-        if (a.status === 'seated') {
+        // Each status renders in its own column, so only order inside a status matters.
+        if (a.status === 'seated' && b.status === 'seated') {
           const aEnd = a.sessionId && a.sessionId.endTime ? new Date(a.sessionId.endTime).getTime() : Number.MAX_SAFE_INTEGER;
           const bEnd = b.sessionId && b.sessionId.endTime ? new Date(b.sessionId.endTime).getTime() : Number.MAX_SAFE_INTEGER;
-          return aEnd - bEnd;
+          if (aEnd !== bEnd) return aEnd - bEnd;
         }
         return new Date(a.createdAt) - new Date(b.createdAt);
       });
@@ -69,18 +92,24 @@
             ${tableNumber ? `<p class="mt-1 font-semibold">${T('queue.table')} ${escapeHtml(tableNumber)}</p>` : ''}
             ${queue.assignmentNote ? `<p class="mt-1 text-xs text-amber-700">${escapeHtml(queue.assignmentNote)}</p>` : ''}
             ${queue.status === 'called' ? `<p class="mt-1 text-sm font-bold text-blue-700">${T('queue.awaitingConfirm')}</p>` : ''}
+            ${queue.status === 'seated' ? `<p class="mt-1 text-xs font-semibold text-slate-500" data-seated="${escapeHtml(queue.seatedAt || queue.createdAt || '')}">${escapeHtml(seatedFor(queue.seatedAt || queue.createdAt))}</p>` : ''}
+            ${queueSitsOverdue(queue) ? `<p class="mt-1 text-xs font-bold text-red-600">${T('queue.manage.overdueHint')}</p>` : ''}
           </div>
           ${queue.status === 'seated'
-            ? `<span class="shrink-0 rounded-lg bg-white px-2 py-1 text-xs font-semibold text-orange-700" data-endtime="${escapeHtml(queue.sessionId && queue.sessionId.endTime || '')}">${queue.sessionId && queue.sessionId.endTime ? remaining(queue.sessionId.endTime) : '—'}</span>`
+            ? `<span class="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold ${queueSitsOverdue(queue) ? 'bg-red-100 text-red-700' : 'bg-white text-orange-700'}" data-endtime="${escapeHtml(queue.sessionId && queue.sessionId.endTime || '')}">${sessionTimerLabel(queue.sessionId && queue.sessionId.endTime)}</span>`
             : `<span class="shrink-0 rounded-lg bg-white px-2 py-1 text-xs font-semibold text-slate-500" data-waiting="${escapeHtml(queue.createdAt)}">${elapsed(queue.createdAt)}</span>`}
         </div>
         ${queue.customerPhone ? `<p class="mt-2 text-sm text-slate-500">${escapeHtml(queue.customerPhone)}</p>` : ''}
         <div class="mt-3 flex flex-wrap gap-2">
           <button type="button" data-ticket="${escapeHtml(queue._id)}" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100">${T('queue.ticket.print')}</button>
-          ${queue.status !== 'seated' ? `<button type="button" data-cancel="${escapeHtml(queue._id)}" class="rounded-lg border border-red-200 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-50">${T('queue.cancelButton')}</button>` : ''}
+          ${queue.status === 'seated'
+            ? `<button type="button" data-complete="${escapeHtml(queue._id)}" data-complete-number="${escapeHtml(queue.queueNumber)}" class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-bold text-white hover:bg-slate-700">${T('queue.manage.complete')}</button>`
+            : `<button type="button" data-cancel="${escapeHtml(queue._id)}" class="rounded-lg border border-red-200 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-50">${T('queue.cancelButton')}</button>`}
         </div>`;
       const cancelButton = card.querySelector('[data-cancel]');
       if (cancelButton) cancelButton.addEventListener('click', () => cancelQueue(queue._id, cancelButton));
+      const completeButton = card.querySelector('[data-complete]');
+      if (completeButton) completeButton.addEventListener('click', () => completeQueue(queue, completeButton));
       const ticketButton = card.querySelector('[data-ticket]');
       if (ticketButton) ticketButton.addEventListener('click', () => openTicket(queue._id, ticketButton));
       groups[queue.status].append(card);
@@ -232,6 +261,23 @@
     }
   }
 
+  async function completeQueue(queue, button) {
+    const confirmed = await Admin.confirm(
+      T('queue.manage.completeConfirm', { queue: queue.queueNumber }),
+      { okText: T('queue.manage.complete'), cancelText: T('common.cancel') }
+    );
+    if (!confirmed) return;
+    if (button) button.disabled = true;
+    try {
+      await Admin.api(`/api/queue/${encodeURIComponent(queue._id)}/complete`, { method: 'POST' });
+      Admin.message(T('queue.manage.completeDone', { queue: queue.queueNumber }));
+      await loadQueues();
+    } catch (error) {
+      Admin.message(error.message || T('queue.manage.completeFailed'), true);
+      if (button) button.disabled = false;
+    }
+  }
+
   async function cancelQueue(queueId, button) {
     const ok = await Admin.confirm(T('queue.cancelModalDesc'), {
       title: T('queue.cancelModalTitle'),
@@ -309,8 +355,17 @@
     document.querySelectorAll('[data-waiting]').forEach((el) => {
       el.textContent = elapsed(el.dataset.waiting);
     });
+    document.querySelectorAll('[data-seated]').forEach((el) => {
+      el.textContent = seatedFor(el.dataset.seated);
+    });
     document.querySelectorAll('[data-endtime]').forEach((el) => {
-      if (el.dataset.endtime) el.textContent = remaining(el.dataset.endtime);
+      if (!el.dataset.endtime) return;
+      el.textContent = sessionTimerLabel(el.dataset.endtime);
+      const overdue = isOverdue(el.dataset.endtime);
+      el.classList.toggle('bg-red-100', overdue);
+      el.classList.toggle('text-red-700', overdue);
+      el.classList.toggle('bg-white', !overdue);
+      el.classList.toggle('text-orange-700', !overdue);
     });
     loadQueues();
   }, 30000);

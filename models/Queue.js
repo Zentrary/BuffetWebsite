@@ -28,9 +28,11 @@ const queueSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    // `completed` closes the lifecycle of a seated queue (paid, table cleared or
+    // closed by staff) so it stops appearing as an active "seated" card forever.
     status: {
       type: String,
-      enum: ['waiting', 'called', 'seated', 'cancelled', 'no_show'],
+      enum: ['waiting', 'called', 'seated', 'completed', 'cancelled', 'no_show'],
       default: 'waiting',
     },
     preferredZone: {
@@ -65,6 +67,9 @@ const queueSchema = new mongoose.Schema(
     seatedAt: {
       type: Date,
     },
+    completedAt: {
+      type: Date,
+    },
     noShowAt: {
       type: Date,
     },
@@ -85,6 +90,7 @@ const queueSchema = new mongoose.Schema(
 
 queueSchema.index({ accessTokenHash: 1 }, { unique: true, sparse: true });
 queueSchema.index({ status: 1, createdAt: 1 });
+queueSchema.index({ status: 1, seatedAt: 1 });
 queueSchema.index({ preferredZone: 1, status: 1 });
 
 // Export the Queue model for use by application modules.
