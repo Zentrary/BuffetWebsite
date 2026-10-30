@@ -47,6 +47,14 @@
               กรอกข้อมูล ตรวจสอบ แล้วกดยืนยันเพื่อรับบัตรคิว
             </p>
           </div>
+          <!-- Shows when the shop stopped accepting new queues (cut-off / closed / test mode). -->
+          <div id="queue-closed-notice" class="mb-4 hidden rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-sm text-amber-900" role="status">
+            <p class="font-bold" data-i18n="queue.closedTitle">
+              ปิดรับคิวแล้ว
+            </p>
+            <p id="queue-closed-message" class="mt-1 text-xs">
+            </p>
+          </div>
           <div id="menu-access-notice" class="mb-4 hidden rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900" role="status">
             <span data-i18n="queue.menuAccessNotice">
               หลังรับคิว ให้เก็บรหัสกู้คืนไว้ พนักงานจะเรียกคิวและจองโต๊ะ เมื่อถึงคิวให้ยืนยันก่อนเริ่มสั่งอาหาร

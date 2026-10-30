@@ -115,12 +115,13 @@
       renderAverageDining();
 
       const salesByDay = new Map((salesWeek.data.salesByDay || []).map((row) => [row.date, row.totalSales]));
-      const dates = lastSevenDays();
-      const labels = dates.map((date) => date.toLocaleDateString(currentLocale(), { day: 'numeric', month: 'short' }));
-      const values = dates.map((date) => {
-        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        return salesByDay.get(key) || 0;
-      });
+      // Prefer the business dates computed by the server (10:30 -> 03:00 trading
+      // days); fall back to the local calendar when the API omits them.
+      const businessDates = Array.isArray(salesWeek.data.dates) && salesWeek.data.dates.length === 7
+        ? salesWeek.data.dates
+        : lastSevenDays().map((date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
+      const labels = businessDates.map((key) => new Date(`${key}T00:00:00`).toLocaleDateString(currentLocale(), { day: 'numeric', month: 'short' }));
+      const values = businessDates.map((key) => salesByDay.get(key) || 0);
       if (typeof Chart === 'function') {
         if (chart) {
           chart.data.labels = labels;

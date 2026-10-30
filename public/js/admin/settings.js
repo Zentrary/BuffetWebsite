@@ -128,6 +128,9 @@
 
     if (form.elements.openTime) form.elements.openTime.value = data.openTime || '10:30';
     if (form.elements.closeTime) form.elements.closeTime.value = data.closeTime || '03:00';
+    if (form.elements.lastQueueTime) form.elements.lastQueueTime.value = data.lastQueueTime || '02:00';
+    const businessDateEl = document.getElementById('business-date');
+    if (businessDateEl) businessDateEl.textContent = data.businessDate || '—';
     if (form.elements.isTestMode) form.elements.isTestMode.checked = Boolean(data.isTestMode);
     ['restaurantName', 'welcomeMessage', 'phone', 'address', 'diningDurationMinutes', 'logoUrl', 'heroImageUrl'].forEach((n) => {
       if (form.elements[n]) form.elements[n].value = data[n] || '';

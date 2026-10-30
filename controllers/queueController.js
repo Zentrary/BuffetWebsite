@@ -1,6 +1,11 @@
 // Import queue-related models and the QR generator.
 const Queue = require('../models/Queue');
 const QueueCounter = require('../models/QueueCounter');
+const {
+  getBusinessDateKey,
+  getBusinessDayRange,
+  getQueueAcceptance,
+} = require('../utils/businessDay');
 const { completeQueueById } = require('../services/queueLifecycle');
 const Table = require('../models/Table');
 const Session = require('../models/Session');
@@ -40,47 +45,57 @@ function zoneLabel(zone) {
   return (ZONE_RULES[zone] && ZONE_RULES[zone].label) || zone;
 }
 
-async function getNextQueueNumber() {
+function queueCounterId(businessDate) {
+  return `queue-number:${businessDate}`;
+}
+
+/**
+ * Highest sequence already stored for a business day (used to seed a missing counter).
+ * @param {string} businessDate - Business date key.
+ * @returns {Promise<number>} Highest sequence, or 0 when the day has no queues yet.
+ */
+async function highestSequenceFor(businessDate) {
+  const [latest] = await Queue.find({ businessDate })
+    .select('sequence')
+    .sort({ sequence: -1 })
+    .limit(1)
+    .lean();
+  return (latest && Number.isSafeInteger(latest.sequence) && latest.sequence) || 0;
+}
+
+/**
+ * Allocate the next queue number of a business day, restarting at Q001 each day.
+ * @param {string} businessDate - Business date key ("YYYY-MM-DD").
+ * @returns {Promise<string>} Queue number such as "Q001".
+ */
+async function getNextQueueNumber(businessDate) {
+  // Never guess the day here: callers resolve it from the shop's opening hours.
+  if (!businessDate) throw new Error('A business date is required to allocate a queue number.');
+  const counterId = queueCounterId(businessDate);
   let counter;
   try {
     counter = await QueueCounter.findOneAndUpdate(
-      { _id: 'queue-number' },
+      { _id: counterId },
       { $inc: { sequence: 1 } },
-      { new: true }
+      { new: true, upsert: true }
     );
   } catch (error) {
     if (error.code !== 11000) throw error;
+    counter = await QueueCounter.findOneAndUpdate(
+      { _id: counterId },
+      { $inc: { sequence: 1 } },
+      { new: true }
+    );
   }
   if (!counter) {
-    const [latest] = await Queue.aggregate([
-      { $match: { queueNumber: /^Q\d+$/ } },
-      {
-        $project: {
-          sequence: {
-            $convert: {
-              input: { $substrBytes: ['$queueNumber', 1, { $subtract: [{ $strLenBytes: '$queueNumber' }, 1] }] },
-              to: 'long',
-              onError: 0,
-              onNull: 0,
-            },
-          },
-        },
-      },
-      { $sort: { sequence: -1 } },
-      { $limit: 1 },
-    ]);
-    try {
-      await QueueCounter.updateOne(
-        { _id: 'queue-number' },
-        { $setOnInsert: { sequence: latest ? latest.sequence : 0 } },
-        { upsert: true }
-      );
-    } catch (error) {
-      if (error.code !== 11000) throw error;
-    }
+    throw new Error('Queue sequence counter is not available.');
+  }
+  // A counter created before its queues were migrated can lag behind them.
+  const highest = await highestSequenceFor(businessDate);
+  if (highest > counter.sequence) {
     counter = await QueueCounter.findOneAndUpdate(
-      { _id: 'queue-number' },
-      { $inc: { sequence: 1 } },
+      { _id: counterId },
+      { $set: { sequence: highest + 1 } },
       { new: true }
     );
   }
@@ -90,11 +105,19 @@ async function getNextQueueNumber() {
   return `Q${String(counter.sequence).padStart(3, '0')}`;
 }
 
+/**
+ * Settings used for business-day maths (falls back to defaults when missing).
+ * @returns {Promise<object>} Shop settings document.
+ */
+async function loadSettings() {
+  return ShopSettings.findById('shop-settings').lean();
+}
+
 async function getQueueStatus(queue) {
-  const startOfDay = new Date(queue.createdAt);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(startOfDay);
-  endOfDay.setDate(endOfDay.getDate() + 1);
+  // "Waiting ahead" is scoped to the ticket's own business day, not the calendar
+  // day, so 02:00 tickets still compare against the previous evening's queue.
+  const settings = await loadSettings();
+  const { start: startOfDay, end: endOfDay } = getBusinessDayRange(settings, queue.createdAt || new Date(), 1);
   const [waitingAhead, waitingCount, session] = await Promise.all([
     queue.status === 'waiting'
       ? Queue.countDocuments({
@@ -114,6 +137,7 @@ async function getQueueStatus(queue) {
   return {
     _id: queue._id,
     queueNumber: queue.queueNumber,
+    businessDate: queue.businessDate || null,
     customerCount: queue.customerCount,
     status: queue.status,
     createdAt: queue.createdAt,
@@ -227,10 +251,9 @@ async function createQueue(req, res) {
 
     const accessToken = createQueueAccessToken();
     const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(startOfDay);
-    endOfDay.setDate(endOfDay.getDate() + 1);
+    const shopSettings = await loadSettings();
+    const businessDate = getBusinessDateKey(shopSettings, now);
+    const { start: startOfDay, end: endOfDay } = getBusinessDayRange(shopSettings, now, 1);
     const waitingAhead = await Queue.countDocuments({
       status: 'waiting',
       createdAt: { $gte: startOfDay, $lt: endOfDay },
@@ -239,10 +262,12 @@ async function createQueue(req, res) {
     let queueNumber;
     let queue;
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      queueNumber = await getNextQueueNumber();
+      queueNumber = await getNextQueueNumber(businessDate);
       try {
         queue = await Queue.create({
           queueNumber,
+          businessDate,
+          sequence: Number(queueNumber.slice(1)),
           customerCount: count,
           customerName,
           customerPhone,
@@ -275,6 +300,7 @@ async function createQueue(req, res) {
       success: true,
       data: {
         _id: queue._id,
+        businessDate: queue.businessDate,
         queueNumber: queue.queueNumber,
         customerCount: queue.customerCount,
         status: queue.status,
@@ -1092,6 +1118,7 @@ async function getDisplayData(req, res) {
       createdAt: q.createdAt,
     }));
 
+    const settings = await loadSettings();
     res.set('Cache-Control', 'no-store');
     return res.status(200).json({
       success: true,
@@ -1099,6 +1126,7 @@ async function getDisplayData(req, res) {
         nowServing,
         waiting: waitingList,
         totalWaiting,
+        queueStatus: getQueueAcceptance(settings || {}, new Date()),
         updatedAt: new Date().toISOString(),
       },
       message: 'ดึงข้อมูลจอแสดงคิวสำเร็จ',
@@ -1117,7 +1145,7 @@ async function getDisplayData(req, res) {
 module.exports = {
   createQueue, getQueues, callQueue, cancelQueue, cancelQueueByCustomer, completeQueue,
   getQueueById, recoverQueue, recoverQueueById, confirmQueue,
-  getNextQueueNumber, getEntryQRCode, getTicketData,
+  getNextQueueNumber, getEntryQRCode, getTicketData, queueCounterId,
   findTableForQueue, zoneForCount, ZONE_RULES, MAX_PARTY_SIZE,
   getDisplayData,
 };

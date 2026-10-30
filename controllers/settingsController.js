@@ -1,5 +1,6 @@
 const ShopSettings = require('../models/ShopSettings');
 const { parseTime, getShopStatus } = require('../utils/shopStatus');
+const { getQueueAcceptance, getBusinessDateKey } = require('../utils/businessDay');
 
 async function loadSettings() {
   return ShopSettings.findByIdAndUpdate(
@@ -10,7 +11,12 @@ async function loadSettings() {
 }
 
 function output(settings) {
-  return { ...settings.toObject(), status: getShopStatus(settings) };
+  return {
+    ...settings.toObject(),
+    status: getShopStatus(settings),
+    queueStatus: getQueueAcceptance(settings, new Date()),
+    businessDate: getBusinessDateKey(settings, new Date()),
+  };
 }
 
 async function getSettings(req, res, next) {
@@ -45,7 +51,7 @@ function clampPercent(value, fallback, max = 30) {
 async function updateSettings(req, res, next) {
   try {
     const {
-      openTime, closeTime, isTestMode, restaurantName, welcomeMessage, phone, address,
+      openTime, closeTime, lastQueueTime, isTestMode, restaurantName, welcomeMessage, phone, address,
       diningDurationMinutes, logoUrl, heroImageUrl,
       vatPercent, serviceChargePercent, vatMode, serviceChargeMode, paymentQrImageUrl,
     } = req.body;
@@ -54,9 +60,14 @@ async function updateSettings(req, res, next) {
       return res.status(400).json({ success: false, code: 'INVALID_SHOP_TIME', message: 'เวลาเปิดและปิดต้องเป็น HH:MM และต้องไม่เท่ากัน' });
     }
 
+    if (lastQueueTime !== undefined && parseTime(lastQueueTime) === null) {
+      return res.status(400).json({ success: false, code: 'INVALID_QUEUE_TIME', message: 'เวลาปิดรับคิวต้องเป็นรูปแบบ HH:MM' });
+    }
+
     const settings = await loadSettings();
     settings.openTime = openTime;
     settings.closeTime = closeTime;
+    if (lastQueueTime !== undefined) settings.lastQueueTime = lastQueueTime;
     settings.isTestMode = Boolean(isTestMode);
     settings.restaurantName = String(restaurantName || '').trim() || 'Smart Queue';
     settings.welcomeMessage = String(welcomeMessage || '').trim();
@@ -77,6 +88,7 @@ async function updateSettings(req, res, next) {
 
     await settings.save();
     req.app.get('io').to('admin').to('customer').emit('shop_status_changed', getShopStatus(settings));
+    req.app.get('io').to('admin').to('customer').emit('queue_status_changed', getQueueAcceptance(settings));
     return res.json({ success: true, data: output(settings), message: 'บันทึกการตั้งค่าร้านแล้ว' });
   } catch (error) { return next(error); }
 }

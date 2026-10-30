@@ -39,8 +39,29 @@
   function pad(n) { return String(n).padStart(2, '0'); }
   function toInputDate(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
 
+  // The shop's business day can differ from the calendar day (10:30 -> 03:00),
+  // so "today" is the business date reported by the server when available.
+  let businessToday = null;
+
+  async function resolveBusinessToday() {
+    try {
+      const response = await fetch('/api/settings/public', { cache: 'no-store' });
+      if (!response.ok) return;
+      const payload = await response.json();
+      const date = payload && payload.data && payload.data.queueStatus && payload.data.queueStatus.businessDate;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(String(date || ''))) businessToday = String(date);
+    } catch {}
+  }
+
+  function todayAnchor() {
+    if (businessToday) return new Date(`${businessToday}T00:00:00`);
+    const fallback = new Date();
+    fallback.setHours(0, 0, 0, 0);
+    return fallback;
+  }
+
   function presetRange(preset) {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const today = todayAnchor();
     const end = new Date(today);
     let start = new Date(today);
     switch (preset) {
@@ -631,5 +652,6 @@
     setRange(currentRange, { reload: false });
   });
 
-  setRange(presetRange('today'));
+  // Load the business date first so the default "today" range matches the books.
+  resolveBusinessToday().finally(() => setRange(presetRange('today')));
 })();
