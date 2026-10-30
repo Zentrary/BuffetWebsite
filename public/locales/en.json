@@ -955,6 +955,7 @@
   "display.kicker": "Queue Display",
   "display.nowServing": "Now Serving",
   "display.waitingTitle": "Waiting",
+  "display.waitingHint": "Queues waiting right now",
   "display.queue": "Queue",
   "display.noQueue": "No queue called yet",
   "display.noServing": "No queue is being served",

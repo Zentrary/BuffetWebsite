@@ -650,6 +650,7 @@
   "display.kicker": "จอแสดงคิว",
   "display.nowServing": "กำลังเรียก",
   "display.waitingTitle": "รอเรียก",
+  "display.waitingHint": "คิวที่รอเรียกอยู่ในขณะนี้",
   "display.queue": "คิว",
   "display.noQueue": "ยังไม่มีคิวที่ถูกเรียก",
   "display.noServing": "ยังไม่มีคิวที่ถูกเรียก",
