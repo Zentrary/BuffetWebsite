@@ -895,6 +895,8 @@
   "error.INVALID_ORDER_QUANTITY": "Quantity must be a positive whole number.",
   "error.STOCK_RESTORE_FAILED": "Stock could not be restored. Please contact an administrator.",
   "error.REQUEST_FAILED": "Request failed. Please try again.",
+  "error.QUEUE_NUMBER_CONFLICT": "The queue number is being reissued. Please press confirm again.",
+  "error.INVALID_QUEUE_PAYLOAD": "The queue details are invalid. Please check the party size and try again.",
   "error.RATE_LIMITED": "You are going too fast. Please wait a moment and try again.",
   "error.SHOP_CLOSED": "The restaurant is currently closed. Please try again later.",
   "error.INVALID_PARTY_SIZE": "Invalid party size.",
