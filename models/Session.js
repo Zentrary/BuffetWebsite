@@ -65,6 +65,54 @@ const sessionSchema = new mongoose.Schema(
     paidAt: {
       type: Date,
     },
+    // Optional SQL Membership & Loyalty reference fields linked at checkout.
+    memberId: {
+      type: Number,
+      default: null,
+    },
+    memberPhone: {
+      type: String,
+      default: '',
+    },
+    memberName: {
+      type: String,
+      default: '',
+    },
+    memberTierName: {
+      type: String,
+      default: '',
+    },
+    benefitType: {
+      type: String,
+      enum: ['', 'NONE', 'TIER', 'PROMO'],
+      default: '',
+    },
+    appliedPromotionId: {
+      type: Number,
+      default: null,
+    },
+    appliedPromoCode: {
+      type: String,
+      default: '',
+    },
+    appliedPromoTitle: {
+      type: String,
+      default: '',
+    },
+    pointsToRedeem: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    pointsEarned: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    loyaltyProcessedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     // Let Mongoose manage createdAt and updatedAt automatically.
