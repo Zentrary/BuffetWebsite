@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title data-i18n="page.adminMembersTitle">
-      สมาชิกและโปรโมชัน (SQL)
+      สมาชิกและโปรโมชัน
     </title>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="icon" type="image/png" href="/api/settings/favicon?v=1" />
@@ -16,39 +16,39 @@
         <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <p class="font-bold uppercase tracking-widest text-orange-600" data-i18n="admin.members.kicker">
-              ระบบสมาชิก สะสมแต้ม และคูปองส่วนลด (SQL)
+              ระบบสมาชิกและสิทธิพิเศษ
             </p>
             <h1 class="mt-1 text-3xl font-black sm:text-4xl" data-i18n="admin.members.title">
               จัดการสมาชิกและโปรโมชัน
             </h1>
             <p class="mt-1.5 text-sm text-slate-500" data-i18n="admin.members.subtitle">
-              บันทึกและประมวลผลด้วยคำสั่ง SQL เชื่อมกับ SQL Server Management Studio (SSMS)
+              ดูแลข้อมูลสมาชิก สะสมแต้ม ระดับบัตร และคูปองส่วนลดสำหรับลูกค้าของร้าน
             </p>
           </div>
-          <div class="flex flex-wrap items-center gap-2.5">
+          <div class="flex flex-wrap gap-2">
             <button
-              id="sql-status-badge"
+              id="add-member-button"
               type="button"
-              class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              class="rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-orange-700"
+              data-i18n="admin.members.addMemberBtn"
             >
-              <span id="sql-status-dot" class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
-              <span id="sql-status-text">กำลังตรวจสอบฐานข้อมูล SQL...</span>
+              + สมัครสมาชิกใหม่
             </button>
             <button
-              id="open-ssms-guide"
+              id="add-promo-button"
               type="button"
-              class="rounded-xl border border-orange-200 bg-orange-50 px-4 py-2.5 text-sm font-bold text-orange-800 transition hover:bg-orange-100"
-              data-i18n="admin.members.ssmsGuideBtn"
+              class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800"
+              data-i18n="admin.members.addPromoBtn"
             >
-              คู่มือเชื่อม SSMS
+              + เพิ่มคูปองโปรโมชัน
             </button>
           </div>
         </header>
 
         <p id="page-message" class="mb-5 hidden rounded-xl p-4" role="status"></p>
 
-        <!-- Summary KPI Cards (SQL COUNT / SUM / GROUP BY) -->
-        <section class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="SQL Summary">
+        <!-- Summary KPI Cards -->
+        <section class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" data-i18n-aria-label="admin.members.summaryAria" aria-label="สรุปข้อมูลสมาชิกและโปรโมชัน">
           <article class="rounded-2xl bg-white p-5 shadow-sm">
             <p class="text-sm font-semibold text-slate-500" data-i18n="admin.members.kpiTotalMembers">
               สมาชิกทั้งหมด
@@ -79,7 +79,7 @@
           </article>
         </section>
 
-        <!-- Tabs + Primary Action Buttons -->
+        <!-- Tabs -->
         <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div id="loyalty-tabs" class="inline-flex flex-wrap rounded-xl border border-slate-200 bg-white p-1 shadow-sm" role="tablist">
             <button
@@ -113,25 +113,6 @@
               ประวัติแต้ม & ระดับบัตร
             </button>
           </div>
-
-          <div class="flex flex-wrap gap-2">
-            <button
-              id="add-member-button"
-              type="button"
-              class="rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-orange-700"
-              data-i18n="admin.members.addMemberBtn"
-            >
-              + สมัครสมาชิกใหม่
-            </button>
-            <button
-              id="add-promo-button"
-              type="button"
-              class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800"
-              data-i18n="admin.members.addPromoBtn"
-            >
-              + เพิ่มคูปองโปรโมชัน
-            </button>
-          </div>
         </div>
 
         <div id="loyalty-loading" class="flex min-h-24 items-center justify-center gap-3 text-slate-500" role="status">
@@ -151,7 +132,7 @@
             />
             <select id="member-tier-filter" class="rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold">
               <option value="" data-i18n="admin.members.allTiers">ทุกระดับบัตร</option>
-              <option value="MEMBER">สมาชิกทั่วไป (Member)</option>
+              <option value="MEMBER" data-i18n="admin.members.tierOptionMember">สมาชิกทั่วไป</option>
               <option value="SILVER">Silver</option>
               <option value="GOLD">Gold</option>
               <option value="VIP">VIP</option>
@@ -194,14 +175,14 @@
               <table class="w-full min-w-[820px] text-left">
                 <thead class="bg-slate-50 text-sm text-slate-500">
                   <tr>
-                    <th class="p-4">รหัสคูปอง</th>
-                    <th class="p-4">ชื่อโปรโมชัน / เงื่อนไข</th>
-                    <th class="p-4">มูลค่าส่วนลด</th>
-                    <th class="p-4 text-right">แต้มที่ใช้แลก</th>
-                    <th class="p-4 text-right">ยอดขั้นต่ำ</th>
-                    <th class="p-4 text-right">แลกไปแล้ว</th>
-                    <th class="p-4">สถานะ</th>
-                    <th class="p-4 text-right">จัดการ</th>
+                    <th class="p-4" data-i18n="admin.members.colPromoCode">รหัสคูปอง</th>
+                    <th class="p-4" data-i18n="admin.members.colPromoTitle">ชื่อโปรโมชัน / เงื่อนไข</th>
+                    <th class="p-4" data-i18n="admin.members.colDiscountValue">มูลค่าส่วนลด</th>
+                    <th class="p-4 text-right" data-i18n="admin.members.colPointsCost">แต้มที่ใช้แลก</th>
+                    <th class="p-4 text-right" data-i18n="admin.members.colMinSpend">ยอดขั้นต่ำ</th>
+                    <th class="p-4 text-right" data-i18n="admin.members.colRedeemedCount">แลกไปแล้ว</th>
+                    <th class="p-4" data-i18n="admin.members.colStatus">สถานะ</th>
+                    <th class="p-4 text-right" data-i18n="admin.members.colActions">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody id="promo-rows" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -216,32 +197,32 @@
         <!-- TAB 3: POINT TRANSACTIONS & TIERS -->
         <section id="panel-logs" class="hidden space-y-5">
           <div>
-            <h2 class="mb-3 text-lg font-black text-slate-900">
-              เกณฑ์ระดับบัตรสมาชิกอัตโนมัติ (ตาราง <code class="rounded bg-slate-200 px-1.5 py-0.5 text-sm">MembershipTiers</code>)
+            <h2 class="mb-3 text-lg font-black text-slate-900" data-i18n="admin.members.tiersHeading">
+              เกณฑ์ระดับบัตรสมาชิกอัตโนมัติ
             </h2>
             <div id="tier-cards" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
           </div>
 
           <div class="overflow-hidden rounded-2xl bg-white shadow-sm">
             <div class="border-b border-slate-100 px-5 py-4">
-              <h2 class="text-lg font-black text-slate-900">
-                ประวัติธุรกรรมแต้มและคูปองล่าสุด (SQL <code class="rounded bg-slate-100 px-1.5 py-0.5 text-sm">JOIN</code> 3 ตาราง)
+              <h2 class="text-lg font-black text-slate-900" data-i18n="admin.members.txHeading">
+                ประวัติการใช้แต้มและคูปองล่าสุด
               </h2>
-              <p class="mt-0.5 text-xs text-slate-500">
-                เชื่อมข้อมูลจากตาราง PointTransactions + Members + Promotions
+              <p class="mt-0.5 text-xs text-slate-500" data-i18n="admin.members.txSubtitle">
+                รายการสะสมแต้ม แลกคูปองส่วนลด และการปรับแต้มของสมาชิกทั้งหมด
               </p>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full min-w-[820px] text-left">
                 <thead class="bg-slate-50 text-sm text-slate-500">
                   <tr>
-                    <th class="p-4">เวลา</th>
-                    <th class="p-4">สมาชิก</th>
-                    <th class="p-4">ประเภท</th>
-                    <th class="p-4 text-right">แต้ม</th>
-                    <th class="p-4 text-right">ส่วนลด</th>
-                    <th class="p-4">คูปอง / รายละเอียด</th>
-                    <th class="p-4">ผู้ทำรายการ</th>
+                    <th class="p-4" data-i18n="admin.members.colTime">เวลา</th>
+                    <th class="p-4" data-i18n="admin.members.colMemberShort">สมาชิก</th>
+                    <th class="p-4" data-i18n="admin.members.colType">ประเภท</th>
+                    <th class="p-4 text-right" data-i18n="admin.members.colPointsShort">แต้ม</th>
+                    <th class="p-4 text-right" data-i18n="checkout.discount">ส่วนลด</th>
+                    <th class="p-4" data-i18n="admin.members.colPromoOrNote">คูปอง / รายละเอียด</th>
+                    <th class="p-4" data-i18n="admin.members.colOperator">ผู้ทำรายการ</th>
                   </tr>
                 </thead>
                 <tbody id="tx-rows" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -256,183 +237,138 @@
     </div>
 
     <!-- Modal 1: Add / Edit Member -->
-    <div id="member-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true">
+    <div id="member-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
       <form id="member-form" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
         <div class="mb-5 flex items-center justify-between">
-          <h2 id="member-modal-title" class="text-2xl font-black">สมัครสมาชิกใหม่</h2>
-          <button type="button" data-close-member-modal class="rounded-lg bg-slate-100 px-3 py-1.5 font-bold">✕</button>
+          <h2 id="member-modal-title" class="text-2xl font-black" data-i18n-skip>สมัครสมาชิกใหม่</h2>
+          <button type="button" data-close-member-modal class="rounded-lg bg-slate-100 px-3 py-1.5 font-bold" data-i18n-aria-label="common.close" aria-label="ปิด">✕</button>
         </div>
         <input type="hidden" name="memberId" />
         <label class="mb-4 block text-sm font-bold">
-          <span>ชื่อ-นามสกุล *</span>
-          <input name="fullName" required class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="เช่น สมชาย ใจดี" />
+          <span data-i18n="admin.members.fieldFullName">ชื่อ-นามสกุล *</span>
+          <input name="fullName" required class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="เช่น สมชาย ใจดี" data-i18n-placeholder="admin.members.fullNamePlaceholder" />
         </label>
         <label class="mb-4 block text-sm font-bold">
-          <span>เบอร์โทรศัพท์ * (9–15 หลัก)</span>
+          <span data-i18n="admin.members.fieldPhone">เบอร์โทรศัพท์ * (9–15 หลัก)</span>
           <input name="phone" type="tel" required class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="0812345678" />
         </label>
         <label class="mb-4 block text-sm font-bold">
-          <span>อีเมล (ไม่บังคับ)</span>
+          <span data-i18n="admin.members.fieldEmail">อีเมล (ไม่บังคับ)</span>
           <input name="email" type="email" class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="customer@example.com" />
         </label>
         <label id="member-initial-points-wrap" class="mb-4 block text-sm font-bold">
-          <span>แต้มต้อนรับเริ่มต้น</span>
+          <span data-i18n="admin.members.fieldInitialPoints">แต้มต้อนรับเริ่มต้น</span>
           <input name="initialPoints" type="number" min="0" step="1" value="0" class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
-          <small class="mt-1 block font-normal text-slate-500">ระบบคำนวณระดับบัตร (ทั่วไป / Silver / Gold / VIP) ให้อัตโนมัติตามแต้ม</small>
+          <small class="mt-1 block font-normal text-slate-500" data-i18n="admin.members.tierAutoHint">ระบบคำนวณระดับบัตร (ทั่วไป / Silver / Gold / VIP) ให้อัตโนมัติตามแต้ม</small>
         </label>
         <label id="member-status-wrap" class="mb-5 hidden items-center gap-2.5 text-sm font-bold">
           <input name="isActive" type="checkbox" checked class="checkbox checkbox-sm checkbox-primary" />
-          <span>เปิดใช้งานบัญชีสมาชิกนี้</span>
+          <span data-i18n="admin.members.fieldActiveMember">เปิดใช้งานบัญชีสมาชิกนี้</span>
         </label>
-        <button type="submit" class="w-full rounded-xl bg-orange-600 px-4 py-3 font-bold text-white hover:bg-orange-700">
-          บันทึกข้อมูลสมาชิก (SQL)
+        <button type="submit" class="w-full rounded-xl bg-orange-600 px-4 py-3 font-bold text-white hover:bg-orange-700" data-i18n="admin.members.saveMemberBtn">
+          บันทึกข้อมูลสมาชิก
         </button>
       </form>
     </div>
 
     <!-- Modal 2: Add / Edit Promotion -->
-    <div id="promo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true">
+    <div id="promo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true" aria-labelledby="promo-modal-title">
       <form id="promo-form" class="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
         <div class="mb-5 flex items-center justify-between">
-          <h2 id="promo-modal-title" class="text-2xl font-black">เพิ่มคูปองโปรโมชัน</h2>
-          <button type="button" data-close-promo-modal class="rounded-lg bg-slate-100 px-3 py-1.5 font-bold">✕</button>
+          <h2 id="promo-modal-title" class="text-2xl font-black" data-i18n-skip>เพิ่มคูปองโปรโมชัน</h2>
+          <button type="button" data-close-promo-modal class="rounded-lg bg-slate-100 px-3 py-1.5 font-bold" data-i18n-aria-label="common.close" aria-label="ปิด">✕</button>
         </div>
         <input type="hidden" name="promotionId" />
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label class="block text-sm font-bold">
-            <span>รหัสคูปอง *</span>
+            <span data-i18n="admin.members.fieldPromoCode">รหัสคูปอง *</span>
             <input name="promoCode" required class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 uppercase" placeholder="SAVE50" />
           </label>
           <label class="block text-sm font-bold">
-            <span>แต้มที่ใช้แลก *</span>
+            <span data-i18n="admin.members.fieldPointsCost">แต้มที่ใช้แลก *</span>
             <input name="pointsCost" type="number" min="0" step="1" value="0" required class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
           </label>
         </div>
         <label class="mt-4 block text-sm font-bold">
-          <span>ชื่อโปรโมชัน/คูปอง *</span>
-          <input name="title" required class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="เช่น แลก 30 แต้ม ลดทันที 50 บาท" />
+          <span data-i18n="admin.members.fieldPromoTitle">ชื่อโปรโมชัน/คูปอง *</span>
+          <input name="title" required class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="เช่น แลก 30 แต้ม ลดทันที 50 บาท" data-i18n-placeholder="admin.members.promoTitlePlaceholder" />
         </label>
         <label class="mt-4 block text-sm font-bold">
-          <span>รายละเอียดเงื่อนไข</span>
-          <input name="description" class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="คำอธิบายเพิ่มเติม (ไม่บังคับ)" />
+          <span data-i18n="admin.members.fieldPromoDesc">รายละเอียดเงื่อนไข</span>
+          <input name="description" class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="คำอธิบายเพิ่มเติม (ไม่บังคับ)" data-i18n-placeholder="admin.members.promoDescPlaceholder" />
         </label>
         <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label class="block text-sm font-bold">
-            <span>รูปแบบส่วนลด *</span>
+            <span data-i18n="admin.members.fieldDiscountType">รูปแบบส่วนลด *</span>
             <select name="discountType" class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5">
-              <option value="FIXED">ลดเป็นจำนวนเงิน (บาท)</option>
-              <option value="PERCENT">ลดเป็นเปอร์เซ็นต์ (%)</option>
+              <option value="FIXED" data-i18n="admin.members.discountTypeFixed">ลดเป็นจำนวนเงิน (บาท)</option>
+              <option value="PERCENT" data-i18n="admin.members.discountTypePercent">ลดเป็นเปอร์เซ็นต์ (%)</option>
             </select>
           </label>
           <label class="block text-sm font-bold">
-            <span>มูลค่าส่วนลด *</span>
-            <input name="discountValue" type="number" min="1" step="0.01" required class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="50" />
+            <span data-i18n="admin.members.fieldDiscountValue">มูลค่าส่วนลด *</span>
+            <input name="discountValue" type="number" min="1" step="0.01" data-no-stepper required class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="50" />
           </label>
         </div>
         <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label class="block text-sm font-bold">
-            <span>ยอดอาหารขั้นต่ำ (บาท)</span>
-            <input name="minSpend" type="number" min="0" step="0.01" value="0" class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
+            <span data-i18n="admin.members.fieldMinSpend">ยอดอาหารขั้นต่ำ (บาท)</span>
+            <input name="minSpend" type="number" min="0" step="0.01" value="0" data-no-stepper class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
           </label>
           <label class="block text-sm font-bold">
-            <span>ลดสูงสุด (บาท, เฉพาะ %)</span>
-            <input name="maxDiscount" type="number" min="1" step="0.01" class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="เว้นว่าง = ไม่จำกัด" />
+            <span data-i18n="admin.members.fieldMaxDiscount">ลดสูงสุด (บาท, เฉพาะ %)</span>
+            <input name="maxDiscount" type="number" min="1" step="0.01" data-no-stepper class="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5" placeholder="เว้นว่าง = ไม่จำกัด" data-i18n-placeholder="admin.members.maxDiscountPlaceholder" />
           </label>
         </div>
         <label class="mt-4 flex items-center gap-2.5 text-sm font-bold">
           <input name="isActive" type="checkbox" checked class="checkbox checkbox-sm checkbox-primary" />
-          <span>เปิดให้พนักงานเลือกใช้คูปองนี้ตอนเช็คบิล</span>
+          <span data-i18n="admin.members.fieldPromoActive">เปิดให้พนักงานเลือกใช้คูปองนี้ตอนเช็คบิล</span>
         </label>
-        <button type="submit" class="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3 font-bold text-white hover:bg-slate-800">
-          บันทึกคูปองโปรโมชัน (SQL)
+        <button type="submit" class="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3 font-bold text-white hover:bg-slate-800" data-i18n="admin.members.savePromoBtn">
+          บันทึกคูปองโปรโมชัน
         </button>
       </form>
     </div>
 
     <!-- Modal 3: Member Point History & Manual Bonus/Adjust -->
-    <div id="points-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true">
+    <div id="points-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true" aria-labelledby="points-modal-name">
       <section class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
         <div class="mb-4 flex items-start justify-between gap-3">
           <div>
-            <p id="points-modal-code" class="text-xs font-bold uppercase tracking-widest text-orange-600">MB0001</p>
-            <h2 id="points-modal-name" class="text-2xl font-black text-slate-900">ประวัติแต้มสมาชิก</h2>
-            <p id="points-modal-meta" class="mt-1 text-sm text-slate-500"></p>
+            <p id="points-modal-code" class="text-xs font-bold uppercase tracking-widest text-orange-600" data-i18n-skip>MB0001</p>
+            <h2 id="points-modal-name" class="text-2xl font-black text-slate-900" data-i18n-skip>—</h2>
+            <p id="points-modal-meta" class="mt-1 text-sm text-slate-500" data-i18n-skip></p>
           </div>
-          <button type="button" data-close-points-modal class="rounded-lg bg-slate-100 px-3 py-1.5 font-bold">✕</button>
+          <button type="button" data-close-points-modal class="rounded-lg bg-slate-100 px-3 py-1.5 font-bold" data-i18n-aria-label="common.close" aria-label="ปิด">✕</button>
         </div>
 
         <form id="points-adjust-form" class="mb-5 rounded-xl border border-orange-200 bg-orange-50/70 p-4">
           <input type="hidden" name="memberId" />
-          <p class="mb-2 text-sm font-bold text-slate-800">ปรับปรุงแต้มพิเศษ (บันทึกเข้า PointTransactions)</p>
+          <p class="mb-2 text-sm font-bold text-slate-800" data-i18n="admin.members.adjustPointsTitle">ปรับปรุงแต้มพิเศษ</p>
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <input name="pointsDelta" type="number" required placeholder="+20 หรือ -10" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold" />
-            <input name="note" placeholder="หมายเหตุ เช่น แต้มของขวัญวันเกิด" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm sm:col-span-2" />
+            <input name="pointsDelta" type="number" data-no-stepper required placeholder="+20 หรือ -10" data-i18n-placeholder="admin.members.pointsDeltaPlaceholder" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold" />
+            <input name="note" placeholder="หมายเหตุ เช่น แต้มของขวัญวันเกิด" data-i18n-placeholder="admin.members.pointsNotePlaceholder" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm sm:col-span-2" />
           </div>
-          <button type="submit" class="mt-3 rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-700">
+          <button type="submit" class="mt-3 rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-700" data-i18n="admin.members.savePointsAdjustBtn">
             บันทึกการปรับแต้ม
           </button>
         </form>
 
-        <h3 class="mb-2 text-sm font-bold text-slate-700">ประวัติรายการแต้มล่าสุด</h3>
+        <h3 class="mb-2 text-sm font-bold text-slate-700" data-i18n="admin.members.recentMemberTxTitle">ประวัติรายการแต้มล่าสุด</h3>
         <div class="overflow-x-auto rounded-xl border border-slate-200">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-50 text-slate-500">
               <tr>
-                <th class="p-3">เวลา</th>
-                <th class="p-3">ประเภท</th>
-                <th class="p-3 text-right">แต้ม</th>
-                <th class="p-3 text-right">ส่วนลด</th>
-                <th class="p-3">รายละเอียด</th>
+                <th class="p-3" data-i18n="admin.members.colTime">เวลา</th>
+                <th class="p-3" data-i18n="admin.members.colType">ประเภท</th>
+                <th class="p-3 text-right" data-i18n="admin.members.colPointsShort">แต้ม</th>
+                <th class="p-3 text-right" data-i18n="checkout.discount">ส่วนลด</th>
+                <th class="p-3" data-i18n="admin.members.colDetails">รายละเอียด</th>
               </tr>
             </thead>
             <tbody id="member-tx-rows" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
-      </section>
-    </div>
-
-    <!-- Modal 4: SSMS Connection Guide -->
-    <div id="ssms-guide-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true">
-      <section class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
-        <div class="mb-4 flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-orange-600">Microsoft SQL Server</p>
-            <h2 class="text-2xl font-black text-slate-900">วิธีเชื่อมต่อกับ SQL Server Management Studio (SSMS)</h2>
-          </div>
-          <button type="button" data-close-ssms-modal class="rounded-lg bg-slate-100 px-3 py-1.5 font-bold">✕</button>
-        </div>
-
-        <div id="ssms-current-status-box" class="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm"></div>
-
-        <ol class="space-y-3 text-sm text-slate-700">
-          <li class="rounded-xl border border-slate-200 p-3.5">
-            <strong class="text-slate-900">ขั้นตอนที่ 1: รันไฟล์สร้างตารางในโปรแกรม SSMS</strong>
-            <p class="mt-1 text-slate-600">
-              เปิดโปรแกรม <strong>SQL Server Management Studio (SSMS)</strong> แล้วเปิดไฟล์
-              <code class="rounded bg-orange-100 px-1.5 py-0.5 font-bold text-orange-900">sql/buffet_loyalty_ssms.sql</code>
-              จากในโฟลเดอร์โปรเจกต์ กดปุ่ม <strong>Execute (F5)</strong> เพื่อสร้างฐานข้อมูล
-              <code>BuffetLoyaltyDB</code> พร้อมทั้ง 4 ตาราง (PK/FK ครบ) และ SQL View
-            </p>
-          </li>
-          <li class="rounded-xl border border-slate-200 p-3.5">
-            <strong class="text-slate-900">ขั้นตอนที่ 2: ตั้งค่าเชื่อมต่อในไฟล์ <code>.env</code></strong>
-            <pre class="mt-2 overflow-x-auto rounded-lg bg-slate-900 p-3 text-xs text-slate-100">SQL_SERVER=localhost
-SQL_PORT=1433
-SQL_DATABASE=BuffetLoyaltyDB
-SQL_USER=sa
-SQL_PASSWORD=รหัสผ่านของคุณใน_SSMS
-SQL_TRUST_SERVER_CERTIFICATE=true</pre>
-            <p class="mt-1.5 text-xs text-slate-500">
-              * หากใช้ SQL Server Express แบบมีชื่อ Instance สามารถใส่ <code>SQL_SERVER=localhost\SQLEXPRESS</code> ได้เลย (ท้ายไฟล์ <code>.sql</code> มีคำสั่งสร้าง User <code>buffet_app</code> เตรียมไว้ให้ด้วย)
-            </p>
-          </li>
-          <li class="rounded-xl border border-slate-200 p-3.5">
-            <strong class="text-slate-900">ขั้นตอนที่ 3: ทดสอบการเชื่อมต่อด้วยคำสั่งเดียว</strong>
-            <p class="mt-1 text-slate-600">
-              รันคำสั่ง <code class="rounded bg-slate-200 px-1.5 py-0.5 font-bold">npm run test:sql</code> ใน Terminal เพื่อเช็กว่าเว็บคุยกับ SSMS สำเร็จ แล้วรีสตาร์ท <code>npm start</code> ป้ายสถานะด้านบนจะเปลี่ยนเป็นสีเขียวทันที!
-            </p>
-          </li>
-        </ol>
       </section>
     </div>
 

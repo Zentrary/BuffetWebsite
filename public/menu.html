@@ -18,7 +18,7 @@
         <div class="flex min-w-0 flex-1 items-center gap-2">
           <button id="sidebar-toggle" type="button"
           class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 lg:hidden sm:h-10 sm:w-10"
-          aria-label="หมวดหมู่" aria-expanded="false">
+          data-i18n-aria-label="menu.categoriesAria" aria-label="หมวดหมู่" aria-expanded="false">
             <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
               <path d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
@@ -45,7 +45,7 @@
           <!-- Status link (hidden on small, appears on sm+) -->
           <a id="status-link" href="/status.html"
           class="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 sm:flex sm:h-10 sm:w-10"
-          aria-label="ดูสถานะของคุณ" title="ดูสถานะของคุณ">
+          data-i18n-aria-label="menu.viewYourStatus" data-i18n-title="menu.viewYourStatus" aria-label="ดูสถานะของคุณ" title="ดูสถานะของคุณ">
             <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="12" cy="12" r="9"/>
               <path d="M12 7v5l3 3"/>
@@ -74,14 +74,14 @@
       <aside id="category-sidebar"
       class="fixed inset-y-0 left-0 z-40 flex w-72 max-w-[85vw] -translate-x-full flex-col overflow-y-auto bg-white p-4 shadow-2xl transition-transform duration-200 ease-out
              lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:w-56 lg:max-w-none lg:shrink-0 lg:translate-x-0 lg:overflow-visible lg:rounded-2xl lg:border lg:border-orange-100 lg:p-3 lg:shadow-sm"
-      aria-label="หมวดหมู่เมนู">
+      data-i18n-aria-label="menu.categoriesAria" aria-label="หมวดหมู่เมนู">
         <div class="mb-3 flex items-center justify-between lg:hidden">
           <h2 class="text-base font-black text-slate-900" data-i18n="menu.title">
             เมนูอาหาร
           </h2>
           <button id="sidebar-close" type="button"
           class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition hover:bg-slate-200"
-          aria-label="ปิด">
+          data-i18n-aria-label="common.close" aria-label="ปิด">
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M6 6l12 12M18 6 6 18"/>
             </svg>
@@ -138,7 +138,7 @@
           <!-- View switcher -->
           <div id="menu-view-switcher"
           class="inline-flex w-full rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm sm:w-auto"
-          aria-label="รูปแบบการแสดงผล">
+          data-i18n-aria-label="menu.viewModeAria" aria-label="รูปแบบการแสดงผล">
             <button type="button" data-menu-view="list"
             class="min-h-9 flex-1 rounded-md px-3 py-1 text-xs font-bold transition sm:flex-none">
               ตาราง
@@ -213,13 +213,13 @@
             <h2 id="cart-title" class="truncate text-xl font-black text-slate-900 sm:text-2xl" data-i18n="menu.cartTitle">
               ตะกร้าของคุณ
             </h2>
-            <p class="mt-0.5 text-xs text-slate-500">
+            <p class="mt-0.5 text-xs text-slate-500" data-i18n="menu.cartReviewSubtitle">
               ตรวจสอบรายการก่อนยืนยัน
             </p>
           </div>
           <button id="close-cart" type="button"
           class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-200 hover:text-slate-900 sm:h-11 sm:w-11"
-          aria-label="ปิดตะกร้า">
+          data-i18n-aria-label="menu.closeCartAria" aria-label="ปิดตะกร้า">
             <svg viewBox="0 0 24 24" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
               <path d="M6 6l12 12M18 6 6 18"/>
             </svg>

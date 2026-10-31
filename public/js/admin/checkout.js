@@ -375,12 +375,39 @@
     }
   }
 
+  function displayTierName(tierCode, tierName) {
+    if (tierCode === 'MEMBER' || tierName === 'สมาชิกทั่วไป') {
+      return T('admin.members.tierNameMember');
+    }
+    return tierName || tierCode || T('admin.members.tierNameMember');
+  }
+
+  function formatPromoIneligibleReason(promo) {
+    if (promo.ineligibleCode === 'MEMBER_INACTIVE') {
+      return T('admin.checkout.loyaltyIneligibleInactive');
+    }
+    if (promo.ineligibleCode === 'INSUFFICIENT_POINTS') {
+      return T('admin.checkout.loyaltyIneligiblePoints', { points: promo.pointsCost });
+    }
+    if (promo.ineligibleCode === 'MIN_SPEND_NOT_MET') {
+      return T('admin.checkout.loyaltyIneligibleMinSpend', { amount: Admin.currency(promo.minSpend) });
+    }
+    return promo.ineligibleReason || '';
+  }
+
   function formatLoyaltySettlementText(loyalty) {
     if (!loyalty || !loyalty.member) return '';
-    const parts = [`สมาชิก ${loyalty.member.fullName}`];
-    if (loyalty.pointsRedeemed > 0) parts.push(`ใช้ ${loyalty.pointsRedeemed} แต้ม`);
-    parts.push(`รับเพิ่ม +${loyalty.pointsEarned || 0} แต้ม (คงเหลือ ${loyalty.member.currentPoints} แต้ม)`);
-    if (loyalty.tierUpgraded) parts.push(`เลื่อนระดับเป็น ${loyalty.newTierName}!`);
+    const parts = [T('admin.checkout.settlementMember', { name: loyalty.member.fullName })];
+    if (loyalty.pointsRedeemed > 0) {
+      parts.push(T('admin.checkout.settlementRedeemed', { points: loyalty.pointsRedeemed }));
+    }
+    parts.push(T('admin.checkout.settlementEarned', {
+      earned: loyalty.pointsEarned || 0,
+      balance: loyalty.member.currentPoints,
+    }));
+    if (loyalty.tierUpgraded) {
+      parts.push(T('admin.checkout.settlementUpgraded', { tier: displayTierName(loyalty.newTierCode, loyalty.newTierName) }));
+    }
     return ` · ${parts.join(' · ')}`;
   }
 
@@ -415,11 +442,12 @@
     const clearBtn = document.getElementById('loyalty-clear-btn');
 
     if (loyalty && loyalty.memberId) {
+      const tierLabel = displayTierName(loyalty.memberTierCode, loyalty.memberTierName);
       receiptRow.classList.remove('hidden');
-      receiptInfo.textContent = `${loyalty.memberName} (${loyalty.memberTierName || 'Member'})`;
+      receiptInfo.textContent = `${loyalty.memberName} (${tierLabel})`;
       activeBadge.textContent = loyalty.appliedPromoCode
-        ? `ใช้สิทธิ์: ${loyalty.appliedPromoCode}`
-        : `ผูกสมาชิก: ${loyalty.memberName}`;
+        ? T('admin.checkout.loyaltyActivePromo', { code: loyalty.appliedPromoCode })
+        : T('admin.checkout.loyaltyLinkedMember', { name: loyalty.memberName });
       activeBadge.classList.remove('hidden');
       clearBtn.classList.remove('hidden');
       if (discountLabel) {
@@ -449,24 +477,33 @@
     const memberBox = document.getElementById('loyalty-member-box');
     const quickReg = document.getElementById('loyalty-quick-register');
     const select = document.getElementById('loyalty-benefit-select');
+    const previousChoice = select.value;
 
     quickReg.classList.add('hidden');
     memberBox.classList.remove('hidden');
 
+    const tierLabel = displayTierName(member.tierCode, member.tierName);
     document.getElementById('loyalty-member-name').textContent = `${member.fullName} (${member.memberCode})`;
-    document.getElementById('loyalty-member-meta').textContent = `ระดับ ${member.tierName} · บิลนี้รับประมาณ +${data.estimatedEarnedPoints || 0} แต้ม`;
-    document.getElementById('loyalty-member-points').textContent = `${member.currentPoints} แต้ม`;
+    document.getElementById('loyalty-member-meta').textContent = T('admin.checkout.loyaltyMemberMeta', {
+      tier: tierLabel,
+      points: data.estimatedEarnedPoints || 0,
+    });
+    document.getElementById('loyalty-member-points').textContent = T('admin.members.pointsCount', { n: member.currentPoints });
 
     select.replaceChildren();
     const optNone = document.createElement('option');
     optNone.value = 'NONE';
-    optNone.textContent = 'สะสมแต้มอย่างเดียว (ไม่ใช้ส่วนลด)';
+    optNone.textContent = T('admin.checkout.loyaltyBenefitNone');
     select.append(optNone);
 
     if (data.tierBenefit && data.tierBenefit.discountPercent > 0) {
       const optTier = document.createElement('option');
       optTier.value = 'TIER';
-      optTier.textContent = `สิทธิ์บัตร ${member.tierName}: ลด ${data.tierBenefit.discountPercent}% (-${Admin.currency(data.tierBenefit.estimatedDiscount)} · ใช้ 0 แต้ม)`;
+      optTier.textContent = T('admin.checkout.loyaltyBenefitTier', {
+        tier: tierLabel,
+        pct: data.tierBenefit.discountPercent,
+        amount: Admin.currency(data.tierBenefit.estimatedDiscount),
+      });
       select.append(optTier);
     }
 
@@ -474,11 +511,13 @@
       const opt = document.createElement('option');
       opt.value = `PROMO:${promo.promotionId}`;
       opt.disabled = !promo.eligible;
-      const costText = promo.pointsCost > 0 ? `ใช้ ${promo.pointsCost} แต้ม` : 'ฟรี 0 แต้ม';
+      const costText = promo.pointsCost > 0
+        ? T('admin.checkout.loyaltyCostPoints', { points: promo.pointsCost })
+        : T('admin.checkout.loyaltyCostFree');
       if (promo.eligible) {
         opt.textContent = `[${promo.promoCode}] ${promo.title} (-${Admin.currency(promo.estimatedDiscount)} · ${costText})`;
       } else {
-        opt.textContent = `[${promo.promoCode}] ${promo.title} (${promo.ineligibleReason})`;
+        opt.textContent = `[${promo.promoCode}] ${promo.title} (${formatPromoIneligibleReason(promo)})`;
       }
       select.append(opt);
     }
@@ -493,13 +532,15 @@
       } else {
         select.value = 'NONE';
       }
+    } else if (previousChoice && [...select.options].some((o) => o.value === previousChoice)) {
+      select.value = previousChoice;
     }
   }
 
   async function lookupLoyaltyMember({ silentNotFound = false } = {}) {
     const rawPhone = document.getElementById('loyalty-phone-input').value.trim();
     if (!rawPhone) {
-      if (!silentNotFound) showLoyaltyStatus('กรุณากรอกเบอร์โทรศัพท์สมาชิก', true);
+      if (!silentNotFound) showLoyaltyStatus(T('admin.checkout.loyaltyEnterPhone'), true);
       return;
     }
     const subtotal = (selectedBill && selectedBill.subtotal) || 0;
@@ -513,30 +554,33 @@
           || '';
         const regInput = document.getElementById('loyalty-register-name');
         if (!regInput.value && fallbackName) regInput.value = fallbackName;
-        if (!silentNotFound) showLoyaltyStatus('ยังไม่พบเบอร์นี้ในระบบ สามารถสมัครสมาชิกด่วนด้านล่างได้เลย', false);
+        if (!silentNotFound) showLoyaltyStatus(T('admin.checkout.loyaltyPhoneNotFound'), false);
         return;
       }
       document.getElementById('loyalty-status-msg').classList.add('hidden');
       populateLoyaltyMemberBox(res.data);
     } catch (error) {
-      if (!silentNotFound) showLoyaltyStatus(error.message || 'ค้นหาสมาชิกไม่สำเร็จ', true);
+      if (!silentNotFound) showLoyaltyStatus(error.message || T('admin.checkout.loyaltyLookupFailed'), true);
     }
   }
 
   async function quickRegisterLoyaltyMember() {
     const phone = document.getElementById('loyalty-phone-input').value.trim();
-    const fullName = document.getElementById('loyalty-register-name').value.trim() || 'ลูกค้าหน้าร้าน';
+    const fullName = document.getElementById('loyalty-register-name').value.trim() || T('admin.checkout.loyaltyDefaultCustomer');
     try {
       const created = await Admin.api('/api/members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullName, phone }),
       });
-      showLoyaltyStatus(`สมัครสมาชิก ${created.data.fullName} (${created.data.memberCode}) สำเร็จ!`);
+      showLoyaltyStatus(T('admin.checkout.loyaltyQuickRegSuccess', {
+        name: created.data.fullName,
+        code: created.data.memberCode,
+      }));
       await lookupLoyaltyMember();
       await applySelectedLoyaltyBenefit();
     } catch (error) {
-      showLoyaltyStatus(error.message || 'สมัครสมาชิกไม่สำเร็จ', true);
+      showLoyaltyStatus(error.message || T('admin.checkout.loyaltyQuickRegFailed'), true);
     }
   }
 
@@ -553,7 +597,7 @@
     }
 
     try {
-      const res = await Admin.api('/api/payment/apply-loyalty', {
+      await Admin.api('/api/payment/apply-loyalty', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -563,25 +607,25 @@
           promotionId,
         }),
       });
-      showLoyaltyStatus(res.message || 'ใช้สิทธิ์สำเร็จ');
+      showLoyaltyStatus(T('admin.checkout.loyaltyBenefitApplied'));
       await loadBill();
       await loadSessions();
     } catch (error) {
-      showLoyaltyStatus(error.message || 'ไม่สามารถใช้สิทธิ์ได้', true);
+      showLoyaltyStatus(error.message || T('admin.checkout.loyaltyBenefitApplyFailed'), true);
     }
   }
 
   async function clearSelectedLoyaltyBenefit() {
     if (!selectedSessionId) return;
     try {
-      const res = await Admin.api(`/api/payment/apply-loyalty/${encodeURIComponent(selectedSessionId)}`, {
+      await Admin.api(`/api/payment/apply-loyalty/${encodeURIComponent(selectedSessionId)}`, {
         method: 'DELETE',
       });
-      showLoyaltyStatus(res.message || 'ยกเลิกสิทธิ์แล้ว');
+      showLoyaltyStatus(T('admin.checkout.loyaltyBenefitCleared'));
       await loadBill();
       await loadSessions();
     } catch (error) {
-      showLoyaltyStatus(error.message || 'ยกเลิกสิทธิ์ไม่สำเร็จ', true);
+      showLoyaltyStatus(error.message || T('admin.checkout.loyaltyBenefitClearFailed'), true);
     }
   }
 
@@ -694,7 +738,14 @@
     socket.on('queue_seated', loadSessions);
     socket.on('table_board_updated', loadSessions);
   }
-  window.addEventListener('languageChanged', loadSessions);
+  window.addEventListener('languageChanged', () => {
+    loadSessions();
+    if (!paymentModal.classList.contains('hidden') && selectedSessionId) {
+      loadBill();
+      if (lookedUpMemberData) populateLoyaltyMemberBox(lookedUpMemberData);
+      updateCashPreview();
+    }
+  });
   loadSessions();
 
     /**
@@ -705,7 +756,7 @@
   function printReceipt() {
     const source = document.querySelector('#payment-modal .receipt-print');
     if (!source) {
-      Admin.message('ไม่พบข้อมูลใบเสร็จ', true);
+      Admin.message(T('admin.checkout.receiptNotFound'), true);
       return;
     }
 

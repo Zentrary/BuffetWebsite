@@ -642,12 +642,19 @@
   on('print-report', 'click', printReport);
 
   window.addEventListener('languageChanged', () => {
+    if (!summaryCache && $('m-dining')) {
+      $('m-dining').textContent = T('reports.minutesShort', { n: 0 });
+    }
+    if (!billsCache.length && $('bills-page')) {
+      $('bills-page').textContent = T('reports.billsPage', { page: 1, pages: 1 });
+    }
+    if (!currentRange.from || !currentRange.to) return;
     if (summaryCache) renderSummary(summaryCache);
     if (dailyCache) drawDailyChart(dailyCache.salesByDay || []);
     loadComparison();
     if (!$('panel-menu')?.classList.contains('hidden')) loadMenuTab();
     if (!$('panel-staff')?.classList.contains('hidden')) loadStaffTab();
-    if (!$('panel-bills')?.classList.contains('hidden') && billsCache.length) loadBills();
+    if (!$('panel-bills')?.classList.contains('hidden')) loadBills();
     if (!$('panel-customer')?.classList.contains('hidden')) loadCustomerTab();
     setRange(currentRange, { reload: false });
   });

@@ -90,7 +90,7 @@
         <div id="report-loading" class="flex min-h-32 items-center justify-center gap-3 text-slate-500" role="status">
           <span class="h-6 w-6 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600">
           </span>
-          กำลังโหลดรายงาน...
+          <span data-i18n="reports.loading">กำลังโหลดรายงาน...</span>
         </div>
         <div id="report-content" class="hidden">
           <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -166,7 +166,7 @@
               <p class="font-semibold text-slate-500" data-i18n="reports.metricDiningTime">
                 เวลาทานเฉลี่ย
               </p>
-              <p id="m-dining" class="mt-2 text-3xl font-black text-blue-700">
+              <p id="m-dining" class="mt-2 text-3xl font-black text-blue-700" data-i18n-skip>
                 0 นาที
               </p>
               <p id="m-dining-delta" class="mt-1 text-xs font-semibold text-slate-400">
@@ -264,16 +264,16 @@
                   <table class="w-full text-left text-sm">
                     <thead class="border-b-2 border-slate-200 text-xs uppercase text-slate-500">
                       <tr>
-                        <th class="py-2">
+                        <th class="py-2" data-i18n="admin.topMenusHeader.menu">
                           เมนู
                         </th>
-                        <th class="py-2 text-right">
+                        <th class="py-2 text-right" data-i18n="admin.topMenusHeader.qty">
                           จำนวน
                         </th>
-                        <th class="py-2 text-right">
+                        <th class="py-2 text-right" data-i18n="reports.billsTotal">
                           ยอด
                         </th>
-                        <th class="py-2 text-right">
+                        <th class="py-2 text-right" data-i18n="reports.menuTrend">
                           แนวโน้ม
                         </th>
                       </tr>
@@ -282,7 +282,7 @@
                     </tbody>
                   </table>
                 </div>
-                <p id="menu-top-empty" class="hidden py-6 text-center text-sm text-slate-400">
+                <p id="menu-top-empty" class="hidden py-6 text-center text-sm text-slate-400" data-i18n="reports.noData">
                   ไม่มีข้อมูล
                 </p>
               </div>
@@ -294,13 +294,13 @@
                   <table class="w-full text-left text-sm">
                     <thead class="border-b-2 border-slate-200 text-xs uppercase text-slate-500">
                       <tr>
-                        <th class="py-2">
+                        <th class="py-2" data-i18n="admin.topMenusHeader.menu">
                           เมนู
                         </th>
-                        <th class="py-2 text-right">
+                        <th class="py-2 text-right" data-i18n="admin.topMenusHeader.qty">
                           จำนวน
                         </th>
-                        <th class="py-2 text-right">
+                        <th class="py-2 text-right" data-i18n="reports.billsTotal">
                           ยอด
                         </th>
                       </tr>
@@ -309,7 +309,7 @@
                     </tbody>
                   </table>
                 </div>
-                <p id="menu-bottom-empty" class="hidden py-6 text-center text-sm text-slate-400">
+                <p id="menu-bottom-empty" class="hidden py-6 text-center text-sm text-slate-400" data-i18n="reports.noData">
                   ไม่มีข้อมูล
                 </p>
               </div>
@@ -317,7 +317,7 @@
           </section>
           <section class="report-panel hidden" id="panel-staff">
             <div class="rounded-2xl bg-white p-5 shadow-sm">
-              <h2 class="mb-4 text-lg font-black">
+              <h2 class="mb-4 text-lg font-black" data-i18n="reports.staffPerformance">
                 ผลงานพนักงาน (เรียงตามยอดขาย)
               </h2>
               <div class="overflow-x-auto">
@@ -327,22 +327,22 @@
                       <th class="py-3 pr-3">
                         #
                       </th>
-                      <th class="py-3 pr-3">
+                      <th class="py-3 pr-3" data-i18n="reports.billsStaff">
                         พนักงาน
                       </th>
-                      <th class="py-3 pr-3">
+                      <th class="py-3 pr-3" data-i18n="admin.role">
                         บทบาท
                       </th>
-                      <th class="py-3 pr-3 text-right">
+                      <th class="py-3 pr-3 text-right" data-i18n="reports.tabBills">
                         บิล
                       </th>
-                      <th class="py-3 pr-3 text-right">
+                      <th class="py-3 pr-3 text-right" data-i18n="reports.staffTotal">
                         ยอดรวม
                       </th>
-                      <th class="py-3 pr-3 text-right">
+                      <th class="py-3 pr-3 text-right" data-i18n="reports.staffAvgBill">
                         บิลเฉลี่ย
                       </th>
-                      <th class="py-3 pr-3 text-right">
+                      <th class="py-3 pr-3 text-right" data-i18n="reports.staffCashQr">
                         สด / QR
                       </th>
                     </tr>
@@ -351,7 +351,7 @@
                   </tbody>
                 </table>
               </div>
-              <p id="staff-empty" class="hidden py-8 text-center text-sm text-slate-400">
+              <p id="staff-empty" class="hidden py-8 text-center text-sm text-slate-400" data-i18n="reports.noData">
                 ไม่มีข้อมูล
               </p>
             </div>
@@ -360,21 +360,21 @@
             <div class="rounded-2xl bg-white p-5 shadow-sm">
               <div class="mb-4 flex flex-wrap items-end gap-3">
                 <label class="text-sm font-semibold text-slate-600">
-                  วิธีชำระ
+                  <span data-i18n="reports.billsMethod">วิธีชำระ</span>
                   <select id="bills-method" class="ml-2 select select-bordered select-sm">
-                    <option value="">
+                    <option value="" data-i18n="reports.billsAll">
                       ทั้งหมด
                     </option>
-                    <option value="cash">
+                    <option value="cash" data-i18n="admin.checkout.cash">
                       เงินสด
                     </option>
-                    <option value="qr_payment">
+                    <option value="qr_payment" data-i18n="admin.checkout.qrPayment">
                       QR Payment
                     </option>
                   </select>
                 </label>
                 <label class="text-sm font-semibold text-slate-600">
-                  ต่อหน้า
+                  <span data-i18n="reports.billsPerPage">ต่อหน้า</span>
                   <select id="bills-limit" class="ml-2 select select-bordered select-sm">
                     <option value="20">
                       20
@@ -387,10 +387,10 @@
                     </option>
                   </select>
                 </label>
-                <button id="bills-refresh" type="button" class="min-h-10 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-700">
+                <button id="bills-refresh" type="button" class="min-h-10 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-700" data-i18n="reports.billsReload">
                   โหลดใหม่
                 </button>
-                <button id="bills-export" type="button" class="min-h-10 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+                <button id="bills-export" type="button" class="min-h-10 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800" data-i18n="reports.billsExport">
                   Export CSV
                 </button>
                 <div id="bills-count" class="ml-auto text-sm font-semibold text-slate-500">
@@ -400,25 +400,25 @@
                 <table class="w-full min-w-[900px] text-left text-sm">
                   <thead class="border-b-2 border-slate-200 text-xs uppercase text-slate-500">
                     <tr>
-                      <th class="py-3 pr-3">
+                      <th class="py-3 pr-3" data-i18n="reports.billsTime">
                         เวลา
                       </th>
-                      <th class="py-3 pr-3">
+                      <th class="py-3 pr-3" data-i18n="reports.billsTable">
                         โต๊ะ
                       </th>
-                      <th class="py-3 pr-3">
+                      <th class="py-3 pr-3" data-i18n="reports.billsQueue">
                         คิว / ลูกค้า
                       </th>
-                      <th class="py-3 pr-3">
+                      <th class="py-3 pr-3" data-i18n="reports.billsDuration">
                         ระยะเวลา
                       </th>
-                      <th class="py-3 pr-3">
+                      <th class="py-3 pr-3" data-i18n="reports.billsMethodCol">
                         วิธีชำระ
                       </th>
-                      <th class="py-3 pr-3">
+                      <th class="py-3 pr-3" data-i18n="reports.billsStaff">
                         พนักงาน
                       </th>
-                      <th class="py-3 pr-3 text-right">
+                      <th class="py-3 pr-3 text-right" data-i18n="reports.billsTotal">
                         ยอด
                       </th>
                     </tr>
@@ -427,20 +427,20 @@
                   </tbody>
                 </table>
               </div>
-              <p id="bills-empty" class="hidden py-8 text-center text-slate-500">
+              <p id="bills-empty" class="hidden py-8 text-center text-slate-500" data-i18n="reports.billsEmpty">
                 ไม่มีบิลในช่วงเวลานี้
               </p>
-              <div id="bills-loading" class="hidden py-8 text-center text-slate-500">
+              <div id="bills-loading" class="hidden py-8 text-center text-slate-500" data-i18n="common.loading">
                 กำลังโหลด...
               </div>
               <div class="mt-4 flex items-center justify-between gap-3">
-                <button id="bills-prev" type="button" class="min-h-9 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                <button id="bills-prev" type="button" class="min-h-9 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40" data-i18n="reports.billsPrev">
                   ← ก่อนหน้า
                 </button>
-                <span id="bills-page" class="text-sm font-semibold text-slate-500">
+                <span id="bills-page" class="text-sm font-semibold text-slate-500" data-i18n-skip>
                   หน้า 1 / 1
                 </span>
-                <button id="bills-next" type="button" class="min-h-9 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                <button id="bills-next" type="button" class="min-h-9 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40" data-i18n="reports.billsNext">
                   ถัดไป →
                 </button>
               </div>
@@ -449,22 +449,22 @@
           <section class="report-panel hidden" id="panel-customer">
             <div class="mb-4 grid gap-4 lg:grid-cols-3">
               <article class="rounded-2xl bg-white p-5 shadow-sm">
-                <p class="font-semibold text-slate-500">
+                <p class="font-semibold text-slate-500" data-i18n="reports.fbAvg">
                   คะแนนเฉลี่ย
                 </p>
                 <p id="fb-avg" class="mt-2 text-3xl font-black text-orange-700">
                   0.0
                 </p>
                 <p class="mt-1 text-xs text-slate-400">
-                  จาก
+                  <span data-i18n="reports.rangeFrom">จาก</span>
                   <span id="fb-total">
                     0
                   </span>
-                  รีวิว
+                  <span data-i18n="reports.reviewsUnit">รีวิว</span>
                 </p>
               </article>
               <article class="rounded-2xl bg-white p-5 shadow-sm lg:col-span-2">
-                <p class="mb-2 font-semibold text-slate-500">
+                <p class="mb-2 font-semibold text-slate-500" data-i18n="reports.fbDistribution">
                   การกระจายคะแนน
                 </p>
                 <div id="fb-dist" class="space-y-1.5 text-sm">
@@ -472,22 +472,22 @@
               </article>
             </div>
             <div class="mb-4 rounded-2xl bg-white p-5 shadow-sm">
-              <h2 class="mb-4 text-lg font-black">
+              <h2 class="mb-4 text-lg font-black" data-i18n="reports.peakHours">
                 ช่วงเวลาขายดี (Day × Hour)
               </h2>
               <div id="peak-heatmap" class="overflow-x-auto">
               </div>
-              <p class="mt-2 text-xs text-slate-400">
+              <p class="mt-2 text-xs text-slate-400" data-i18n="reports.peakHint">
                 สีเข้ม = ยอดขายสูง · สีจาง = ยอดขายต่ำ
               </p>
             </div>
             <div class="rounded-2xl bg-white p-5 shadow-sm">
-              <h2 class="mb-4 text-lg font-black">
+              <h2 class="mb-4 text-lg font-black" data-i18n="reports.recentFeedback">
                 รีวิวล่าสุด
               </h2>
               <div id="fb-recent" class="space-y-3">
               </div>
-              <p id="fb-recent-empty" class="hidden py-6 text-center text-sm text-slate-400">
+              <p id="fb-recent-empty" class="hidden py-6 text-center text-sm text-slate-400" data-i18n="reports.noFeedback">
                 ยังไม่มีรีวิวในช่วงเวลานี้
               </p>
             </div>

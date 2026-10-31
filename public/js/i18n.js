@@ -1,207 +1,314 @@
-// ระบบแปลภาษาไทยและอังกฤษสำหรับข้อความที่กำหนด data-i18n
+// Client-side Thai/English dictionary loader, DOM translator, and DaisyUI helper.
 (() => {
-  const DEFAULT_LANGUAGE = 'th';
-  const SUPPORTED_LANGUAGES = ['th', 'en'];
-  const CACHE_PREFIX = 'locale_cache_';
-  const CACHE_VERSION = '2'; // bump เมื่อ schema ของ locale เปลี่ยน
+  const SUPPORTED = new Set(['th', 'en']);
+  const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'SVG']);
+  const TEXT_SKIP_TAGS = new Set(['INPUT', 'TEXTAREA']);
+  const AUTO_ATTRS = [
+    ['placeholder', 'data-i18n-placeholder', 'i18nAutoPlaceholder'],
+    ['aria-label', 'data-i18n-aria-label', 'i18nAutoAriaLabel'],
+    ['title', 'data-i18n-title', 'i18nAutoTitle'],
+  ];
+  const dictionaries = { th: {}, en: {} };
+  const reverseMap = new Map();
+  let currentLanguage = getSavedLanguage();
+  let observer = null;
+  let applying = false;
+  let readyResolved = false;
+  let resolveReady;
+  const ready = new Promise((resolve) => { resolveReady = resolve; });
 
-  // Boot: read saved lang immediately so scripts after this file can use window.t()
-  let language = (() => {
-    try { return localStorage.getItem('lang') || DEFAULT_LANGUAGE; }
-    catch { return DEFAULT_LANGUAGE; }
-  })();
-  if (!SUPPORTED_LANGUAGES.includes(language)) language = DEFAULT_LANGUAGE;
-
-  // Translations per language so we can do cross-locale reverse lookup.
-  const translationsByLang = {};
-  for (const lang of SUPPORTED_LANGUAGES) {
-    try {
-      const raw = localStorage.getItem(`${CACHE_PREFIX}${lang}`);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        // รองรับทั้ง cache แบบเก่า (object ตรงๆ) และแบบใหม่ ({version, data})
-        const data = parsed && parsed.version === CACHE_VERSION ? parsed.data : parsed;
-        if (data && typeof data === 'object') translationsByLang[lang] = data;
-      }
-    } catch {}
+  function getSavedLanguage() {
+    const saved = localStorage.getItem('lang') || localStorage.getItem('buffet_lang') || 'th';
+    return SUPPORTED.has(saved) ? saved : 'th';
   }
-  let translations = translationsByLang[language] || {};
 
-  try { document.documentElement.lang = language; } catch {}
+  function saveLanguage(language) {
+    localStorage.setItem('lang', language);
+    localStorage.setItem('buffet_lang', language);
+  }
 
-  function t(key, vars) {
-    let value = translations[key];
-    if (!value) {
-      if (key.startsWith('error.')) value = translations['common.error'] || key;
-      else value = key;
+  function interpolate(template, vars = {}) {
+    return String(template).replace(/\{(\w+)\}/g, (match, name) => (
+      Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match
+    ));
+  }
+
+  function currentData() {
+    return dictionaries[currentLanguage] || {};
+  }
+
+  function fallbackData() {
+    return dictionaries.th || {};
+  }
+
+  function fallbackValue(key) {
+    if (key.startsWith('error.')) {
+      return currentData()['common.error'] || fallbackData()['common.error'] || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
     }
-    if (vars && typeof vars === 'object') {
-      value = String(value).replace(/\{(\w+)\}/g, (match, name) =>
-        Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match
-      );
-    }
-    return value;
+    return key;
   }
 
-  // Text the user is typing (or a value a script just wrote back) must never be
-  // rewritten by a re-render; buttons/selects still translate their static labels.
-  const USER_VALUE_SELECTOR = 'input, textarea';
-
-  function isTranslatable(element) {
-    if (element.hasAttribute('data-shop-name') || element.hasAttribute('data-i18n-skip')) return false;
-    return !(element.closest && element.closest(USER_VALUE_SELECTOR));
+  function t(key, vars = {}) {
+    const raw = currentData()[key] ?? fallbackData()[key] ?? fallbackValue(key);
+    return interpolate(raw, vars);
   }
 
-  // Merge reverse lookups from ALL cached locales.
-  function buildReverseLookup() {
-    const map = new Map();
-    for (const lang of SUPPORTED_LANGUAGES) {
-      const data = translationsByLang[lang];
-      if (!data) continue;
-      for (const [key, value] of Object.entries(data)) {
-        if (typeof value !== 'string') continue;
-        if (!map.has(value)) map.set(value, key);
-      }
-    }
-    return map;
+  function buildReverseMap() {
+    reverseMap.clear();
+    ['th', 'en'].forEach((lang) => {
+      Object.entries(dictionaries[lang] || {}).forEach(([key, value]) => {
+        if (typeof value === 'string' && value.trim() && !reverseMap.has(value)) {
+          reverseMap.set(value, key);
+        }
+      });
+    });
   }
 
-  // Parse data-i18n-vars='{"n":5}' if present.
+  async function loadDictionary(language) {
+    const response = await fetch(`/locales/${language}.json`, { cache: 'no-cache' });
+    if (!response.ok) throw new Error(`Cannot load ${language} locale`);
+    dictionaries[language] = await response.json();
+  }
+
   function parseVars(element) {
-    if (!element.dataset.i18nVars) return null;
-    try { return JSON.parse(element.dataset.i18nVars); }
-    catch { return null; }
+    const raw = element.getAttribute('data-i18n-vars');
+    if (!raw) return {};
+    try { return JSON.parse(raw); } catch { return {}; }
+  }
+
+  function isTranslatable(el) {
+    return Boolean(
+      el
+      && el.nodeType === 1
+      && !SKIP_TAGS.has(el.tagName)
+      && !el.closest('[data-i18n-skip], [data-shop-name]')
+    );
+  }
+
+  function getNonEmptyTextNodes(el) {
+    return Array.from(el.childNodes).filter(
+      (node) => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim().length > 0
+    );
+  }
+
+  function setPreservingWhitespace(textNode, translatedText) {
+    const lead = /^\s/.test(textNode.nodeValue) ? ' ' : '';
+    const trail = /\s$/.test(textNode.nodeValue) ? ' ' : '';
+    const nextVal = `${lead}${translatedText}${trail}`;
+    if (textNode.nodeValue !== nextVal) textNode.nodeValue = nextVal;
+  }
+
+  function applyAttributeTranslations(el, vars) {
+    const coveredAttrs = new Set();
+
+    if (el.hasAttribute('data-i18n') && el.hasAttribute('data-i18n-attr')) {
+      const key = el.getAttribute('data-i18n');
+      const text = t(key, vars);
+      const attrNames = el.getAttribute('data-i18n-attr').split(',').map((s) => s.trim()).filter(Boolean);
+      attrNames.forEach((name) => {
+        coveredAttrs.add(name);
+        if (el.getAttribute(name) !== text) el.setAttribute(name, text);
+      });
+    }
+
+    for (const [attrName, explicitDataAttr, autoDatasetKey] of AUTO_ATTRS) {
+      if (coveredAttrs.has(attrName)) continue;
+      if (el.hasAttribute(explicitDataAttr)) {
+        const key = el.getAttribute(explicitDataAttr);
+        const text = t(key, vars);
+        if (el.getAttribute(attrName) !== text) el.setAttribute(attrName, text);
+        continue;
+      }
+      if (!el.hasAttribute(attrName)) continue;
+      const existingVal = (el.getAttribute(attrName) || '').trim();
+      if (!existingVal) continue;
+      const autoKey = el.dataset[autoDatasetKey] || reverseMap.get(existingVal);
+      if (!autoKey) continue;
+      el.dataset[autoDatasetKey] = autoKey;
+      const translated = currentData()[autoKey];
+      if (translated && el.getAttribute(attrName) !== translated) {
+        el.setAttribute(attrName, translated);
+      }
+    }
   }
 
   function applyTranslations(root = document) {
-    const reverseLookup = buildReverseLookup();
+    if (!root) return;
+    applying = true;
+    try {
+      const scope = root.nodeType === 1 ? root : document.documentElement;
+      if (!scope) return;
 
-    root.querySelectorAll('*').forEach((element) => {
-      if (element.hasAttribute('data-i18n')) return;
-      if (!isTranslatable(element)) return;
-      const directText = Array.from(element.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
-      if (!directText) return;
-      const key = reverseLookup.get(directText.nodeValue.trim());
-      if (key) element.dataset.i18n = key;
-    });
+      const elements = [scope, ...scope.querySelectorAll('*')];
+      for (const el of elements) {
+        if (!isTranslatable(el)) continue;
 
-    root.querySelectorAll('[data-i18n]').forEach((element) => {
-      if (!isTranslatable(element)) return;
-      const vars = parseVars(element);
-      const value = t(element.dataset.i18n, vars);
-      const attributes = (element.dataset.i18nAttr || '').split(',').filter(Boolean);
-      attributes.forEach((attribute) => element.setAttribute(attribute, value));
+        const vars = parseVars(el);
+        applyAttributeTranslations(el, vars);
 
-      if (element.dataset.i18nAttr) return;
-      const textNode = Array.from(element.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
-      if (textNode) textNode.nodeValue = value;
-      else if (element.children.length === 0) element.textContent = value;
-    });
-    document.documentElement.lang = language;
-    const switcher = document.getElementById('langSwitcher');
-    if (switcher) switcher.value = language;
+        if (TEXT_SKIP_TAGS.has(el.tagName)) continue;
+
+        if (el.hasAttribute('data-i18n')) {
+          if (el.hasAttribute('data-i18n-attr')) continue;
+          const key = el.getAttribute('data-i18n');
+          const text = t(key, vars);
+          if (el.childElementCount === 0) {
+            if (el.textContent !== text) el.textContent = text;
+          } else {
+            const textNodes = getNonEmptyTextNodes(el);
+            if (textNodes.length >= 1) {
+              setPreservingWhitespace(textNodes[0], text);
+            }
+          }
+          continue;
+        }
+
+        // Reverse-lookup fallback for static labels without explicit data-i18n
+        if (el.childElementCount === 0) {
+          const rawText = (el.textContent || '').trim();
+          if (!rawText) continue;
+          const autoKey = el.dataset.i18nAuto || reverseMap.get(rawText);
+          if (!autoKey) continue;
+          el.dataset.i18nAuto = autoKey;
+          const translated = currentData()[autoKey];
+          if (translated && el.textContent !== translated) {
+            el.textContent = translated;
+          }
+        } else {
+          const textNodes = getNonEmptyTextNodes(el);
+          if (textNodes.length === 1) {
+            const rawText = textNodes[0].nodeValue.trim();
+            const autoKey = el.dataset.i18nAuto || reverseMap.get(rawText);
+            if (autoKey) {
+              el.dataset.i18nAuto = autoKey;
+              const translated = currentData()[autoKey];
+              if (translated) setPreservingWhitespace(textNodes[0], translated);
+            }
+          }
+        }
+      }
+
+      document.documentElement.lang = currentLanguage;
+      document.documentElement.dataset.theme = 'buffet';
+      syncSwitchers();
+      enhanceDaisyControls(scope);
+    } finally {
+      applying = false;
+    }
   }
 
-  function applyDaisyComponents(root = document) {
-    // Skip anything inside the admin sidebar: its buttons use pure Tailwind
-    // utilities, and inheriting DaisyUI `.btn` would repaint them with the
-    // theme's cream background, hiding our custom colors.
-    const inSidebar = (el) => Boolean(el && el.closest && el.closest('#admin-sidebar'));
+  function enhanceDaisyControls(root) {
+    root.querySelectorAll('button, input[type="submit"], input[type="button"]').forEach((button) => {
+      if (button.classList.contains('btn') || button.hasAttribute('data-no-btn')) return;
+      if (button.getAttribute('role') === 'tab' || button.hasAttribute('data-category-pill')) return;
+      if (button.closest('#category-tabs, [data-no-daisy-btn]')) return;
+      button.classList.add('btn');
+    });
+    root.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]):not([type="submit"]):not([type="button"])').forEach((input) => {
+      if (!input.classList.contains('input')) input.classList.add('input', 'input-bordered');
+    });
+    root.querySelectorAll('select').forEach((select) => {
+      if (!select.classList.contains('select')) select.classList.add('select', 'select-bordered');
+    });
+    root.querySelectorAll('textarea').forEach((textarea) => {
+      if (!textarea.classList.contains('textarea')) textarea.classList.add('textarea', 'textarea-bordered');
+    });
+  }
 
-    const selectors = [
-      ['button:not(.rating-star):not([data-no-btn])', 'btn'],
-      ['input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])', 'input'],
-      ['textarea', 'textarea'],
-      ['select:not(#langSwitcher)', 'select'],
-    ];
-    selectors.forEach(([selector, className]) => {
-      if (root.matches && root.matches(selector) && !inSidebar(root)) {
-        root.classList.add(className);
-      }
-      root.querySelectorAll(selector).forEach((element) => {
-        if (inSidebar(element)) return;
-        element.classList.add(className);
+  function syncSwitchers() {
+    document.querySelectorAll('#langSwitcher, [data-lang-switcher]').forEach((switcher) => {
+      if (switcher.tagName === 'SELECT') switcher.value = currentLanguage;
+      switcher.querySelectorAll('[data-lang]').forEach((button) => {
+        const active = button.dataset.lang === currentLanguage;
+        button.classList.toggle('btn-primary', active);
+        button.classList.toggle('btn-ghost', !active);
+        button.setAttribute('aria-pressed', String(active));
       });
     });
-    root.querySelectorAll('section.rounded-2xl.bg-white').forEach((card) => card.classList.add('card'));
-    // DaisyUI's `.modal-box` caps a panel at 100vh - 5em and adds its own
-    // scrollbar. That turned the menu editor into a small scroll area, so the
-    // menu form opts out and lets the overlay size itself normally.
-    root.querySelectorAll('[role="dialog"] > form, [role="dialog"] > section').forEach((panel) => {
-      panel.classList.add('w-full', 'sm:rounded-2xl');
-      if (!panel.hasAttribute('data-no-modal-box')) {
-        panel.classList.add('modal-box', 'min-h-screen', 'rounded-none', 'sm:min-h-0', 'sm:rounded-2xl');
-      }
-    });
-    root.querySelectorAll('[role="alert"]').forEach((alert) => alert.classList.add('alert'));
-    root.querySelectorAll('[role="tab"]').forEach((tab) => tab.classList.add('tab'));
-    root.querySelectorAll('span.rounded-full').forEach((badge) => badge.classList.add('badge'));
   }
 
-  // Fetch a single locale and store in cache + memory.
-  async function fetchLocale(lang) {
-    try {
-      const response = await fetch(`/locales/${lang}.json?cache-bust=${Date.now()}`, { cache: 'no-store' });
-      if (!response.ok) return false;
-      const data = await response.json();
-      translationsByLang[lang] = data;
-      try {
-        localStorage.setItem(`${CACHE_PREFIX}${lang}`, JSON.stringify({ version: CACHE_VERSION, data }));
-      } catch {}
-      return true;
-    } catch {
-      return false;
+  async function setLang(lang) {
+    const language = SUPPORTED.has(lang) ? lang : 'th';
+    currentLanguage = language;
+    saveLanguage(language);
+    if (!Object.keys(dictionaries[language] || {}).length) {
+      await loadDictionary(language);
+      buildReverseMap();
     }
-  }
-
-  // Always refetch both locales so server updates reach the browser.
-  async function ensureLocalesLoaded() {
-    await Promise.all(SUPPORTED_LANGUAGES.map((lang) => fetchLocale(lang)));
-    translations = translationsByLang[language] || {};
-  }
-
-  async function setLang(nextLanguage) {
-    language = SUPPORTED_LANGUAGES.includes(nextLanguage) ? nextLanguage : DEFAULT_LANGUAGE;
-    try { localStorage.setItem('lang', language); } catch {}
-    translations = translationsByLang[language] || {};
-    applyTranslations();
+    applyTranslations(document);
     window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language } }));
-    await ensureLocalesLoaded();
-    translations = translationsByLang[language] || {};
-    applyTranslations();
-    window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language, refreshed: true } }));
+    window.setTimeout(() => {
+      if (currentLanguage !== language) return;
+      applyTranslations(document);
+      window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language, refreshed: true } }));
+    }, 120);
   }
 
-  function initI18n() {
-    const switcher = document.getElementById('langSwitcher');
-    if (switcher) {
-      switcher.value = language;
-      switcher.addEventListener('change', () => setLang(switcher.value));
-      const languageHeader = switcher.closest('header');
-      if (languageHeader) languageHeader.classList.replace('z-[100]', 'z-30');
+  function bindSwitchers() {
+    document.addEventListener('change', (event) => {
+      const switcher = event.target.closest('#langSwitcher, select[data-lang-switcher]');
+      if (switcher) setLang(switcher.value);
+    });
+    document.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-lang]');
+      if (button) setLang(button.dataset.lang);
+    });
+  }
+
+  function observeMutations() {
+    if (observer || !document.body) return;
+    let scheduled = null;
+    observer = new MutationObserver(() => {
+      if (applying || scheduled) return;
+      scheduled = window.requestAnimationFrame(() => {
+        scheduled = null;
+        applyTranslations(document.body);
+      });
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: [
+        'data-i18n',
+        'data-i18n-vars',
+        'data-i18n-placeholder',
+        'data-i18n-aria-label',
+        'data-i18n-title',
+      ],
+    });
+  }
+
+  async function initI18n() {
+    bindSwitchers();
+    try {
+      await Promise.all([loadDictionary('th'), loadDictionary('en')]);
+      buildReverseMap();
+    } catch (error) {
+      console.error('Failed to load translations:', error);
     }
-    applyDaisyComponents();
-
-    new MutationObserver((records) => {
-      let hasAddedElements = false;
-      records.forEach((record) => record.addedNodes.forEach((node) => {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          hasAddedElements = true;
-          applyDaisyComponents(node);
-        }
-      }));
-      if (hasAddedElements) applyTranslations();
-    }).observe(document.body, { childList: true, subtree: true });
-
-    applyTranslations();
-    setLang(language);
+    await setLang(currentLanguage);
+    observeMutations();
+    if (!readyResolved) {
+      readyResolved = true;
+      resolveReady(currentLanguage);
+    }
   }
 
   window.t = t;
   window.setLang = setLang;
-  window.applyTranslations = applyTranslations;
-  window.initI18n = initI18n;
-  Object.defineProperty(window, 'currentLanguage', { get: () => language });
+  window.applyI18n = applyTranslations;
+  window.i18n = {
+    t,
+    setLang,
+    apply: applyTranslations,
+    getLang: () => currentLanguage,
+    ready,
+  };
 
-  document.addEventListener('DOMContentLoaded', initI18n, { once: true });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initI18n, { once: true });
+  } else {
+    initI18n();
+  }
 })();

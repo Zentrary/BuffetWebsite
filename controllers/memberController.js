@@ -3,7 +3,7 @@
 const { getSqlStatus } = require('../config/sqlDb');
 const loyaltyService = require('../services/loyaltySqlService');
 
-function sendSqlError(res, error, fallbackMessage = 'ไม่สามารถดำเนินการกับฐานข้อมูล SQL ได้') {
+function sendSqlError(res, error, fallbackMessage = 'ไม่สามารถดำเนินการกับข้อมูลสมาชิกได้') {
   const status = error.status
     || (error.code === 'SQL_CREDENTIALS_MISSING' ? 503 : 500);
   if (status >= 500) {

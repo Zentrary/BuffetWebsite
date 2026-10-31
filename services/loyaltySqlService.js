@@ -325,17 +325,22 @@ async function lookupMemberByPhone(rawPhone, subtotal = 0) {
     const meetsMinSpend = safeSubtotal >= promo.minSpend;
     const estimatedDiscount = computePromoDiscountAmount(promo, safeSubtotal);
     let ineligibleReason = '';
+    let ineligibleCode = '';
     if (!member.isActive) {
+      ineligibleCode = 'MEMBER_INACTIVE';
       ineligibleReason = 'บัญชีสมาชิกถูกระงับชั่วคราว';
     } else if (!enoughPoints) {
+      ineligibleCode = 'INSUFFICIENT_POINTS';
       ineligibleReason = `แต้มไม่พอ (ต้องใช้ ${promo.pointsCost} แต้ม)`;
     } else if (!meetsMinSpend) {
+      ineligibleCode = 'MIN_SPEND_NOT_MET';
       ineligibleReason = `ยอดอาหารขั้นต่ำ ฿${promo.minSpend.toFixed(2)}`;
     }
     return {
       ...promo,
       eligible: member.isActive && enoughPoints && meetsMinSpend,
       estimatedDiscount,
+      ineligibleCode,
       ineligibleReason,
     };
   });

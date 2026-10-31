@@ -1,7 +1,8 @@
-// Admin UI controller for SQL-backed Membership, Loyalty Points & Promotions.
+// Admin UI controller for Membership, Loyalty Points & Promotions.
 (() => {
   const Admin = window.Admin;
   if (!Admin) return;
+  const T = (key, vars) => (window.t ? window.t(key, vars) : key);
 
   const loadingEl = document.getElementById('loyalty-loading');
   const memberRows = document.getElementById('member-rows');
@@ -15,12 +16,16 @@
   const promoForm = document.getElementById('promo-form');
   const pointsModal = document.getElementById('points-modal');
   const pointsAdjustForm = document.getElementById('points-adjust-form');
-  const ssmsModal = document.getElementById('ssms-guide-modal');
 
   let currentTab = localStorage.getItem('loyaltyAdminTab') || 'members';
+  let cachedOverview = null;
   let cachedMembers = [];
   let cachedPromos = [];
-  let latestSqlStatus = null;
+  let cachedTransactions = [];
+  let editingMember = null;
+  let editingPromo = null;
+  let activePointsMember = null;
+  let activePointsTxList = [];
 
   function currentLocale() {
     return localStorage.getItem('lang') === 'en' ? 'en-US' : 'th-TH';
@@ -37,6 +42,11 @@
     return d.toLocaleString(currentLocale());
   }
 
+  function displayTierName(tierCode, tierName) {
+    if (tierCode === 'MEMBER') return T('admin.members.tierNameMember');
+    return tierName || tierCode || T('admin.members.tierNameMember');
+  }
+
   function tierBadgeHTML(tierCode, tierName, discountPercent) {
     const styles = {
       VIP: 'bg-purple-100 text-purple-800 border-purple-200',
@@ -45,50 +55,23 @@
       MEMBER: 'bg-orange-50 text-orange-800 border-orange-200',
     };
     const cls = styles[tierCode] || styles.MEMBER;
-    const pct = Number(discountPercent) > 0 ? ` · ลด ${Number(discountPercent)}%` : '';
-    return `<span class="inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-bold ${cls}">${Admin.escapeHTML(tierName || tierCode)}${Admin.escapeHTML(pct)}</span>`;
+    const label = displayTierName(tierCode, tierName);
+    const pct = Number(discountPercent) > 0
+      ? ` · ${T('admin.members.tierDiscountTag', { pct: Number(discountPercent) })}`
+      : '';
+    return `<span class="inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-bold ${cls}">${Admin.escapeHTML(label)}${Admin.escapeHTML(pct)}</span>`;
   }
 
   function txTypeBadgeHTML(type) {
     const map = {
-      EARN: ['รับแต้ม', 'bg-green-100 text-green-800'],
-      REDEEM: ['แลกคูปอง', 'bg-orange-100 text-orange-800'],
-      BONUS: ['แต้มพิเศษ', 'bg-blue-100 text-blue-800'],
-      ADJUST: ['ปรับแต้ม', 'bg-slate-200 text-slate-800'],
-      REFUND: ['คืนแต้ม', 'bg-purple-100 text-purple-800'],
+      EARN: [T('admin.members.txTypeEarn'), 'bg-green-100 text-green-800'],
+      REDEEM: [T('admin.members.txTypeRedeem'), 'bg-orange-100 text-orange-800'],
+      BONUS: [T('admin.members.txTypeBonus'), 'bg-blue-100 text-blue-800'],
+      ADJUST: [T('admin.members.txTypeAdjust'), 'bg-slate-200 text-slate-800'],
+      REFUND: [T('admin.members.txTypeRefund'), 'bg-purple-100 text-purple-800'],
     };
     const [label, cls] = map[type] || [type, 'bg-slate-100 text-slate-700'];
     return `<span class="inline-block rounded-lg px-2.5 py-1 text-xs font-bold ${cls}">${Admin.escapeHTML(label)}</span>`;
-  }
-
-  function renderSqlStatus(status) {
-    latestSqlStatus = status;
-    const dot = document.getElementById('sql-status-dot');
-    const text = document.getElementById('sql-status-text');
-    const badge = document.getElementById('sql-status-badge');
-    const box = document.getElementById('ssms-current-status-box');
-
-    if (!status) return;
-
-    if (status.mode === 'mssql' && status.connected) {
-      dot.className = 'h-2.5 w-2.5 rounded-full bg-green-600';
-      badge.className = 'inline-flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-3.5 py-2.5 text-xs font-bold text-green-900 shadow-sm transition hover:bg-green-100';
-      text.textContent = `SQL Server (SSMS): ${status.database} @ ${status.server}`;
-      box.innerHTML = `<p class="font-bold text-green-800">เชื่อมต่อ Microsoft SQL Server (SSMS) สำเร็จแล้ว</p>
-        <p class="mt-1 text-slate-600">เซิร์ฟเวอร์: <code>${Admin.escapeHTML(status.server)}</code> · ฐานข้อมูล: <code>${Admin.escapeHTML(status.database)}</code></p>`;
-    } else if (status.mode === 'mssql_error') {
-      dot.className = 'h-2.5 w-2.5 rounded-full bg-red-600';
-      badge.className = 'inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-bold text-red-900 shadow-sm transition hover:bg-red-100';
-      text.textContent = `เชื่อมต่อ SSMS ไม่สำเร็จ (${status.server})`;
-      box.innerHTML = `<p class="font-bold text-red-800">เชื่อมต่อ SQL Server ไม่สำเร็จ</p>
-        <p class="mt-1 text-red-700">${Admin.escapeHTML(status.error || 'Unknown error')}</p>`;
-    } else {
-      dot.className = 'h-2.5 w-2.5 rounded-full bg-amber-500';
-      badge.className = 'inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-bold text-amber-900 shadow-sm transition hover:bg-amber-100';
-      text.textContent = 'SQL Demo Mode (คลิกดูวิธีเชื่อม SSMS)';
-      box.innerHTML = `<p class="font-bold text-amber-900">ขณะนี้ทำงานด้วย Local SQL Engine อัตโนมัติ</p>
-        <p class="mt-1 text-slate-600">ระบบกำลังรันคำสั่ง SQL จริงในเครื่อง หากต้องการให้ข้อมูลบันทึกลงโปรแกรม <strong>SQL Server Management Studio (SSMS)</strong> ให้ทำตาม 3 ขั้นตอนด้านล่าง</p>`;
-    }
   }
 
   function switchTab(tab) {
@@ -109,23 +92,23 @@
   }
 
   function renderOverview(data) {
-    renderSqlStatus(data.sqlStatus);
-    const s = data.summary || {};
-    const tiers = Array.isArray(data.tiers) ? data.tiers : [];
+    cachedOverview = data;
+    const s = (data && data.summary) || {};
+    const tiers = Array.isArray(data && data.tiers) ? data.tiers : [];
 
-    document.getElementById('kpi-total-members').textContent = `${formatInt(s.totalMembers)} คน`;
+    document.getElementById('kpi-total-members').textContent = T('admin.members.peopleCount', { n: formatInt(s.totalMembers) });
     document.getElementById('kpi-tier-breakdown').textContent = tiers
-      .map((t) => `${t.tierName}: ${formatInt(t.memberCount)}`)
+      .map((t) => `${displayTierName(t.tierCode, t.tierName)}: ${formatInt(t.memberCount)}`)
       .join(' · ') || '—';
 
-    document.getElementById('kpi-points-pool').textContent = `${formatInt(s.totalCurrentPoints)} แต้ม`;
-    document.getElementById('kpi-points-issued').textContent = `แจกสะสมทั้งหมด ${formatInt(s.totalPointsIssued)} แต้ม`;
+    document.getElementById('kpi-points-pool').textContent = T('admin.members.pointsCount', { n: formatInt(s.totalCurrentPoints) });
+    document.getElementById('kpi-points-issued').textContent = T('admin.members.pointsIssuedTotal', { n: formatInt(s.totalPointsIssued) });
 
     document.getElementById('kpi-active-promos').textContent = `${formatInt(s.activePromotions)} / ${formatInt(s.totalPromotions)}`;
-    document.getElementById('kpi-redemptions').textContent = `ถูกแลกใช้งานแล้ว ${formatInt(s.totalRedemptions)} ครั้ง`;
+    document.getElementById('kpi-redemptions').textContent = T('admin.members.redeemedTotal', { n: formatInt(s.totalRedemptions) });
 
     document.getElementById('kpi-total-saved').textContent = Admin.currency(s.totalDiscountSaved);
-    document.getElementById('kpi-member-spend').textContent = `ยอดใช้จ่ายสมาชิกรวม ${Admin.currency(s.totalMemberSpend)}`;
+    document.getElementById('kpi-member-spend').textContent = T('admin.members.memberSpendTotal', { amount: Admin.currency(s.totalMemberSpend) });
 
     tierCards.replaceChildren();
     for (const tier of tiers) {
@@ -134,12 +117,12 @@
       card.innerHTML = `
         <div class="flex items-center justify-between gap-2">
           ${tierBadgeHTML(tier.tierCode, tier.tierName, tier.discountPercent)}
-          <span class="text-xs font-bold text-slate-500">${formatInt(tier.memberCount)} คน</span>
+          <span class="text-xs font-bold text-slate-500">${Admin.escapeHTML(T('admin.members.peopleCount', { n: formatInt(tier.memberCount) }))}</span>
         </div>
         <dl class="mt-3 space-y-1 text-xs text-slate-600">
-          <div class="flex justify-between"><dt>แต้มสะสมขั้นต่ำ:</dt><dd class="font-bold text-slate-900">${formatInt(tier.minPoints)} แต้ม</dd></div>
-          <div class="flex justify-between"><dt>ส่วนลดประจำบัตร:</dt><dd class="font-bold text-orange-700">${tier.discountPercent}%</dd></div>
-          <div class="flex justify-between"><dt>ตัวคูณรับแต้ม:</dt><dd class="font-bold text-slate-900">×${Number(tier.pointsMultiplier).toFixed(2)}</dd></div>
+          <div class="flex justify-between"><dt>${Admin.escapeHTML(T('admin.members.tierMinPointsLabel'))}</dt><dd class="font-bold text-slate-900">${Admin.escapeHTML(T('admin.members.pointsCount', { n: formatInt(tier.minPoints) }))}</dd></div>
+          <div class="flex justify-between"><dt>${Admin.escapeHTML(T('admin.members.tierDiscountLabel'))}</dt><dd class="font-bold text-orange-700">${tier.discountPercent}%</dd></div>
+          <div class="flex justify-between"><dt>${Admin.escapeHTML(T('admin.members.tierMultiplierLabel'))}</dt><dd class="font-bold text-slate-900">×${Number(tier.pointsMultiplier).toFixed(2)}</dd></div>
         </dl>`;
       tierCards.append(card);
     }
@@ -161,28 +144,28 @@
         </td>
         <td class="p-4">${tierBadgeHTML(m.tierCode, m.tierName, m.discountPercent)}</td>
         <td class="p-4 text-right">
-          <p class="font-black text-orange-700">${formatInt(m.currentPoints)} แต้ม</p>
-          <p class="text-xs text-slate-400">สะสมรวม ${formatInt(m.lifetimePoints)}</p>
+          <p class="font-black text-orange-700">${Admin.escapeHTML(T('admin.members.pointsCount', { n: formatInt(m.currentPoints) }))}</p>
+          <p class="text-xs text-slate-400">${Admin.escapeHTML(T('admin.members.lifetimePointsShort', { n: formatInt(m.lifetimePoints) }))}</p>
         </td>
         <td class="p-4 text-right">
           <p class="font-bold text-slate-800">${Admin.currency(m.totalSpent)}</p>
-          <p class="text-xs text-slate-400">${formatInt(m.visitCount)} ครั้ง</p>
+          <p class="text-xs text-slate-400">${Admin.escapeHTML(T('admin.members.visitsCount', { n: formatInt(m.visitCount) }))}</p>
         </td>
         <td class="p-4">
           <span class="inline-block rounded-lg px-2.5 py-1 text-xs font-bold ${m.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}">
-            ${m.isActive ? 'ใช้งานปกติ' : 'ระงับ'}
+            ${Admin.escapeHTML(m.isActive ? T('admin.members.statusActive') : T('admin.members.statusSuspended'))}
           </span>
         </td>
         <td class="p-4 text-right">
           <div class="inline-flex flex-wrap justify-end gap-1.5">
             <button type="button" data-points-member="${m.memberId}" class="rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-800 hover:bg-orange-100">
-              แต้ม/ประวัติ
+              ${Admin.escapeHTML(T('admin.members.pointsHistoryBtn'))}
             </button>
             <button type="button" data-edit-member="${m.memberId}" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50">
-              แก้ไข
+              ${Admin.escapeHTML(T('admin.edit'))}
             </button>
             <button type="button" data-delete-member="${m.memberId}" class="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-50">
-              ลบ
+              ${Admin.escapeHTML(T('admin.delete'))}
             </button>
           </div>
         </td>`;
@@ -196,9 +179,19 @@
     document.getElementById('promos-empty').classList.toggle('hidden', promos.length > 0);
 
     for (const p of promos) {
-      const discountLabel = p.discountType === 'PERCENT'
-        ? `ลด ${p.discountValue}%${p.maxDiscount ? ` (สูงสุด ${Admin.currency(p.maxDiscount)})` : ''}`
-        : `ลด ${Admin.currency(p.discountValue)}`;
+      let discountLabel;
+      if (p.discountType === 'PERCENT') {
+        discountLabel = p.maxDiscount
+          ? T('admin.members.discountPercentMax', { pct: p.discountValue, max: Admin.currency(p.maxDiscount) })
+          : T('admin.members.discountPercent', { pct: p.discountValue });
+      } else {
+        discountLabel = T('admin.members.discountFixed', { amount: Admin.currency(p.discountValue) });
+      }
+
+      const pointsCostHtml = p.pointsCost > 0
+        ? Admin.escapeHTML(T('admin.members.pointsCount', { n: formatInt(p.pointsCost) }))
+        : `<span class="text-emerald-700">${Admin.escapeHTML(T('admin.members.freeZeroPoints'))}</span>`;
+
       const tr = document.createElement('tr');
       tr.className = 'hover:bg-slate-50/80';
       tr.innerHTML = `
@@ -210,24 +203,24 @@
           ${p.description ? `<p class="mt-0.5 text-xs text-slate-500">${Admin.escapeHTML(p.description)}</p>` : ''}
         </td>
         <td class="p-4 font-bold text-orange-700">${Admin.escapeHTML(discountLabel)}</td>
-        <td class="p-4 text-right font-bold">${p.pointsCost > 0 ? `${formatInt(p.pointsCost)} แต้ม` : '<span class="text-emerald-700">ฟรี (0 แต้ม)</span>'}</td>
-        <td class="p-4 text-right text-slate-600">${p.minSpend > 0 ? Admin.currency(p.minSpend) : 'ไม่มีขั้นต่ำ'}</td>
+        <td class="p-4 text-right font-bold">${pointsCostHtml}</td>
+        <td class="p-4 text-right text-slate-600">${p.minSpend > 0 ? Admin.currency(p.minSpend) : Admin.escapeHTML(T('admin.members.noMinSpend'))}</td>
         <td class="p-4 text-right">
-          <p class="font-bold">${formatInt(p.usageCount)} ครั้ง</p>
+          <p class="font-bold">${Admin.escapeHTML(T('admin.members.timesCount', { n: formatInt(p.usageCount) }))}</p>
           <p class="text-xs text-slate-400">${Admin.currency(p.totalDiscountGiven)}</p>
         </td>
         <td class="p-4">
           <span class="inline-block rounded-lg px-2.5 py-1 text-xs font-bold ${p.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}">
-            ${p.isActive ? 'เปิดใช้' : 'ปิด'}
+            ${Admin.escapeHTML(p.isActive ? T('admin.members.promoActive') : T('admin.members.promoInactive'))}
           </span>
         </td>
         <td class="p-4 text-right">
           <div class="inline-flex flex-wrap justify-end gap-1.5">
             <button type="button" data-edit-promo="${p.promotionId}" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50">
-              แก้ไข
+              ${Admin.escapeHTML(T('admin.edit'))}
             </button>
             <button type="button" data-delete-promo="${p.promotionId}" class="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-50">
-              ลบ
+              ${Admin.escapeHTML(T('admin.delete'))}
             </button>
           </div>
         </td>`;
@@ -236,6 +229,7 @@
   }
 
   function renderTransactions(transactions) {
+    cachedTransactions = transactions;
     txRows.replaceChildren();
     document.getElementById('logs-empty').classList.toggle('hidden', transactions.length > 0);
 
@@ -280,20 +274,26 @@
       renderPromotions(Array.isArray(promosRes.data) ? promosRes.data : []);
       renderTransactions(Array.isArray(txRes.data) ? txRes.data : []);
     } catch (error) {
-      Admin.message(error.message || 'ไม่สามารถโหลดข้อมูลระบบสมาชิก SQL ได้', true);
-      try {
-        const statusRes = await Admin.api('/api/members/status');
-        renderSqlStatus(statusRes.data);
-      } catch {}
+      Admin.message(error.message || T('admin.members.loadFailed'), true);
     } finally {
       loadingEl.classList.add('hidden');
     }
   }
 
+  function updateModalTitles() {
+    document.getElementById('member-modal-title').textContent = editingMember
+      ? T('admin.members.editMemberTitle')
+      : T('admin.members.newMemberTitle');
+    document.getElementById('promo-modal-title').textContent = editingPromo
+      ? T('admin.members.editPromoTitle')
+      : T('admin.members.newPromoTitle');
+  }
+
   function openMemberModal(member = null) {
+    editingMember = member;
     memberForm.reset();
     memberForm.elements.memberId.value = member ? member.memberId : '';
-    document.getElementById('member-modal-title').textContent = member ? 'แก้ไขข้อมูลสมาชิก' : 'สมัครสมาชิกใหม่';
+    updateModalTitles();
     document.getElementById('member-initial-points-wrap').classList.toggle('hidden', Boolean(member));
     const statusWrap = document.getElementById('member-status-wrap');
     statusWrap.classList.toggle('hidden', !member);
@@ -309,13 +309,15 @@
   }
 
   function closeMemberModal() {
+    editingMember = null;
     memberModal.classList.replace('flex', 'hidden');
   }
 
   function openPromoModal(promo = null) {
+    editingPromo = promo;
     promoForm.reset();
     promoForm.elements.promotionId.value = promo ? promo.promotionId : '';
-    document.getElementById('promo-modal-title').textContent = promo ? 'แก้ไขคูปองโปรโมชัน' : 'เพิ่มคูปองโปรโมชัน';
+    updateModalTitles();
     promoForm.elements.isActive.checked = promo ? Boolean(promo.isActive) : true;
 
     if (promo) {
@@ -332,45 +334,63 @@
   }
 
   function closePromoModal() {
+    editingPromo = null;
     promoModal.classList.replace('flex', 'hidden');
   }
 
+  function renderPointsModalHeader(member) {
+    document.getElementById('points-modal-code').textContent = `${member.memberCode} · ${displayTierName(member.tierCode, member.tierName)}`;
+    document.getElementById('points-modal-name').textContent = member.fullName;
+    document.getElementById('points-modal-meta').textContent = T('admin.members.pointsModalMeta', {
+      phone: member.phone,
+      current: formatInt(member.currentPoints),
+      lifetime: formatInt(member.lifetimePoints),
+    });
+  }
+
+  function renderMemberTxRows(list) {
+    const tbody = document.getElementById('member-tx-rows');
+    tbody.replaceChildren();
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">${Admin.escapeHTML(T('admin.members.emptyMemberPoints'))}</td></tr>`;
+      return;
+    }
+    for (const tx of list) {
+      const deltaText = tx.pointsDelta > 0 ? `+${formatInt(tx.pointsDelta)}` : formatInt(tx.pointsDelta);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="p-3 text-slate-500">${Admin.escapeHTML(formatDateTime(tx.createdAt))}</td>
+        <td class="p-3">${txTypeBadgeHTML(tx.transactionType)}</td>
+        <td class="p-3 text-right font-bold ${tx.pointsDelta >= 0 ? 'text-green-700' : 'text-red-700'}">${Admin.escapeHTML(String(deltaText))}</td>
+        <td class="p-3 text-right">${tx.discountAmount > 0 ? `-${Admin.currency(tx.discountAmount)}` : '—'}</td>
+        <td class="p-3 text-slate-600">${Admin.escapeHTML(tx.note || '—')}</td>`;
+      tbody.append(tr);
+    }
+  }
+
   async function openPointsModal(member) {
+    activePointsMember = member;
+    activePointsTxList = [];
     pointsAdjustForm.reset();
     pointsAdjustForm.elements.memberId.value = member.memberId;
-    document.getElementById('points-modal-code').textContent = `${member.memberCode} · ${member.tierName}`;
-    document.getElementById('points-modal-name').textContent = member.fullName;
-    document.getElementById('points-modal-meta').textContent = `เบอร์ ${member.phone} · แต้มคงเหลือ ${formatInt(member.currentPoints)} แต้ม (สะสมตลอดชีพ ${formatInt(member.lifetimePoints)} แต้ม)`;
+    renderPointsModalHeader(member);
 
     const tbody = document.getElementById('member-tx-rows');
-    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">กำลังโหลด...</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">${Admin.escapeHTML(T('common.loading'))}</td></tr>`;
     pointsModal.classList.replace('hidden', 'flex');
 
     try {
       const res = await Admin.api(`/api/members/transactions?memberId=${encodeURIComponent(member.memberId)}&limit=30`);
-      const list = Array.isArray(res.data) ? res.data : [];
-      tbody.replaceChildren();
-      if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">ยังไม่มีประวัติแต้ม</td></tr>';
-        return;
-      }
-      for (const tx of list) {
-        const deltaText = tx.pointsDelta > 0 ? `+${formatInt(tx.pointsDelta)}` : formatInt(tx.pointsDelta);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="p-3 text-slate-500">${Admin.escapeHTML(formatDateTime(tx.createdAt))}</td>
-          <td class="p-3">${txTypeBadgeHTML(tx.transactionType)}</td>
-          <td class="p-3 text-right font-bold ${tx.pointsDelta >= 0 ? 'text-green-700' : 'text-red-700'}">${Admin.escapeHTML(String(deltaText))}</td>
-          <td class="p-3 text-right">${tx.discountAmount > 0 ? `-${Admin.currency(tx.discountAmount)}` : '—'}</td>
-          <td class="p-3 text-slate-600">${Admin.escapeHTML(tx.note || '—')}</td>`;
-        tbody.append(tr);
-      }
+      activePointsTxList = Array.isArray(res.data) ? res.data : [];
+      renderMemberTxRows(activePointsTxList);
     } catch (error) {
       tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-700">${Admin.escapeHTML(error.message)}</td></tr>`;
     }
   }
 
   function closePointsModal() {
+    activePointsMember = null;
+    activePointsTxList = [];
     pointsModal.classList.replace('flex', 'hidden');
   }
 
@@ -387,13 +407,7 @@
   document.querySelector('[data-close-promo-modal]').addEventListener('click', closePromoModal);
   document.querySelector('[data-close-points-modal]').addEventListener('click', closePointsModal);
 
-  const openGuide = () => ssmsModal.classList.replace('hidden', 'flex');
-  const closeGuide = () => ssmsModal.classList.replace('flex', 'hidden');
-  document.getElementById('open-ssms-guide').addEventListener('click', openGuide);
-  document.getElementById('sql-status-badge').addEventListener('click', openGuide);
-  document.querySelector('[data-close-ssms-modal]').addEventListener('click', closeGuide);
-
-  [memberModal, promoModal, pointsModal, ssmsModal].forEach((modal) => {
+  [memberModal, promoModal, pointsModal].forEach((modal) => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.replace('flex', 'hidden');
     });
@@ -425,16 +439,16 @@
     }
 
     try {
-      const res = await Admin.api(id ? `/api/members/${encodeURIComponent(id)}` : '/api/members', {
+      await Admin.api(id ? `/api/members/${encodeURIComponent(id)}` : '/api/members', {
         method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       closeMemberModal();
-      Admin.message(res.message || 'บันทึกข้อมูลสมาชิกสำเร็จ');
+      Admin.message(T('admin.members.memberSaved'));
       await loadAllData();
     } catch (error) {
-      Admin.message(error.message || 'บันทึกข้อมูลสมาชิกไม่สำเร็จ', true);
+      Admin.message(error.message || T('admin.members.memberSaveFailed'), true);
     }
   });
 
@@ -455,17 +469,17 @@
     };
 
     try {
-      const res = await Admin.api(id ? `/api/members/promotions/${encodeURIComponent(id)}` : '/api/members/promotions', {
+      await Admin.api(id ? `/api/members/promotions/${encodeURIComponent(id)}` : '/api/members/promotions', {
         method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       closePromoModal();
       switchTab('promos');
-      Admin.message(res.message || 'บันทึกคูปองโปรโมชันสำเร็จ');
+      Admin.message(T('admin.members.promoSaved'));
       await loadAllData();
     } catch (error) {
-      Admin.message(error.message || 'บันทึกคูปองโปรโมชันไม่สำเร็จ', true);
+      Admin.message(error.message || T('admin.members.promoSaveFailed'), true);
     }
   });
 
@@ -481,13 +495,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pointsDelta, note }),
       });
-      Admin.message(res.message || 'ปรับปรุงแต้มสำเร็จ');
+      Admin.message(T('admin.members.pointsAdjusted'));
       await loadAllData();
       if (res.data) {
         await openPointsModal(res.data);
       }
     } catch (error) {
-      Admin.message(error.message || 'ปรับปรุงแต้มไม่สำเร็จ', true);
+      Admin.message(error.message || T('admin.members.pointsAdjustFailed'), true);
     }
   });
 
@@ -510,18 +524,21 @@
     if (delBtn) {
       const m = cachedMembers.find((item) => String(item.memberId) === delBtn.dataset.deleteMember);
       if (!m) return;
-      const ok = await Admin.confirm(`ต้องการลบสมาชิก "${m.fullName}" (${m.phone}) ออกจากฐานข้อมูล SQL ใช่หรือไม่?`, {
-        title: 'ยืนยันลบสมาชิก',
-        okText: 'ลบสมาชิก',
-        danger: true,
-      });
+      const ok = await Admin.confirm(
+        T('admin.members.confirmDeleteMemberMsg', { name: m.fullName, phone: m.phone }),
+        {
+          title: T('admin.members.confirmDeleteMemberTitle'),
+          okText: T('admin.members.confirmDeleteMemberOk'),
+          danger: true,
+        }
+      );
       if (!ok) return;
       try {
         await Admin.api(`/api/members/${encodeURIComponent(m.memberId)}`, { method: 'DELETE' });
-        Admin.message('ลบข้อมูลสมาชิกสำเร็จ');
+        Admin.message(T('admin.members.memberDeleted'));
         await loadAllData();
       } catch (error) {
-        Admin.message(error.message || 'ลบสมาชิกไม่สำเร็จ', true);
+        Admin.message(error.message || T('admin.members.memberDeleteFailed'), true);
       }
     }
   });
@@ -538,26 +555,39 @@
     if (delBtn) {
       const p = cachedPromos.find((item) => String(item.promotionId) === delBtn.dataset.deletePromo);
       if (!p) return;
-      const ok = await Admin.confirm(`ต้องการลบคูปอง "${p.promoCode} - ${p.title}" ออกจากฐานข้อมูล SQL ใช่หรือไม่?`, {
-        title: 'ยืนยันลบคูปองโปรโมชัน',
-        okText: 'ลบคูปอง',
-        danger: true,
-      });
+      const ok = await Admin.confirm(
+        T('admin.members.confirmDeletePromoMsg', { code: p.promoCode, title: p.title }),
+        {
+          title: T('admin.members.confirmDeletePromoTitle'),
+          okText: T('admin.members.confirmDeletePromoOk'),
+          danger: true,
+        }
+      );
       if (!ok) return;
       try {
         await Admin.api(`/api/members/promotions/${encodeURIComponent(p.promotionId)}`, { method: 'DELETE' });
-        Admin.message('ลบคูปองโปรโมชันสำเร็จ');
+        Admin.message(T('admin.members.promoDeleted'));
         await loadAllData();
       } catch (error) {
-        Admin.message(error.message || 'ลบคูปองโปรโมชันไม่สำเร็จ', true);
+        Admin.message(error.message || T('admin.members.promoDeleteFailed'), true);
       }
     }
   });
 
   switchTab(currentTab);
+  updateModalTitles();
+
   window.addEventListener('languageChanged', () => {
-    if (latestSqlStatus) renderSqlStatus(latestSqlStatus);
-    loadAllData();
+    updateModalTitles();
+    if (cachedOverview) renderOverview(cachedOverview);
+    renderMembers(cachedMembers);
+    renderPromotions(cachedPromos);
+    renderTransactions(cachedTransactions);
+    if (activePointsMember && !pointsModal.classList.contains('hidden')) {
+      renderPointsModalHeader(activePointsMember);
+      renderMemberTxRows(activePointsTxList);
+    }
   });
+
   loadAllData();
 })();

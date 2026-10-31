@@ -22,14 +22,14 @@
           <h1 class="mt-2 text-3xl font-black" data-i18n="scan.title">
             สแกน QR Code
           </h1>
-          <p class="mt-2 text-slate-500">
+          <p class="mt-2 text-slate-500" data-i18n="scan.subtitle">
             กรอกรหัสกู้คืนจากบัตรคิวเพื่อดูสถานะและยืนยันเมื่อพนักงานเรียก
           </p>
         </div>
-        <div id="secure-context-warning" class="alert mt-5 hidden rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900" role="alert">
+        <div id="secure-context-warning" class="alert mt-5 hidden rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900" role="alert" data-i18n="scan.secureContextWarning">
           เบราว์เซอร์บล็อกกล้องบน HTTP ที่ไม่ใช่ localhost. กรุณาใช้ HTTPS หรือเปิดด้วย queueId ใน URL แทน
         </div>
-        <p id="scan-status" class="mt-4 text-center text-sm text-slate-500" aria-live="polite">
+        <p id="scan-status" class="mt-4 text-center text-sm text-slate-500" aria-live="polite" data-i18n="scan.initialHint">
           กรอกรหัสคิวและรหัสกู้คืนเพื่อเริ่มติดตาม
         </p>
         <div id="scan-spinner" class="mx-auto mt-4 hidden h-8 w-8 animate-spin rounded-full border-4 border-orange-100 border-t-orange-600" aria-label="กำลังเริ่มเซสชัน" data-i18n="scan.starting" data-i18n-attr="aria-label">
@@ -37,21 +37,21 @@
         <p id="scan-error" class="mt-4 hidden rounded-xl bg-red-50 p-3 text-sm text-red-700" role="alert">
         </p>
         <form id="queue-id-form" class="mt-5 space-y-3 border-t border-slate-200 pt-5">
-          <label for="queue-id-input" class="block font-semibold">
+          <label for="queue-id-input" class="block font-semibold" data-i18n="scan.queueIdLabel">
             Queue ID
           </label>
           <input id="queue-id-input" name="queueId" type="text" autocomplete="off" inputmode="text"
-          class="input input-bordered w-full" placeholder="วาง Queue ID ที่นี่">
-          <label for="queue-access-input" class="block font-semibold">
+          class="input input-bordered w-full" placeholder="วาง Queue ID ที่นี่" data-i18n-placeholder="scan.queueIdPlaceholder">
+          <label for="queue-access-input" class="block font-semibold" data-i18n="scan.recoveryLabel">
             รหัสกู้คืน
           </label>
           <input id="queue-access-input" name="accessToken" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="32" required
-          class="input input-bordered w-full" placeholder="รหัสกู้คืน 32 ตัวอักษร">
-          <button type="submit" class="btn btn-primary min-h-11 w-full">
+          class="input input-bordered w-full" placeholder="รหัสกู้คืน 32 ตัวอักษร" data-i18n-placeholder="scan.recoveryPlaceholder">
+          <button type="submit" class="btn btn-primary min-h-11 w-full" data-i18n="scan.trackBtn">
             ติดตามคิว
           </button>
         </form>
-        <button id="scan-confirm-button" type="button" class="btn btn-primary mt-4 hidden w-full">
+        <button id="scan-confirm-button" type="button" class="btn btn-primary mt-4 hidden w-full" data-i18n="scan.confirmSeatBtn">
           ยืนยันพร้อมนั่งโต๊ะ
         </button>
       </section>
