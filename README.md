@@ -83,6 +83,8 @@
 | `/login.html` | เข้าสู่ระบบพนักงาน |
 | `/admin/dashboard.html` | หน้าภาพรวมผู้ดูแล |
 | `/admin/manage-menu.html` | จัดการเมนู |
+| `/admin/manage-members.html` | จัดการสมาชิก สะสมแต้ม และคูปองส่วนลด (SQL) |
+| `/admin/checkout.html` | เช็คบิลรับชำระเงินและใช้สิทธิ์ส่วนลดสมาชิก |
 | `/kitchen/kitchen.html` | หน้าครัว |
 | `/waiter/waiter.html` | หน้าพนักงานบริการ |
 
@@ -111,6 +113,12 @@
 | `SESSION_DURATION_MINUTES` | ไม่ | ระยะเวลาเซสชันเป็นนาที ค่าเริ่มต้น `90` |
 | `SERVICE_CHARGE_PERCENT` | ไม่ | เปอร์เซ็นต์ค่าบริการ ค่าเริ่มต้น `10` |
 | `VAT_PERCENT` | ไม่ | เปอร์เซ็นต์ VAT ค่าเริ่มต้น `7` |
+| `SQL_SERVER` | เมื่อเชื่อม SSMS | ชื่อเซิร์ฟเวอร์ SQL Server เช่น `localhost` หรือ `localhost\SQLEXPRESS` (หากเว้นว่างจะรัน Local SQL Demo Mode อัตโนมัติ) |
+| `SQL_PORT` | ไม่ | พอร์ต TCP ของ SQL Server ค่าเริ่มต้น `1433` |
+| `SQL_DATABASE` | ไม่ | ชื่อฐานข้อมูล SQL ค่าเริ่มต้น `BuffetLoyaltyDB` |
+| `SQL_USER` | เมื่อเชื่อม SSMS | ชื่อผู้ใช้ SQL Authentication ใน SSMS |
+| `SQL_PASSWORD` | เมื่อเชื่อม SSMS | รหัสผ่านของผู้ใช้ SQL Authentication |
+| `SQL_TRUST_SERVER_CERTIFICATE` | ไม่ | ค่าเริ่มต้น `true` สำหรับเชื่อมต่อ SQL Server ในเครื่อง |
 
 สำหรับ Vercel ให้ตั้งค่าเหล่านี้ที่ **Project Settings → Environment Variables** ไม่ต้องอัปโหลดหรือ commit `.env` ตั้ง `MONGO_URI` และ `JWT_SECRET` เป็น Sensitive และเพิ่มค่าให้ environment ที่ต้องใช้ เช่น Preview หรือ Production หลังเปลี่ยนค่าแล้วต้อง deploy ใหม่เพื่อให้ฟังก์ชันใช้ค่าใหม่
 
@@ -128,6 +136,7 @@ MongoDB Atlas ต้องอนุญาตการเชื่อมต่อ
 | `npm run test:live-ui` | ทดสอบ polling, Socket.IO, ข้อผิดพลาด API และเสียงแจ้งเตือน ด้วยข้อมูลจำลองในเบราว์เซอร์ |
 | `npm run test:menu-ui` | ทดสอบหน้าเมนู/จัดการเมนูและการเปิดจอคิวด้วยเบราว์เซอร์และ API จำลอง |
 | `npm run test:mongo` | ทดสอบการเชื่อมต่อ MongoDB |
+| `npm run test:sql` | ทดสอบการเชื่อมต่อ SQL Server (SSMS) และตรวจสอบจำนวนข้อมูลทั้ง 4 ตาราง |
 | `npm run test:browser` | รันทดสอบเบราว์เซอร์ หากตั้งค่าเบราว์เซอร์ไว้แล้ว |
 | `npm run queues:close-stale` | ตรวจคิวที่ค้างสถานะ “นั่งโต๊ะแล้ว” (dry run) เพิ่ม `-- --apply` เพื่อปิดจริง |
 | `npm run queues:migrate-business-day` | ตรวจ/ซ่อม index และเติมเลขคิวรายวันทำการให้คิวเดิม (dry run) เพิ่ม `-- --apply` เพื่อเขียนจริง — แอปเรียกชุดคำสั่งเดียวกันนี้อัตโนมัติเมื่อเชื่อมต่อฐานข้อมูล |
@@ -198,3 +207,14 @@ MongoDB Atlas ต้องอนุญาตการเชื่อมต่อ
 - เมื่อ API ล้มเหลว เก็บรายการล่าสุดไว้และแสดงสถานะผิดพลาด ไม่เปลี่ยนความล้มเหลวเป็น “ไม่มีออร์เดอร์”
 
 ใช้ `npm run test:live-ui` เพื่อทดสอบพฤติกรรมเหล่านี้ด้วย API และเสียงจำลอง โดยตั้ง `CHROME_PATH` เช่นเดียวกับชุดทดสอบเมนู ไม่ต้องใช้ MongoDB และไม่แตะข้อมูลจริง
+
+## ระบบสมาชิก สะสมแต้ม และคูปองส่วนลด (SQL Server / SSMS)
+
+โครงการนี้ใช้สถาปัตยกรรมฐานข้อมูลคู่ (Hybrid Database): **MongoDB** ดูแลระบบคิว โต๊ะ และออเดอร์หน้าร้านแบบ Real-time ส่วน **Microsoft SQL Server (จัดการผ่าน SSMS)** ดูแลระบบสมาชิก แต้มสะสม และคูปองส่วนลดเชิงความสัมพันธ์ ประกอบด้วย 4 ตารางหลัก (`MembershipTiers`, `Members`, `Promotions`, `PointTransactions`) และ SQL View (`vw_MemberSummary`)
+
+### ขั้นตอนเชื่อมต่อกับ SQL Server Management Studio (SSMS)
+
+1. เปิดโปรแกรม **SSMS** แล้วเปิดไฟล์ `sql/buffet_loyalty_ssms.sql` กด **Execute (F5)** เพื่อสร้างฐานข้อมูล `BuffetLoyaltyDB` พร้อมตาราง PK/FK, View และข้อมูลตัวอย่าง
+2. ตั้งค่า `SQL_SERVER`, `SQL_DATABASE`, `SQL_USER` และ `SQL_PASSWORD` ในไฟล์ `.env`
+3. รัน `npm run test:sql` เพื่อตรวจสอบการเชื่อมต่อ จากนั้นเปิดใช้งานได้ที่หน้า `/admin/manage-members.html` และส่วนลดท้ายบิลในหน้า `/admin/checkout.html`
+

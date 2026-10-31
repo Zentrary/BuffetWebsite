@@ -221,6 +221,10 @@
       if (!payload || String(payload.sessionId) !== String(sessionId)) return;
       goToFeedback();
     });
+    socket.on('bill_updated', (payload) => {
+      if (!payload || String(payload.sessionId) !== String(sessionId)) return;
+      loadBill();
+    });
     socket.on('connect_error', () => console.warn('Staff request connection is unavailable.'));
   }
 
@@ -236,8 +240,14 @@
       try {
         const res = await fetch(`/api/session/${encodeURIComponent(sessionId)}`, { cache: 'no-store' });
         const payload = await res.json();
-        if (payload && payload.success && payload.data && (payload.data.isPaid || payload.data.status === 'completed')) {
-          goToFeedback();
+        if (payload && payload.success && payload.data) {
+          if (payload.data.isPaid || payload.data.status === 'completed') {
+            goToFeedback();
+            return;
+          }
+          if (lastBillData && Number(payload.data.discount || 0) !== Number(lastBillData.discount || 0)) {
+            await loadBill();
+          }
         }
       } catch {}
     }, interval);

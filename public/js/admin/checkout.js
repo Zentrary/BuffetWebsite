@@ -12,6 +12,7 @@
   let selectedSession = null;
   let selectedBill = null;
   let selectedQrPayment = null;
+  let lookedUpMemberData = null;
   let initialSessionLinkHandled = false;
   let checkoutView = localStorage.getItem('checkoutView') || 'cards';
 
@@ -222,11 +223,16 @@
     document.getElementById('receipt-cash-row').classList.add('hidden');
     document.getElementById('receipt-change-row').classList.add('hidden');
     document.getElementById('cash-received').value = '';
+    resetLoyaltyPanel(session);
     updateCashPreview();
     document.getElementById('qr-payment-amount').textContent = Admin.currency(session.bill && session.bill.grandTotal);
     await loadPaymentQrImage();
     setPaymentMethodView();
     await loadBill();
+    const initialPhone = document.getElementById('loyalty-phone-input').value.trim();
+    if (initialPhone) {
+      await lookupLoyaltyMember({ silentNotFound: true });
+    }
   }
 
   async function loadPaymentQrImage() {
@@ -296,14 +302,18 @@
       const discount = Number(bill.data.discount) || 0;
       document.getElementById('bill-discount-row').classList.toggle('hidden', discount <= 0);
       document.getElementById('bill-discount').textContent = `-${Admin.currency(discount)}`;
-      paymentForm.classList.toggle('hidden', !session.data.checkoutRequestedAt && !pendingPayment);
+      renderReceiptLoyaltyMeta(bill.data.loyalty || null, discount);
+      const isPayable = Boolean(session.data.checkoutRequestedAt || pendingPayment);
+      paymentForm.classList.toggle('hidden', !isPayable);
+      document.getElementById('loyalty-panel').classList.toggle('hidden', !isPayable || Boolean(session.data.isPaid));
       if (pendingPayment) {
-        selectedQrPayment = pendingPayment;
+        selectedQrPayment = { ...pendingPayment, amount: bill.data.grandTotal };
         paymentForm.elements.method.value = 'qr_payment';
         setPaymentMethodView();
       } else {
         setPaymentMethodView();
       }
+      updateCashPreview();
       document.getElementById('confirm-payment').disabled = false;
     } catch (error) {
       const paymentError = document.getElementById('payment-error');
@@ -365,6 +375,216 @@
     }
   }
 
+  function formatLoyaltySettlementText(loyalty) {
+    if (!loyalty || !loyalty.member) return '';
+    const parts = [`สมาชิก ${loyalty.member.fullName}`];
+    if (loyalty.pointsRedeemed > 0) parts.push(`ใช้ ${loyalty.pointsRedeemed} แต้ม`);
+    parts.push(`รับเพิ่ม +${loyalty.pointsEarned || 0} แต้ม (คงเหลือ ${loyalty.member.currentPoints} แต้ม)`);
+    if (loyalty.tierUpgraded) parts.push(`เลื่อนระดับเป็น ${loyalty.newTierName}!`);
+    return ` · ${parts.join(' · ')}`;
+  }
+
+  function resetLoyaltyPanel(session) {
+    lookedUpMemberData = null;
+    const loyaltyPanel = document.getElementById('loyalty-panel');
+    const phoneInput = document.getElementById('loyalty-phone-input');
+    const statusMsg = document.getElementById('loyalty-status-msg');
+    const memberBox = document.getElementById('loyalty-member-box');
+    const quickReg = document.getElementById('loyalty-quick-register');
+    const regName = document.getElementById('loyalty-register-name');
+    const clearBtn = document.getElementById('loyalty-clear-btn');
+
+    loyaltyPanel.classList.remove('hidden');
+    statusMsg.classList.add('hidden');
+    memberBox.classList.add('hidden');
+    quickReg.classList.add('hidden');
+    clearBtn.classList.add('hidden');
+
+    const queuePhone = (session && session.queue && session.queue.customerPhone) || '';
+    const queueName = (session && session.queue && session.queue.customerName) || '';
+    const linkedPhone = (session && session.loyalty && session.loyalty.memberPhone) || session.memberPhone || '';
+    phoneInput.value = linkedPhone || queuePhone || '';
+    regName.value = queueName || '';
+  }
+
+  function renderReceiptLoyaltyMeta(loyalty, discount) {
+    const receiptRow = document.getElementById('receipt-member-row');
+    const receiptInfo = document.getElementById('receipt-member-info');
+    const discountLabel = document.getElementById('bill-discount-label');
+    const activeBadge = document.getElementById('loyalty-active-badge');
+    const clearBtn = document.getElementById('loyalty-clear-btn');
+
+    if (loyalty && loyalty.memberId) {
+      receiptRow.classList.remove('hidden');
+      receiptInfo.textContent = `${loyalty.memberName} (${loyalty.memberTierName || 'Member'})`;
+      activeBadge.textContent = loyalty.appliedPromoCode
+        ? `ใช้สิทธิ์: ${loyalty.appliedPromoCode}`
+        : `ผูกสมาชิก: ${loyalty.memberName}`;
+      activeBadge.classList.remove('hidden');
+      clearBtn.classList.remove('hidden');
+      if (discountLabel) {
+        discountLabel.textContent = loyalty.appliedPromoTitle && discount > 0
+          ? `${T('checkout.discount')} (${loyalty.appliedPromoCode || loyalty.appliedPromoTitle})`
+          : T('checkout.discount');
+      }
+    } else {
+      receiptRow.classList.add('hidden');
+      receiptInfo.textContent = '';
+      activeBadge.classList.add('hidden');
+      clearBtn.classList.add('hidden');
+      if (discountLabel) discountLabel.textContent = T('checkout.discount');
+    }
+  }
+
+  function showLoyaltyStatus(msg, isError = false) {
+    const el = document.getElementById('loyalty-status-msg');
+    el.textContent = msg;
+    el.className = `mt-2 text-xs font-semibold ${isError ? 'text-red-700' : 'text-emerald-800'}`;
+    el.classList.remove('hidden');
+  }
+
+  function populateLoyaltyMemberBox(data) {
+    lookedUpMemberData = data;
+    const member = data.member;
+    const memberBox = document.getElementById('loyalty-member-box');
+    const quickReg = document.getElementById('loyalty-quick-register');
+    const select = document.getElementById('loyalty-benefit-select');
+
+    quickReg.classList.add('hidden');
+    memberBox.classList.remove('hidden');
+
+    document.getElementById('loyalty-member-name').textContent = `${member.fullName} (${member.memberCode})`;
+    document.getElementById('loyalty-member-meta').textContent = `ระดับ ${member.tierName} · บิลนี้รับประมาณ +${data.estimatedEarnedPoints || 0} แต้ม`;
+    document.getElementById('loyalty-member-points').textContent = `${member.currentPoints} แต้ม`;
+
+    select.replaceChildren();
+    const optNone = document.createElement('option');
+    optNone.value = 'NONE';
+    optNone.textContent = 'สะสมแต้มอย่างเดียว (ไม่ใช้ส่วนลด)';
+    select.append(optNone);
+
+    if (data.tierBenefit && data.tierBenefit.discountPercent > 0) {
+      const optTier = document.createElement('option');
+      optTier.value = 'TIER';
+      optTier.textContent = `สิทธิ์บัตร ${member.tierName}: ลด ${data.tierBenefit.discountPercent}% (-${Admin.currency(data.tierBenefit.estimatedDiscount)} · ใช้ 0 แต้ม)`;
+      select.append(optTier);
+    }
+
+    for (const promo of data.availablePromotions || []) {
+      const opt = document.createElement('option');
+      opt.value = `PROMO:${promo.promotionId}`;
+      opt.disabled = !promo.eligible;
+      const costText = promo.pointsCost > 0 ? `ใช้ ${promo.pointsCost} แต้ม` : 'ฟรี 0 แต้ม';
+      if (promo.eligible) {
+        opt.textContent = `[${promo.promoCode}] ${promo.title} (-${Admin.currency(promo.estimatedDiscount)} · ${costText})`;
+      } else {
+        opt.textContent = `[${promo.promoCode}] ${promo.title} (${promo.ineligibleReason})`;
+      }
+      select.append(opt);
+    }
+
+    const currentLoyalty = selectedBill && selectedBill.loyalty;
+    if (currentLoyalty && Number(currentLoyalty.memberId) === Number(member.memberId)) {
+      if (currentLoyalty.benefitType === 'TIER') {
+        select.value = 'TIER';
+      } else if (currentLoyalty.benefitType === 'PROMO' && currentLoyalty.appliedPromotionId) {
+        const val = `PROMO:${currentLoyalty.appliedPromotionId}`;
+        if ([...select.options].some((o) => o.value === val)) select.value = val;
+      } else {
+        select.value = 'NONE';
+      }
+    }
+  }
+
+  async function lookupLoyaltyMember({ silentNotFound = false } = {}) {
+    const rawPhone = document.getElementById('loyalty-phone-input').value.trim();
+    if (!rawPhone) {
+      if (!silentNotFound) showLoyaltyStatus('กรุณากรอกเบอร์โทรศัพท์สมาชิก', true);
+      return;
+    }
+    const subtotal = (selectedBill && selectedBill.subtotal) || 0;
+    try {
+      const res = await Admin.api(`/api/members/lookup?phone=${encodeURIComponent(rawPhone)}&subtotal=${encodeURIComponent(subtotal)}`);
+      if (!res.data || !res.data.found) {
+        document.getElementById('loyalty-member-box').classList.add('hidden');
+        document.getElementById('loyalty-quick-register').classList.remove('hidden');
+        const fallbackName = (selectedSession && selectedSession.queueId && selectedSession.queueId.customerName)
+          || (selectedSession && selectedSession.queue && selectedSession.queue.customerName)
+          || '';
+        const regInput = document.getElementById('loyalty-register-name');
+        if (!regInput.value && fallbackName) regInput.value = fallbackName;
+        if (!silentNotFound) showLoyaltyStatus('ยังไม่พบเบอร์นี้ในระบบ สามารถสมัครสมาชิกด่วนด้านล่างได้เลย', false);
+        return;
+      }
+      document.getElementById('loyalty-status-msg').classList.add('hidden');
+      populateLoyaltyMemberBox(res.data);
+    } catch (error) {
+      if (!silentNotFound) showLoyaltyStatus(error.message || 'ค้นหาสมาชิกไม่สำเร็จ', true);
+    }
+  }
+
+  async function quickRegisterLoyaltyMember() {
+    const phone = document.getElementById('loyalty-phone-input').value.trim();
+    const fullName = document.getElementById('loyalty-register-name').value.trim() || 'ลูกค้าหน้าร้าน';
+    try {
+      const created = await Admin.api('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, phone }),
+      });
+      showLoyaltyStatus(`สมัครสมาชิก ${created.data.fullName} (${created.data.memberCode}) สำเร็จ!`);
+      await lookupLoyaltyMember();
+      await applySelectedLoyaltyBenefit();
+    } catch (error) {
+      showLoyaltyStatus(error.message || 'สมัครสมาชิกไม่สำเร็จ', true);
+    }
+  }
+
+  async function applySelectedLoyaltyBenefit() {
+    if (!selectedSessionId || !lookedUpMemberData || !lookedUpMemberData.member) return;
+    const rawChoice = document.getElementById('loyalty-benefit-select').value || 'NONE';
+    let benefitType = 'NONE';
+    let promotionId = null;
+    if (rawChoice === 'TIER') {
+      benefitType = 'TIER';
+    } else if (rawChoice.startsWith('PROMO:')) {
+      benefitType = 'PROMO';
+      promotionId = Number.parseInt(rawChoice.split(':')[1], 10);
+    }
+
+    try {
+      const res = await Admin.api('/api/payment/apply-loyalty', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: selectedSessionId,
+          memberId: lookedUpMemberData.member.memberId,
+          benefitType,
+          promotionId,
+        }),
+      });
+      showLoyaltyStatus(res.message || 'ใช้สิทธิ์สำเร็จ');
+      await loadBill();
+      await loadSessions();
+    } catch (error) {
+      showLoyaltyStatus(error.message || 'ไม่สามารถใช้สิทธิ์ได้', true);
+    }
+  }
+
+  async function clearSelectedLoyaltyBenefit() {
+    if (!selectedSessionId) return;
+    try {
+      const res = await Admin.api(`/api/payment/apply-loyalty/${encodeURIComponent(selectedSessionId)}`, {
+        method: 'DELETE',
+      });
+      showLoyaltyStatus(res.message || 'ยกเลิกสิทธิ์แล้ว');
+      await loadBill();
+      await loadSessions();
+    } catch (error) {
+      showLoyaltyStatus(error.message || 'ยกเลิกสิทธิ์ไม่สำเร็จ', true);
+    }
+  }
+
   async function confirmQrPayment() {
     if (!selectedQrPayment || !selectedQrPayment._id) {
       Admin.message(T('admin.checkout.noQrPending'), true);
@@ -379,9 +599,10 @@
     try {
       const payload = await Admin.api(`/api/payment/confirm-qr/${encodeURIComponent(selectedQrPayment._id)}`, { method: 'POST' });
       const receiptPaid = document.getElementById('receipt-paid');
-      receiptPaid.textContent = `${T('admin.checkout.receiptPaid', { amount: Admin.currency(payload.data.amount), change: Admin.currency(0) })}`;
+      receiptPaid.textContent = `${T('admin.checkout.receiptPaid', { amount: Admin.currency(payload.data.amount), change: Admin.currency(0) })}${formatLoyaltySettlementText(payload.loyalty)}`;
       receiptPaid.classList.remove('hidden');
       paymentForm.classList.add('hidden');
+      document.getElementById('loyalty-panel').classList.add('hidden');
       document.getElementById('print-receipt').classList.remove('hidden');
       await loadSessions();
     } catch (error) {
@@ -420,9 +641,10 @@
       document.getElementById('receipt-cash-row').classList.remove('hidden');
       document.getElementById('receipt-change-row').classList.remove('hidden');
       const receiptPaid = document.getElementById('receipt-paid');
-      receiptPaid.textContent = T('admin.checkout.receiptPaid', { amount: Admin.currency(payload.data.amount), change: Admin.currency(payload.data.changeDue) });
+      receiptPaid.textContent = `${T('admin.checkout.receiptPaid', { amount: Admin.currency(payload.data.amount), change: Admin.currency(payload.data.changeDue) })}${formatLoyaltySettlementText(payload.loyalty)}`;
       receiptPaid.classList.remove('hidden');
       paymentForm.classList.add('hidden');
+      document.getElementById('loyalty-panel').classList.add('hidden');
       document.getElementById('print-receipt').classList.remove('hidden');
       await loadSessions();
     } catch (error) {
@@ -434,6 +656,16 @@
     }
   }
 
+  document.getElementById('loyalty-search-btn').addEventListener('click', () => lookupLoyaltyMember());
+  document.getElementById('loyalty-phone-input').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      lookupLoyaltyMember();
+    }
+  });
+  document.getElementById('loyalty-register-btn').addEventListener('click', quickRegisterLoyaltyMember);
+  document.getElementById('loyalty-apply-btn').addEventListener('click', applySelectedLoyaltyBenefit);
+  document.getElementById('loyalty-clear-btn').addEventListener('click', clearSelectedLoyaltyBenefit);
   document.getElementById('cash-received').addEventListener('input', updateCashPreview);
   document.getElementById('checkout-view-switcher').addEventListener('click', (event) => {
     const button = event.target.closest('[data-checkout-view]');

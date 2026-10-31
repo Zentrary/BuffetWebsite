@@ -25,5 +25,19 @@ router.post(
   paymentController.confirmQrPayment
 );
 
+router.post(
+  '/apply-loyalty',
+  protect,
+  authorize('admin', 'manager', 'waiter'),
+  paymentController.applyLoyaltyBenefit
+);
+
+router.delete(
+  '/apply-loyalty/:sessionId',
+  protect,
+  authorize('admin', 'manager', 'waiter'),
+  paymentController.clearLoyaltyBenefit
+);
+
 // Export the payment router for mounting at /api/payment.
 module.exports = router;

@@ -10,6 +10,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const { Server } = require('socket.io');
 const connectDB = require('./config/db');
+const { connectSqlOptional } = require('./config/sqlDb');
 const { initSocket } = require('./sockets/socketHandler');
 const authRoutes = require('./routes/authRoutes');
 const queueRoutes = require('./routes/queueRoutes');
@@ -22,6 +23,7 @@ const tableRoutes = require('./routes/tableRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const memberRoutes = require('./routes/memberRoutes');
 const { startShopSchedule } = require('./services/shopSchedule');
 const { startReconcileLoop } = require('./services/reconcileState');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
@@ -95,6 +97,7 @@ app.use('/api/table', tableRoutes);
 app.use('/api/report', reportRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/members', memberRoutes);
 
 // Register not-found handling after all routes and error handling last.
 app.use(notFound);
@@ -106,6 +109,7 @@ async function startServer() {
 
   try {
     await connectDB();
+    await connectSqlOptional();
     await new Promise((resolve, reject) => {
       httpServer.once('error', reject);
       httpServer.listen(port, '0.0.0.0', () => {

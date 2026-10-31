@@ -8,9 +8,35 @@ const { calculateCashChange } = require('../utils/calculateCashChange');
 const { calculateOrderSubtotal } = require('../utils/calculateOrderSubtotal');
 const { completeSeatedQueuesForSession } = require('../services/queueLifecycle');
 const {
+  evaluateBenefitForBill,
+  settleSessionLoyalty,
+} = require('../services/loyaltySqlService');
+const {
   canCompletePayment,
   canTransitionTable,
 } = require('../utils/sessionLifecycle');
+
+function clampSessionDiscount(subtotal, discount) {
+  const safeSubtotal = Math.max(0, Number(subtotal) || 0);
+  const safeDiscount = Math.max(0, Number(discount) || 0);
+  return Math.min(safeDiscount, safeSubtotal);
+}
+
+function buildSessionLoyaltyMeta(session) {
+  if (!session || !session.memberId) return null;
+  return {
+    memberId: session.memberId,
+    memberPhone: session.memberPhone || '',
+    memberName: session.memberName || '',
+    memberTierName: session.memberTierName || '',
+    benefitType: session.benefitType || 'NONE',
+    appliedPromotionId: session.appliedPromotionId || null,
+    appliedPromoCode: session.appliedPromoCode || '',
+    appliedPromoTitle: session.appliedPromoTitle || '',
+    pointsToRedeem: Number(session.pointsToRedeem) || 0,
+    pointsEarned: Number(session.pointsEarned) || 0,
+  };
+}
 
 /**
  * Calculate and persist the current bill for a session.
@@ -31,11 +57,15 @@ async function calculateBill(req, res) {
       status: { $ne: 'cancelled' },
     });
     const subtotal = calculateOrderSubtotal(orders);
-    const bill = calculateTotal(subtotal, session.discount || 0);
+    const bill = calculateTotal(subtotal, clampSessionDiscount(subtotal, session.discount));
     Object.assign(session, bill);
     await session.save();
 
-    return res.status(200).json({ success: true, data: bill, message: 'คำนวณยอดชำระสำเร็จ' });
+    return res.status(200).json({
+      success: true,
+      data: { ...bill, loyalty: buildSessionLoyaltyMeta(session) },
+      message: 'คำนวณยอดชำระสำเร็จ',
+    });
   } catch (error) {
     console.error('Calculate bill failed:', error);
     const status = error.name === 'CastError' || error instanceof RangeError ? 400 : 500;
@@ -97,7 +127,7 @@ async function processPayment(req, res) {
 
     const orders = await Order.find({ sessionId: session._id, status: { $ne: 'cancelled' } });
     const subtotal = calculateOrderSubtotal(orders);
-    Object.assign(session, calculateTotal(subtotal, session.discount || 0));
+    Object.assign(session, calculateTotal(subtotal, clampSessionDiscount(subtotal, session.discount)));
     const now = new Date();
     const userId = req.user && (req.user.id || req.user._id);
     if (method === 'qr_payment') {
@@ -107,6 +137,10 @@ async function processPayment(req, res) {
         status: 'pending',
       });
       if (existingPendingPayment) {
+        if (existingPendingPayment.amount !== session.grandTotal) {
+          existingPendingPayment.amount = session.grandTotal;
+          await existingPendingPayment.save();
+        }
         return res.status(202).json({
           success: true,
           data: existingPendingPayment,
@@ -247,9 +281,32 @@ async function processPayment(req, res) {
       console.error('Closing seated queue after payment failed:', queueError);
     }
 
-        const io = req.app.get('io');
+    let loyalty = null;
+    if (paidSession.memberId) {
+      try {
+        loyalty = await settleSessionLoyalty(paidSession, {
+          username: (req.user && req.user.username) || 'staff',
+        });
+        if (loyalty && !loyalty.alreadySettled) {
+          await Session.updateOne(
+            { _id: paidSession._id },
+            {
+              $set: {
+                pointsEarned: loyalty.pointsEarned || 0,
+                loyaltyProcessedAt: new Date(),
+                memberTierName: (loyalty.member && loyalty.member.tierName) || paidSession.memberTierName,
+              },
+            }
+          );
+        }
+      } catch (loyaltyError) {
+        console.error('SQL loyalty settlement after cash payment failed:', loyaltyError.message);
+      }
+    }
+
+    const io = req.app.get('io');
     if (io) {
-      const event = { payment, sessionId: session._id, amount: payment.amount };
+      const event = { payment, sessionId: session._id, amount: payment.amount, loyalty };
       io.to('admin').emit('payment_completed', event);
       // Notify the customer's own room so the browser can redirect to feedback.
       io.to(`customer_${session._id}`).emit('payment_completed', event);
@@ -258,7 +315,7 @@ async function processPayment(req, res) {
         sessionId: session._id,
       });
     }
-    return res.status(201).json({ success: true, data: payment, message: 'บันทึกการชำระเงินสำเร็จ' });
+    return res.status(201).json({ success: true, data: payment, loyalty, message: 'บันทึกการชำระเงินสำเร็จ' });
   } catch (error) {
     const status = error.name === 'CastError'
       || error.name === 'ValidationError'
@@ -288,7 +345,7 @@ async function getPaymentSessions(req, res) {
       isPaid: false,
     })
       .populate('tableId', 'tableNumber zone')
-      .populate('queueId', 'queueNumber')
+      .populate('queueId', 'queueNumber customerName customerPhone')
       .sort({ startTime: -1 })
       .limit(200);
     const sessionIds = sessions.map((session) => session._id);
@@ -341,7 +398,8 @@ async function getPaymentSessions(req, res) {
         pendingPayment: pendingBySession.get(String(session._id)) || null,
         items,
         itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
-        bill: calculateTotal(subtotal, session.discount || 0),
+        bill: calculateTotal(subtotal, clampSessionDiscount(subtotal, session.discount)),
+        loyalty: buildSessionLoyaltyMeta(session),
       };
     });
     return res.status(200).json({ success: true, data, message: 'ดึงรายการรอชำระสำเร็จ' });
@@ -423,7 +481,7 @@ async function confirmQrPayment(req, res) {
 
     const orders = await Order.find({ sessionId: session._id, status: { $ne: 'cancelled' } });
     const subtotal = calculateOrderSubtotal(orders);
-    Object.assign(session, calculateTotal(subtotal, session.discount || 0));
+    Object.assign(session, calculateTotal(subtotal, clampSessionDiscount(subtotal, session.discount)));
 
     const now = new Date();
     const previousStatus = session.status;
@@ -541,9 +599,32 @@ async function confirmQrPayment(req, res) {
       console.error('Closing seated queue after QR payment failed:', queueError);
     }
 
+    let loyalty = null;
+    if (paidSession.memberId) {
+      try {
+        loyalty = await settleSessionLoyalty(paidSession, {
+          username: (req.user && req.user.username) || 'staff',
+        });
+        if (loyalty && !loyalty.alreadySettled) {
+          await Session.updateOne(
+            { _id: paidSession._id },
+            {
+              $set: {
+                pointsEarned: loyalty.pointsEarned || 0,
+                loyaltyProcessedAt: new Date(),
+                memberTierName: (loyalty.member && loyalty.member.tierName) || paidSession.memberTierName,
+              },
+            }
+          );
+        }
+      } catch (loyaltyError) {
+        console.error('SQL loyalty settlement after QR payment failed:', loyaltyError.message);
+      }
+    }
+
     const io = req.app.get('io');
     if (io) {
-      const event = { payment: completedPayment, sessionId: paidSession._id, amount: completedPayment.amount };
+      const event = { payment: completedPayment, sessionId: paidSession._id, amount: completedPayment.amount, loyalty };
       io.to('admin').emit('payment_completed', event);
       io.to(`customer_${paidSession._id}`).emit('payment_completed', event);
       io.to('admin').to('waiter').emit('table_waiting_for_cleaning', {
@@ -555,6 +636,7 @@ async function confirmQrPayment(req, res) {
     return res.status(200).json({
       success: true,
       data: completedPayment,
+      loyalty,
       message: 'ยืนยันการชำระเงินสำเร็จ',
     });
   } catch (error) {
@@ -569,5 +651,148 @@ async function confirmQrPayment(req, res) {
   }
 }
 
+/**
+ * Link a SQL Member and optional Tier/Promo discount to an unpaid dining session.
+ */
+async function applyLoyaltyBenefit(req, res) {
+  try {
+    const { sessionId, memberId, benefitType = 'NONE', promotionId = null } = req.body || {};
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ success: false, code: 'SESSION_NOT_FOUND', data: null, message: 'ไม่พบรอบรับประทานนี้' });
+    }
+    if (session.isPaid || session.status === 'completed' || session.status === 'cancelled') {
+      return res.status(409).json({ success: false, code: 'SESSION_ALREADY_PAID', data: null, message: 'รอบรับประทานนี้ปิดหรือชำระเงินไปแล้ว' });
+    }
+
+    const orders = await Order.find({ sessionId: session._id, status: { $ne: 'cancelled' } });
+    const subtotal = calculateOrderSubtotal(orders);
+
+    const evaluated = await evaluateBenefitForBill({
+      memberId,
+      benefitType,
+      promotionId,
+      subtotal,
+    });
+
+    const clampedDiscount = clampSessionDiscount(subtotal, evaluated.discountAmount);
+    const bill = calculateTotal(subtotal, clampedDiscount);
+
+    Object.assign(session, bill, {
+      memberId: evaluated.member.memberId,
+      memberPhone: evaluated.member.phone,
+      memberName: evaluated.member.fullName,
+      memberTierName: evaluated.member.tierName,
+      benefitType: evaluated.benefitType,
+      appliedPromotionId: evaluated.appliedPromotionId,
+      appliedPromoCode: evaluated.appliedPromoCode,
+      appliedPromoTitle: evaluated.appliedPromoTitle,
+      pointsToRedeem: evaluated.pointsToRedeem,
+    });
+    await session.save();
+
+    await Payment.updateMany(
+      { sessionId: session._id, method: 'qr_payment', status: { $in: ['pending', 'awaiting_confirmation'] } },
+      { $set: { amount: session.grandTotal } }
+    );
+
+    const io = req.app.get('io');
+    if (io) {
+      const payload = { sessionId: session._id, bill, loyalty: buildSessionLoyaltyMeta(session) };
+      io.to(`customer_${session._id}`).emit('bill_updated', payload);
+      io.to('admin').emit('bill_updated', payload);
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        bill,
+        loyalty: buildSessionLoyaltyMeta(session),
+        member: evaluated.member,
+      },
+      message: clampedDiscount > 0
+        ? `ใช้สิทธิ์ส่วนลด ฿${clampedDiscount.toFixed(2)} สำเร็จ`
+        : `ผูกสมาชิก ${evaluated.member.fullName} สำหรับสะสมแต้มสำเร็จ`,
+    });
+  } catch (error) {
+    const status = error.status || (error.name === 'CastError' || error instanceof RangeError ? 400 : 500);
+    if (status >= 500) console.error('Apply loyalty benefit failed:', error);
+    return res.status(status).json({
+      success: false,
+      code: error.code || 'REQUEST_FAILED',
+      data: null,
+      message: error.message || 'ไม่สามารถใช้สิทธิ์สมาชิกได้',
+    });
+  }
+}
+
+/**
+ * Remove any linked SQL Member & discount from an unpaid dining session.
+ */
+async function clearLoyaltyBenefit(req, res) {
+  try {
+    const sessionId = req.params.sessionId || (req.body && req.body.sessionId);
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ success: false, code: 'SESSION_NOT_FOUND', data: null, message: 'ไม่พบรอบรับประทานนี้' });
+    }
+    if (session.isPaid || session.status === 'completed' || session.status === 'cancelled') {
+      return res.status(409).json({ success: false, code: 'SESSION_ALREADY_PAID', data: null, message: 'รอบรับประทานนี้ปิดหรือชำระเงินไปแล้ว' });
+    }
+
+    const orders = await Order.find({ sessionId: session._id, status: { $ne: 'cancelled' } });
+    const subtotal = calculateOrderSubtotal(orders);
+    const bill = calculateTotal(subtotal, 0);
+
+    Object.assign(session, bill, {
+      memberId: null,
+      memberPhone: '',
+      memberName: '',
+      memberTierName: '',
+      benefitType: '',
+      appliedPromotionId: null,
+      appliedPromoCode: '',
+      appliedPromoTitle: '',
+      pointsToRedeem: 0,
+    });
+    await session.save();
+
+    await Payment.updateMany(
+      { sessionId: session._id, method: 'qr_payment', status: { $in: ['pending', 'awaiting_confirmation'] } },
+      { $set: { amount: session.grandTotal } }
+    );
+
+    const io = req.app.get('io');
+    if (io) {
+      const payload = { sessionId: session._id, bill, loyalty: null };
+      io.to(`customer_${session._id}`).emit('bill_updated', payload);
+      io.to('admin').emit('bill_updated', payload);
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: { bill, loyalty: null },
+      message: 'ยกเลิกการใช้สิทธิ์สมาชิก/คูปองแล้ว',
+    });
+  } catch (error) {
+    const status = error.name === 'CastError' ? 400 : 500;
+    if (status >= 500) console.error('Clear loyalty benefit failed:', error);
+    return res.status(status).json({
+      success: false,
+      code: 'REQUEST_FAILED',
+      data: null,
+      message: 'ไม่สามารถยกเลิกสิทธิ์ส่วนลดได้',
+    });
+  }
+}
+
 // Export payment handlers for route registration.
-module.exports = { calculateBill, getPaymentSessions, processPayment, getPaymentHistory, confirmQrPayment };
+module.exports = {
+  calculateBill,
+  getPaymentSessions,
+  processPayment,
+  getPaymentHistory,
+  confirmQrPayment,
+  applyLoyaltyBenefit,
+  clearLoyaltyBenefit,
+};
