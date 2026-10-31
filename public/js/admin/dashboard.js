@@ -16,6 +16,7 @@
   });
   let chart;
   let averageDiningMinutes = null;
+  let lastBusinessDates = null;
   const role = Admin.user.role;
   const rolePrefix = role === 'manager' ? 'admin.dashboardManager' : 'admin.dashboardAdmin';
 
@@ -64,8 +65,13 @@
     });
     const dateEl = document.getElementById('dashboard-date');
     if (dateEl) dateEl.textContent = new Date().toLocaleDateString(currentLocale(), { dateStyle: 'full' });
-    if (chart) chart.data.datasets[0].label = `${T('admin.todaySales')} (${T('common.baht')})`;
-    if (chart) chart.update();
+    if (chart) {
+      if (Array.isArray(lastBusinessDates) && lastBusinessDates.length) {
+        chart.data.labels = lastBusinessDates.map((key) => new Date(`${key}T00:00:00`).toLocaleDateString(currentLocale(), { day: 'numeric', month: 'short' }));
+      }
+      chart.data.datasets[0].label = `${T('admin.todaySales')} (${T('common.baht')})`;
+      chart.update();
+    }
     renderAverageDining();
   }
   updateRoleHeader();
@@ -120,6 +126,7 @@
       const businessDates = Array.isArray(salesWeek.data.dates) && salesWeek.data.dates.length === 7
         ? salesWeek.data.dates
         : lastSevenDays().map((date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
+      lastBusinessDates = businessDates;
       const labels = businessDates.map((key) => new Date(`${key}T00:00:00`).toLocaleDateString(currentLocale(), { day: 'numeric', month: 'short' }));
       const values = businessDates.map((key) => salesByDay.get(key) || 0);
       if (typeof Chart === 'function') {

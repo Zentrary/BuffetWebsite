@@ -5,6 +5,8 @@
   const spinner = document.getElementById('login-spinner');
   const label = document.getElementById('login-label');
   const errorElement = document.getElementById('login-error');
+  const T = (key, vars) => (window.t ? window.t(key, vars) : key);
+  let isSubmitting = false;
   const roleDestinations = {
     admin: '/admin/dashboard.html',
     manager: '/admin/dashboard.html',
@@ -17,7 +19,9 @@
       '/admin/manage-queue.html',
       '/admin/manage-tables.html',
       '/admin/manage-menu.html',
+      '/admin/manage-members.html',
       '/admin/manage-staff.html',
+      '/admin/admin-setting.html',
       '/admin/reports.html',
       '/admin/checkout.html',
     ]),
@@ -26,6 +30,7 @@
       '/admin/manage-queue.html',
       '/admin/manage-tables.html',
       '/admin/manage-menu.html',
+      '/admin/manage-members.html',
       '/admin/reports.html',
       '/admin/checkout.html',
     ]),
@@ -38,10 +43,15 @@
    * @param {boolean} loading - Whether a login request is in progress.
    */
   function setLoading(loading) {
+    isSubmitting = loading;
     button.disabled = loading;
     spinner.classList.toggle('hidden', !loading);
-    label.textContent = loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ';
+    label.textContent = loading ? T('login.signingIn') : T('login.signIn');
   }
+
+  window.addEventListener('languageChanged', () => {
+    label.textContent = isSubmitting ? T('login.signingIn') : T('login.signIn');
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -62,21 +72,21 @@
       if (!contentType.toLowerCase().includes('application/json')) {
         await response.text();
         if (response.status === 404) {
-          throw new Error('ไม่พบ API เข้าสู่ระบบบน deployment นี้ กรุณา deploy โค้ด Vercel ล่าสุด');
+          throw new Error(T('login.apiMissing'));
         }
-        throw new Error(`เซิร์ฟเวอร์ตอบกลับไม่ใช่ JSON (HTTP ${response.status})`);
+        throw new Error(T('login.invalidResponse', { status: response.status }));
       }
 
       const payload = await response.json();
       if (!response.ok || !payload.success) {
-        throw new Error((payload.code && window.t && window.t(`error.${payload.code}`))
-          || payload.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+        throw new Error((payload.code && T(`error.${payload.code}`))
+          || payload.message || T('error.INVALID_CREDENTIALS'));
       }
 
       const role = payload.data.user.role;
       const defaultDestination = roleDestinations[role];
       if (!defaultDestination || !payload.data.token) {
-        throw new Error('บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานหน้าจอพนักงาน');
+        throw new Error(T('login.unauthorizedRole'));
       }
 
       const requestedDestination = new URLSearchParams(window.location.search).get('next');
@@ -97,7 +107,7 @@
       localStorage.removeItem('staffUser');
       window.location.assign(destination);
     } catch (error) {
-      errorElement.textContent = error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+      errorElement.textContent = error.message || T('common.error');
       errorElement.classList.remove('hidden');
     } finally {
       setLoading(false);

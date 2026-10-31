@@ -342,7 +342,7 @@
       
       const priceDisplay = Number(menu.price) > 0 
         ? Admin.currency(menu.price) 
-        : '<span class="text-sm font-normal text-slate-400">ยังไม่กำหนดราคา</span>';
+        : `<span class="text-sm font-normal text-slate-400">${Admin.escapeHTML(T('admin.priceNotSet'))}</span>`;
 
       const row = document.createElement('tr');
       row.innerHTML = `

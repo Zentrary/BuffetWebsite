@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const sql = require('mssql');
-const initSqlJs = require('sql.js');
+const initSqlJs = require('sql.js/dist/sql-wasm-inline.js');
 
 const DEFAULT_SQL_DB_NAME = 'BuffetLoyaltyDB';
 const LOCAL_SQLITE_PATH = path.join(__dirname, '..', '.data', 'buffet-loyalty-local.sqlite');

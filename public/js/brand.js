@@ -124,7 +124,8 @@
     dec.dataset.stepperBtn = 'dec';
     dec.className = STEPPER_BTN_CLASS;
     dec.textContent = '−';
-    dec.setAttribute('aria-label', 'ลดลง');
+    dec.setAttribute('data-i18n-aria-label', 'common.decrease');
+    dec.setAttribute('aria-label', (window.t && window.t('common.decrease')) || 'ลดลง');
 
     const inc = document.createElement('button');
     inc.type = 'button';
@@ -132,7 +133,8 @@
     inc.dataset.stepperBtn = 'inc';
     inc.className = STEPPER_BTN_CLASS;
     inc.textContent = '+';
-    inc.setAttribute('aria-label', 'เพิ่มขึ้น');
+    inc.setAttribute('data-i18n-aria-label', 'common.increase');
+    inc.setAttribute('aria-label', (window.t && window.t('common.increase')) || 'เพิ่มขึ้น');
 
     wrapper.insertBefore(dec, input);
     wrapper.appendChild(inc);

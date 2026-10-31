@@ -120,6 +120,10 @@
     socket.on('queue_seated', refreshQueue);
   }
 
+  window.addEventListener('languageChanged', () => {
+    if (queueId && accessToken) refreshQueue();
+  });
+
   if (queueId && accessToken) {
     startTracking();
   }

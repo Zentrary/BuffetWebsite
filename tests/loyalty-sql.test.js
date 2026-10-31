@@ -407,15 +407,52 @@ test('Every DOM ID and i18n key used by manage-members and checkout loyalty UI e
     assert.match(checkoutHtml, new RegExp(`id=["']${id}["']`), `admin/checkout.html missing #${id}`);
   }
 
-  // Verify every data-i18n and data-i18n-placeholder on manage-members.html & checkout.html exists in th.json and en.json
-  for (const html of [membersHtml, checkoutHtml]) {
+  // Verify every data-i18n* key across ALL HTML files and T('...') key across ALL JS files exists in both th.json and en.json
+  assert.deepEqual(
+    Object.keys(thLocale).sort(),
+    Object.keys(enLocale).sort(),
+    'th.json and en.json must have identical translation key sets'
+  );
+
+  // Ensure production UI has no visible SQL/SSMS assignment labels
+  assert.doesNotMatch(membersHtml, /\b(SQL|SSMS)\b/i, 'manage-members.html must not show SQL/SSMS wording');
+  assert.doesNotMatch(checkoutHtml, /\b(SQL|SSMS)\b/i, 'admin/checkout.html must not show SQL/SSMS wording');
+  for (const [k, v] of [...Object.entries(thLocale), ...Object.entries(enLocale)]) {
+    assert.doesNotMatch(String(v), /\b(SQL|SSMS)\b/i, `Locale value for "${k}" must not expose SQL/SSMS`);
+  }
+
+  function walkFiles(dir, ext) {
+    let out = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) out = out.concat(walkFiles(full, ext));
+      else if (full.endsWith(ext)) out.push(full);
+    }
+    return out;
+  }
+
+  const publicDir = path.resolve(__dirname, '../public');
+  for (const htmlFile of walkFiles(publicDir, '.html')) {
+    const html = fs.readFileSync(htmlFile, 'utf8');
     const keys = [
       ...[...html.matchAll(/data-i18n=["']([^"']+)["']/g)].map((m) => m[1]),
       ...[...html.matchAll(/data-i18n-placeholder=["']([^"']+)["']/g)].map((m) => m[1]),
+      ...[...html.matchAll(/data-i18n-aria-label=["']([^"']+)["']/g)].map((m) => m[1]),
+      ...[...html.matchAll(/data-i18n-title=["']([^"']+)["']/g)].map((m) => m[1]),
     ];
     for (const key of keys) {
-      assert.ok(Object.prototype.hasOwnProperty.call(thLocale, key), `th.json missing key "${key}"`);
-      assert.ok(Object.prototype.hasOwnProperty.call(enLocale, key), `en.json missing key "${key}"`);
+      assert.ok(Object.prototype.hasOwnProperty.call(thLocale, key), `th.json missing key "${key}" used in ${path.relative(publicDir, htmlFile)}`);
+      assert.ok(Object.prototype.hasOwnProperty.call(enLocale, key), `en.json missing key "${key}" used in ${path.relative(publicDir, htmlFile)}`);
+    }
+  }
+
+  for (const jsFile of walkFiles(path.join(publicDir, 'js'), '.js')) {
+    const src = fs.readFileSync(jsFile, 'utf8');
+    for (const m of src.matchAll(/\b(?:T|window\.t)\(\s*['"]([^'"${}]+)['"]/g)) {
+      const key = m[1];
+      if (key.endsWith('.')) continue;
+      assert.ok(Object.prototype.hasOwnProperty.call(thLocale, key), `th.json missing key "${key}" used in ${path.relative(publicDir, jsFile)}`);
+      assert.ok(Object.prototype.hasOwnProperty.call(enLocale, key), `en.json missing key "${key}" used in ${path.relative(publicDir, jsFile)}`);
     }
   }
 });
